@@ -10,4 +10,4 @@ RUN R -e 'install.packages("renv")'
 
 # COPY renv.lock renv.lock
 
-CMD ["/bin/bash"]
+CMD ["/init"]
