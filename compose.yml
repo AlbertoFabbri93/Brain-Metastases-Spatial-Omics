@@ -19,7 +19,7 @@ services:
       # renv cache
       - "${RENV_PATHS_CACHE_HOST}:${RENV_PATHS_CACHE_CONTAINER}"
     command: |
-      sh -c "R -e 'if(file.exists(\"/home/rstudio/workspace/renv.lock\")) { renv::restore(); renv::activate(); } else { print(\"No renv.lock found!\"); };' && /usr/lib/rstudio-server/bin/rserver --server-daemonize=0"
+      sh -c "R -e 'if(file.exists(\"/home/rstudio/workspace/renv.lock\")) { renv::restore(); renv::activate(); } else { print(\"No renv.lock found!\"); };' && /init"
     # entrypoint: /usr/bin/tail
     stdin_open: true
     tty: true
