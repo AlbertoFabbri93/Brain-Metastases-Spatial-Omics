@@ -1,0 +1,28 @@
+services:
+  rstudio:
+    build:
+     context: .
+     dockerfile: Dockerfile
+    env_file: .env
+    ports:
+      - "127.0.0.1:8787:8787"
+      - "14618:14618"
+    environment:
+      DISABLE_AUTH: true
+      # used only if disable_auth is false
+      PASSWORD: ${PASSWORD}
+    volumes:
+      # configuration files
+      - ./.rstudio_config:/home/rstudio/.config/rstudio
+      # project files
+      - ~/Documents/University/Research_Project/Project:/home/rstudio/workspace
+      # renv cache
+      - "${RENV_PATHS_CACHE_HOST}:${RENV_PATHS_CACHE_CONTAINER}"
+    command: |
+      R -e 'if(file.exists("/home/rstudio/workspace/renv.lock")) {
+        renv::restore()
+        renv::activate()
+      } else {
+        print("No renv.lock found!")
+      }'
+      
