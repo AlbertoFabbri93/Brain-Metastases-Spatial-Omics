@@ -1,12 +1,23 @@
+---
+title: "Breast Cancer - Brain Metastases"
+output: html_notebook
+---
+
+```{r}
 library(data.table)
 library(tidyverse)
 library(Seurat)
 library(future)
+# Parallelize the computation with several worker processes that will run in their own R session
 plan("multisession", workers = 6)
 library(ggplot2)
 library(InSituType)
 library(openxlsx)
+```
 
+All patients
+
+```{r}
 # Get cell reference profile data from NanoString
 # Use this reference profile as it is the only one available from CosMx data
 ioprofiles=read.csv(url("https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv"),header=T,sep=",", fill=T )
@@ -14,21 +25,25 @@ rownames(ioprofiles)=ioprofiles[,1]
 ioprofiles=ioprofiles[,-1]%>%as.matrix()
 
 # Cohort of all the patients
-obj.LU001FFP03.bca.good.small=readRDS("./obj.LU001FFP03.bca.good.small.rds")
-immunofluorescence = obj.LU001FFP03.bca.good.small@meta.data %>%select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+breast.cancer.patients=readRDS("./breast.cancer.patients.rds")
+immunofluorescence = breast.cancer.patients@meta.data %>%select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
 cohort <- fastCohorting(immunofluorescence,
                         gaussian_transform = TRUE, n_cohorts = 5)
 #check clusters and cohort numbers
 table(cohort)
 
 # List of the gene data (1000-plex RNA)
-rownames(obj.LU001FFP03.bca.good.small)
+rownames(breast.cancer.patients)
 
 # Print all the patients ID
-sort(unique(unlist(obj.LU001FFP03.bca.good.small$Patient.ID)))
+sort(unique(unlist(breast.cancer.patients$Patient.ID)))
+```
 
+Patient 7
+
+```{r}
 # Extract data from patient 7
-patient7data = subset(x = obj.LU001FFP03.bca.good.small, subset = Patient.ID == "7")
+patient7data = subset(x = breast.cancer.patients, subset = Patient.ID == "7")
 # FOVs associated with the patient
 table(patient7data@meta.data$fov)
 
@@ -57,9 +72,9 @@ Seurat::Idents(patient7data)="seurat_clusters"
 # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
 patient7umap = DimPlot(patient7data, reduction = "umap", group.by = "seurat_clusters")
 # Label clusters on a ggplot2-based scatter plot
-LabelClusters(plot = patient7umap, id = "seurat_clusters")
+LabelClusters(plot = patient7umap, id = "seurat_clusters") + ggtitle("Patient 7", subtitle = "Seurat Clusters")
 # Plot the Mean Pan CK
-FeaturePlot(patient7data, features = "Mean.PanCK")
+FeaturePlot(patient7data, features = "Mean.PanCK", min.cutoff = 2000)
 # Plot KRT17
 FeaturePlot(patient7data, features = "KRT17")
 
@@ -71,7 +86,7 @@ table(cohort)
 
 # Extract the count data from the Seurat object
 patient7rna.counts<- GetAssayData(subset(patient7data, features = row.names(GetAssayData(patient7data))[1:1000] )) %>% as.matrix() %>% t()
-
+```
 
 # Semi-supervised learning with insitutype and reference profiles
 patient7semisup <- insitutype(
