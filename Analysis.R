@@ -1,4 +1,112 @@
+library(data.table)
+library(tidyverse)
 library(Seurat)
 library(future)
-plan("multisession", workers = 10)
+plan("multisession", workers = 6)
 library(ggplot2)
+library(InSituType)
+library(openxlsx)
+
+# Get cell reference profile data from NanoString
+# Use this reference profile as it is the only one available from CosMx data
+ioprofiles=read.csv(url("https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv"),header=T,sep=",", fill=T )
+rownames(ioprofiles)=ioprofiles[,1]
+ioprofiles=ioprofiles[,-1]%>%as.matrix()
+
+# Cohort of all the patients
+obj.LU001FFP03.bca.good.small=readRDS("./obj.LU001FFP03.bca.good.small.rds")
+immunofluorescence = obj.LU001FFP03.bca.good.small@meta.data %>%select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+cohort <- fastCohorting(immunofluorescence,
+                        gaussian_transform = TRUE, n_cohorts = 5)
+#check clusters and cohort numbers
+table(cohort)
+
+# List of the gene data (1000-plex RNA)
+rownames(obj.LU001FFP03.bca.good.small)
+
+# Print all the patients ID
+sort(unique(unlist(obj.LU001FFP03.bca.good.small$Patient.ID)))
+
+# Extract data from patient 7
+patient7data = subset(x = obj.LU001FFP03.bca.good.small, subset = Patient.ID == "7")
+# FOVs associated with the patient
+table(patient7data@meta.data$fov)
+
+# Normalize the count data present in a given assay
+patient7data <- NormalizeData(patient7data, assay="Nanostring")
+# Scales and centers features in the dataset
+patient7data <- ScaleData(patient7data)
+# Detect highly variable genes for the pca
+# Identifies features that are outliers on a 'mean variability plot'
+patient7data <- FindVariableFeatures(patient7data)
+# Run a PCA dimensionality reduction
+patient7data <- RunPCA(patient7data)
+# Show the significance of every principal component of the PCA
+# It can be used to decide the number of dims of the FindNeighbors function
+ElbowPlot(patient7data, ndims = 50)
+# Computes the k.param nearest neighbors
+patient7data <- Seurat::FindNeighbors(patient7data, dims = 1:25)
+# Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
+# Use the resolution parameter to fine tune the number of expected clusters
+patient7data <- Seurat::FindClusters(patient7data,  resolution = 0.8)
+# Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
+patient7data <- RunUMAP(patient7data, dims = 1:30, repulsion.strength = 5)
+
+Seurat::Idents(patient7data)="seurat_clusters"
+# Graphs the output of a dimensional reduction technique on a 2D scatter plot 
+# Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
+patient7umap = DimPlot(patient7data, reduction = "umap", group.by = "seurat_clusters")
+# Label clusters on a ggplot2-based scatter plot
+LabelClusters(plot = patient7umap, id = "seurat_clusters")
+# Plot the Mean Pan CK
+FeaturePlot(patient7data, features = "Mean.PanCK")
+# Plot KRT17
+FeaturePlot(patient7data, features = "KRT17")
+
+# Cohort of all the patients
+patient7immunofluorescence = patient7data@meta.data %>%select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+cohort <- fastCohorting(patient7immunofluorescence, gaussian_transform = TRUE, n_cohorts = 5)
+#check clusters and cohort numbers
+table(cohort)
+
+# Extract the count data from the Seurat object
+patient7rna.counts<- GetAssayData(subset(patient7data, features = row.names(GetAssayData(patient7data))[1:1000] )) %>% as.matrix() %>% t()
+
+
+# Semi-supervised learning with insitutype and reference profiles
+patient7semisup <- insitutype(
+  x = patient7ran.counts,
+  neg = Matrix::rowMeans(neg.probes),
+  cohort = cohort,
+  reference_profiles = ioprofiles,
+  
+  # Enter your own per-cell background estimates here if you
+  # have them; otherwise insitutype will use the negprobes to
+  # estimate background for you.
+  bg = NULL,
+  # condensed to save time. n_clusts = 5:15 would be more optimal
+  # Group the cells the do not correspond to any type in the reference matrix
+  n_clusts = c(4:6),
+  # reference_profiles = updatedprofiles$updated_profiles,
+  # Update the reference profile based on the current data
+  update_reference_profiles = FALSE,
+  # choosing inadvisably low numbers to speed the vignette; using the defaults
+  # in recommended.
+  n_phase1 = 200,
+  n_phase2 = 500,
+  n_phase3 = 2000,
+  n_starts = 1,
+  max_iters = 5
+)
+
+#add phenotypes to the metadata for plotting
+obj.LU001FFP03.bca.good$InSituTypeIDs_semisupervised =semisup$clust
+
+#heatmap
+
+
+pdf("ist_semisupervised_all_bc.pdf", height = 40, width = 5)
+mat <- semisup$profiles  
+mat <- sweep(mat, 1, pmax(apply(mat, 1 ,max), 0.1), "/")
+pheatmap(mat, col = colorRampPalette(c("white", "darkblue"))(100),
+         fontsize_row = 5)
