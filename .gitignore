@@ -1,1 +1,7 @@
 data/
+.Rproj.user
+*.xlsx
+*.gz
+
+# Ignore R serialized objects
+*.rds
