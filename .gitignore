@@ -1,7 +1,11 @@
-data/
+flat_files/
 .Rproj.user
 *.xlsx
 *.gz
+*.DS_Store
+*.RData
+*.Rhistory
+*.png
 
 # Ignore R serialized objects
 *.rds
