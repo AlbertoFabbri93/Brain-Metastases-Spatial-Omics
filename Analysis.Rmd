@@ -46,7 +46,7 @@ patient_table <- data.frame(
   Patient_ID = character(),
   Serial_Cores = character(),
   Stamps = character(),
-  FOV = character(),
+  FOVs = character(),
   stringsAsFactors = FALSE
 )
 
@@ -59,28 +59,28 @@ for (patient_id in sort(unique(unlist(breast.cancer.patients$Patient.ID)))) {
   serial_cores <- unique(patient_data$core_serial)
 
   # Iterate over each serial core
-  for (serial_core in serial_cores) {
+  for (serial_core_id in serial_cores) {
     # Subset the data for the current serial core
-    serial_core_data <- subset(x = patient_data, subset = core_serial == serial_core)
+    serial_core_data <- subset(x = patient_data, subset = core_serial == serial_core_id)
 
     # Get the unique stamps for the current serial core
     stamps <- unique(serial_core_data$stamp)
-
+    
     # Iterate over each stamp
-    for (stamp_num in stamps) {
+    for (stamp_id in stamps) {
       # Subset the data for the current stamp
-      stamp_data <- subset(x = serial_core_data, subset = stamp == stamp_num)
+      stamp_data <- subset(x = serial_core_data, subset = stamp == stamp_id)
 
       # Get the unique FOVs for the current stamp
       fovs <- unique(stamp_data$fov)
 
       # Add a row to the patient table for each FOV
-      for (fov in fovs) {
+      for (fov_id in fovs) {
         patient_table <- rbind(patient_table, data.frame(
           Patient_ID = patient_id,
-          Serial_Cores = serial_core,
-          Stamps = stamp,
-          FOV = fov
+          Serial_Cores = serial_core_id,
+          Stamps = stamp_id,
+          FOVs = fov_id
         ))
       }
     }
