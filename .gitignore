@@ -9,10 +9,16 @@ flat_files/
 *.pdf
 
 # Ignore Quarto output files
-Analysis_files
+Analysis_files/
+Presentation_files/
 
 # Ignore MacOs files
 *.DS_Store
 
 # Ignore R serialized objects
 *.rds
+
+# Ignore web files
+*.html
+*.css
+*.js
