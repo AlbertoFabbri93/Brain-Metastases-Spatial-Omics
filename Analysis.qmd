@@ -1,0 +1,320 @@
+---
+title: "A study on brain metastases from primary breast cancer"
+author: "Alberto Fabbri"
+format: html
+---
+
+```{r}
+#| label: load-packages
+#| include: false
+
+library("data.table")
+library("tidyverse")
+library("Seurat")
+library("pheatmap")
+library(future)
+# Parallelize the computation with several worker processes that will run in their own R session
+plan("multisession", workers = 6)
+library("ggplot2")
+library("InSituType")
+library("openxlsx")
+```
+
+## General overview of the data
+
+```{r}
+#| echo: false
+
+# Get cell reference profile data from NanoString
+# Use this reference profile as it is the only one available from CosMx data
+ioprofiles <- read.csv(url("https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv"), header = T, sep = ",", fill = T)
+rownames(ioprofiles) <- ioprofiles[, 1]
+ioprofiles <- ioprofiles[, -1] %>% as.matrix()
+
+# Cohort of all the patients
+breast.cancer.patients <- readRDS("./breast.cancer.patients.rds")
+immunofluorescence <- breast.cancer.patients@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+cohort <- fastCohorting(immunofluorescence,
+  gaussian_transform = TRUE, n_cohorts = 5
+)
+# check clusters and cohort numbers
+table(cohort)
+
+# List of the gene data (1000-plex RNA)
+rownames(breast.cancer.patients)
+# Create a data frame to store the table
+patient_table <- data.frame(
+  Patient_ID = character(),
+  Serial_Cores = character(),
+  Stamps = character(),
+  FOVs = character(),
+  stringsAsFactors = FALSE
+)
+
+# Iterate over each patient
+for (patient_id in sort(unique(unlist(breast.cancer.patients$Patient.ID)))) {
+  # Subset the data for the current patient
+  patient_data <- subset(x = breast.cancer.patients@meta.data, subset = Patient.ID == patient_id)
+
+  # Get the unique serial cores for the current patient
+  serial_cores <- unique(patient_data$core_serial)
+
+  # Iterate over each serial core
+  for (serial_core_id in serial_cores) {
+    # Subset the data for the current serial core
+    serial_core_data <- subset(x = patient_data, subset = core_serial == serial_core_id)
+
+    # Get the unique stamps for the current serial core
+    stamps <- unique(serial_core_data$stamp)
+    
+    # Iterate over each stamp
+    for (stamp_id in stamps) {
+      # Subset the data for the current stamp
+      stamp_data <- subset(x = serial_core_data, subset = stamp == stamp_id)
+
+      # Get the unique FOVs for the current stamp
+      fovs <- unique(stamp_data$fov)
+
+      # Add a row to the patient table for each FOV
+      for (fov_id in fovs) {
+        patient_table <- rbind(patient_table, data.frame(
+          Patient_ID = patient_id,
+          Serial_Cores = serial_core_id,
+          Stamps = stamp_id,
+          FOVs = fov_id
+        ))
+      }
+    }
+  }
+}
+
+# Print the patient table
+print(patient_table)
+# Print all the patients ID
+sort(unique(unlist(breast.cancer.patients$Patient.ID)))
+
+# Print all the FOV
+breast_cancer_fovs <- sort(unique(unlist(breast.cancer.patients$fov)))
+
+# Print the number of stamps
+length(unique(paste(breast.cancer.patients@meta.data$core_serial, breast.cancer.patients@meta.data$stamp)))
+```
+
+## Tissue micro array
+
+```{r}
+#| label: plot-breast-cancer-stamps
+#| fig-cap: "Visual representation of the tissue micro array with the brain metastases from breast cancer highlighted"
+#| fig-alt: "A figure representing a tissue micro array from above where the brain metastases from a primary breast cancer tumor have been highlighted in green while the others have been highlighted in red."
+
+# Print the tissue micro array
+# Read the tissue micro array data from a CSV file
+tissue_micro_array <- read.csv("./flat_files/LU001FFP03/LU001FFP03_fov_positions_file.csv")
+breast_cancer_stamps_highlighted <- ggplot(tissue_micro_array, aes(x = X_mm, y = Y_mm)) +
+  geom_point(aes(color = FOV %in% breast_cancer_fovs), shape = 15, size = 4) +
+  geom_text(aes(label = FOV), size = 1.5) +
+  coord_equal() +
+  labs(color = "Breast cancer")
+print(breast_cancer_stamps_highlighted)
+ggsave("Images/TMA_breast_cancer_stamps_highlighted.png")
+```
+
+## Clustering per patient
+
+### Generic function
+
+```{r}
+analyze_patient <- function(patient_num) {
+  # Extract patient data
+  patient_data <- subset(x = breast.cancer.patients, subset = Patient.ID == patient_num)
+  print(paste("FOVs and cell count associated with patient", patient_num))
+  print(table(patient_data@meta.data$fov))
+  # RNA data only
+  patient_rna_only <- subset(x = patient_data, features = rownames(breast.cancer.patients)[1:1000])
+  # Create folder to save the plots
+  patient_subfolder <- paste("Images/Patient_", patient_num, "_plots/", sep = "")
+  dir.create(patient_subfolder)
+
+  # Normalize the count data present in a given assay
+  patient_rna_only <- NormalizeData(patient_rna_only, assay = "Nanostring")
+  # Scales and centers features in the dataset
+  patient_rna_only <- ScaleData(patient_rna_only)
+  # Detect highly variable genes for the pca
+  # Identifies features that are outliers on a 'mean variability plot'
+  patient_rna_only <- FindVariableFeatures(patient_rna_only)
+  # Run a PCA dimensionality reduction
+  patient_rna_only <- RunPCA(patient_rna_only)
+  # Show the significance of every principal component of the PCA
+  # It can be used to decide the number of dims of the FindNeighbors function
+  elbow_plot <- ElbowPlot(patient_rna_only, ndims = 50) + ggtitle(paste("Patient", patient_num))
+  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_elbow_plot.png", sep = ""))
+  # Computes the k.param nearest neighbors
+  patient_rna_only <- Seurat::FindNeighbors(patient_rna_only, dims = 1:25)
+  # Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
+  # Use the resolution parameter to fine tune the number of expected clusters
+  patient_rna_only <- Seurat::FindClusters(patient_rna_only, resolution = 0.8)
+  # Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
+  patient_rna_only <- RunUMAP(patient_rna_only, dims = 1:30, repulsion.strength = 5)
+
+  Seurat::Idents(patient_rna_only) <- "seurat_clusters"
+  print(paste("Clusters and number of cells in each of them associated with patient", patient_num))
+  print(table(patient_rna_only$seurat_clusters))
+  # Graphs the output of a dimensional reduction technique on a 2D scatter plot
+  # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
+  set.seed(123)
+  patient_umap <- DimPlot(patient_rna_only, reduction = "umap", group.by = "seurat_clusters")
+  # Label clusters on a ggplot2-based scatter plot
+  umap_plot <- LabelClusters(plot = patient_umap, id = "seurat_clusters") + ggtitle(paste("Patient", patient_num), subtitle = "Seurat Clusters")
+  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_seurat_clusters.png", sep = ""))
+  
+  # Plot the Mean Pan CK
+  panCK_plot <- FeaturePlot(patient_rna_only, features = "Mean.PanCK", min.cutoff = 2000) + ggtitle(paste("Patient", patient_num), subtitle = "Mean PanCK")
+  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_panCK.png", sep = ""))
+  
+  # Plot KRT17
+  KRT17_plot <- FeaturePlot(patient_rna_only, features = "KRT17", cols = c("white", "red")) + ggtitle(paste("Patient", patient_num), subtitle = "KRT17")
+ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""))
+  # Plot heatmap per cluster
+  Idents(patient_rna_only) <- "seurat_clusters"
+  markers.patient_rna_only <- FindAllMarkers(patient_rna_only, only.pos = T)
+
+
+  markers.patient_rna_only %>%
+    group_by("seurat_clusters") %>%
+    dplyr::filter(avg_log2FC > 1) %>%
+    slice_head(n = 10) %>%
+    ungroup() -> top10
+  top10genes_heatmap <- DoHeatmap(patient_rna_only, features = top10$gene, assay = "Nanostring") + ggtitle(paste("Patient", patient_num), subtitle = "Top 10 Differentially Expressed Genes")
+  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_top_10_genes_heatmap.png", sep = ""))
+
+  ################## INSITUTYPE ##################
+  
+  # Cohort of all the patients
+  patient_immunofluorescence <- patient_data@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+  # "Gaussian_transform = TRUE" maps variables to gaussians in order to place dramatically different variables on the same scale
+  patient_cohort <- fastCohorting(patient_immunofluorescence, gaussian_transform = TRUE, n_cohorts = 5)
+  # check clusters and cohort numbers
+  table(patient_cohort)
+
+  # Extract the count data from the Seurat object
+  patient_rna.counts <- GetAssayData(subset(patient_data, features = row.names(GetAssayData(patient_data))[1:1000]), layer = "counts") %>%
+    as.matrix() %>%
+    t()
+  # Extract the negative probes from the Seurat object
+  patient_neg.probes <- GetAssayData(subset(patient_data, features = row.names(GetAssayData(patient_data)) %>% grep("Negative", ., value = TRUE))) %>%
+    as.matrix() %>%
+    t()
+  # Calculate the average negative probes per cell
+  patient_avg.neg.probes <- Matrix::rowMeans(patient_neg.probes)
+
+  # Semi-supervised learning with insitutype and reference profiles
+  # InSituType needs integers, if given floating point numbers it fails with misleading errors
+  patient_semisup <- insitutype(
+    x = patient_rna.counts,
+    neg = patient_avg.neg.probes,
+    cohort = patient_cohort,
+    reference_profiles = ioprofiles,
+
+    # Enter your own per-cell background estimates here if you
+    # have them; otherwise insitutype will use the negprobes to
+    # estimate background for you.
+    bg = NULL,
+    # condensed to save time. n_clusts = 5:15 would be more optimal
+    # Group the cells the do not correspond to any type in the reference matrix
+    n_clusts = c(5),
+    # reference_profiles = updatedprofiles$updated_profiles,
+    # Update the reference profile based on the current data
+    update_reference_profiles = FALSE,
+    # choosing inadvisably low numbers to speed the vignette; using the defaults
+    # in recommended.
+    # This is the number of cells used in each phase, because of random sampling
+    n_phase1 = 20,
+    n_phase2 = 50,
+    n_phase3 = 200,
+    n_starts = 1,
+    max_iters = 5
+  )
+
+  # add phenotypes to the metadata for plotting
+  patient_rna_only$InSituTypeIDs_semisupervised <- patient_semisup$clust
+
+  mat <- patient_semisup$profiles
+  # Force the values in the range 0 to 1 otherwise the biggest value obscure all the others
+  mat <- sweep(mat, 1, pmax(apply(mat, 1, max), 0.1), "/")
+  cell_genes_pheatmap <- pheatmap(mat,
+    col = colorRampPalette(c("white", "darkblue"))(100),
+    fontsize_row = 5
+  )
+  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_cell_genes_pheatmap.png", sep = ""))
+
+
+  # Get name of the first image
+  patient_image <- Images(patient_rna_only)[1]
+  Idents(patient_rna_only) <- "InSituTypeIDs_semisupervised"
+  DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
+
+  InSituType_clusters <- DimPlot(patient_rna_only, reduction = "umap", group.by = "InSituTypeIDs_semisupervised")
+  LabelClusters(plot = InSituType_clusters, id = "InSituTypeIDs_semisupervised")
+  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_InSituType_clusters.png", sep = ""))
+
+  # Plot all cells.
+  # We recommend setting the border color to 'NA' as the default 'white' often masks all cells when zoomed out, leading to a fully white plot.
+  stamps_list <- list()
+  for (stamp in unique(patient_rna_only@meta.data$stamp)) {
+    stamp_plot <- ImageDimPlot(patient_rna_only, fov = patient_image, border.color = NA, cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$stamp == stamp)]) + theme(
+  legend.text = element_text(size = 6),
+  legend.title = element_text(size = 8),
+  legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
+  legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
+)
+    stamps_list[[as.character(stamp)]] <- stamp_plot
+    ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_stamp_", stamp, ".png", sep = ""))
+  }
+  
+  # Return all plots together, otherwise only the last one is shown
+  plot_list <- c(list(elbow_plot, umap_plot, panCK_plot, KRT17_plot, top10genes_heatmap, cell_genes_pheatmap, InSituType_clusters), stamps_list)
+  print(plot_list)
+}
+```
+
+### Patient 7
+
+```{r}
+analyze_patient("7")
+```
+
+### Patient 6
+
+```{r}
+analyze_patient("6")
+```
+
+### Patient 5
+
+```{r}
+analyze_patient("5")
+```
+
+### Patient 4
+
+```{r}
+analyze_patient("4")
+```
+
+### Patient 3
+
+```{r}
+analyze_patient("3")
+```
+
+### Patient 2
+
+```{r}
+analyze_patient("2")
+```
+
+### Patient 1
+
+```{r}
+analyze_patient("1")
+```
