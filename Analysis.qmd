@@ -180,12 +180,15 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
 
 
   markers.patient_rna_only %>%
-    group_by("seurat_clusters") %>%
+    # For every cluster...
+    group_by(cluster) %>%
+    # ...filter out the genes whose expression is not at least double that in other clusters...
     dplyr::filter(avg_log2FC > 1) %>%
+    # ...and only keep the 10 most significant (based on the p value)
     slice_head(n = 10) %>%
-    ungroup() -> top10
-  top10genes_heatmap <- DoHeatmap(patient_rna_only, features = top10$gene, assay = "Nanostring") + ggtitle(paste("Patient", patient_num), subtitle = "Top 10 Differentially Expressed Genes")
-  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_top_10_genes_heatmap.png", sep = ""))
+    ungroup() -> most_significant_markers
+  diff_expr_genes_heatmap <- DoHeatmap(patient_rna_only, features = most_significant_markers$gene, assay = "Nanostring") + ggtitle(paste("Patient", patient_num), subtitle = "Top 10 Differentially Expressed Genes")
+  ggsave(filename = paste(patient_subfolder, "Patient_",  patient_num, "_diff_expr_genes_heatmap.png", sep = ""), plot = diff_expr_genes_heatmap)
 
   ################## INSITUTYPE ##################
   
@@ -238,15 +241,16 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
   # add phenotypes to the metadata for plotting
   patient_rna_only$InSituTypeIDs_semisupervised <- patient_semisup$clust
 
-  mat <- patient_semisup$profiles
-  # Force the values in the range 0 to 1 otherwise the biggest value obscure all the others
-  mat <- sweep(mat, 1, pmax(apply(mat, 1, max), 0.1), "/")
-  cell_genes_pheatmap <- pheatmap(mat,
-    col = colorRampPalette(c("white", "darkblue"))(100),
-    fontsize_row = 5
-  )
-  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_cell_genes_pheatmap.png", sep = ""))
-
+  # I CAN NOT FIND A WAY TO MAKE IT WORK NICELY WITH THE REST OF CODE
+  # IT POLLUTES THE PLOTTING DEVICE
+  # mat <- patient_semisup$profiles
+  # # Force the values in the range 0 to 1 otherwise the biggest value obscure all the others
+  # mat <- sweep(mat, 1, pmax(apply(mat, 1, max), 0.1), "/")
+  # cell_genes_pheatmap <- pheatmap(mat,
+  #   col = colorRampPalette(c("white", "darkblue"))(100),
+  #   fontsize_row = 0.5,
+  #   filename = paste(patient_subfolder, "Patient_",  patient_num, "_cell_genes_pheatmap.pdf", sep = "")
+  # )
 
   # Get name of the first image
   patient_image <- Images(patient_rna_only)[1]
@@ -272,7 +276,7 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
   }
   
   # Return all plots together, otherwise only the last one is shown
-  plot_list <- c(list(elbow_plot, umap_plot, panCK_plot, KRT17_plot, top10genes_heatmap, cell_genes_pheatmap, InSituType_clusters), stamps_list)
+  plot_list <- c(list(elbow_plot, umap_plot, panCK_plot, KRT17_plot, diff_expr_genes_heatmap, InSituType_clusters), stamps_list)
   print(plot_list)
 }
 ```
