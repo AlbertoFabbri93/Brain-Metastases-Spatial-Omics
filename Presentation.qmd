@@ -16,7 +16,7 @@ execute:
 
 ## Patient 7
 
-Overview of the patient 7
+Overview of patient 7
 
 ### Seurat clusters
 
@@ -29,13 +29,13 @@ Overview of the patient 7
 ![panCK](Images/Patient_7_plots/Patient_7_panCK.png){#fig-p7-panCK}
 :::
 
-### Heatmap of top 10 genes
+### Heatmap of top differentially expressed genes
 
-![Top 10 genes](Images/Patient_7_plots/Patient_7_top_10_genes_heatmap.png){fig-align="center"}
+![Heatmap of differentially expressed genes](Images/Patient_7_plots/Patient_7_diff_expr_genes_heatmap.png){fig-align="center"}
 
-### Cell-genes pheatmap
+<!-- ### Cell-genes pheatmap -->
 
-![Cell-genes pheatmap](Images/Patient_7_plots/Patient_7_cell-genes_pheatmap.png){fig-align="center"}
+<!-- ![Cell-genes pheatmap](Images/Patient_7_plots/Patient_7_cell-genes_pheatmap.png){fig-align="center"} -->
 
 ### InSituType clustering
 
@@ -44,14 +44,14 @@ Overview of the patient 7
 ### Stamps
 
 ::: {layout-ncol=2}
-![Stamp 1](Images/Patient_7_plots/Patient_7_stamp_1.png){#fig-p7-krt17}
+![Core M8 Stamp 1](Images/Patient_7_plots/Patient_7_core_M8_stamp_1.png){#fig-p7-krt17}
 
-![Stamp 2](Images/Patient_7_plots/Patient_7_stamp_2.png){#fig-p7-panCK}
+![Core M8 Stamp 2](Images/Patient_7_plots/Patient_7_core_M8_stamp_2.png){#fig-p7-panCK}
 :::
 
 ## Patient 6
 
-Overview of the patient 6
+Overview of patient 6
 
 ### Seurat clusters
 
@@ -64,13 +64,13 @@ Overview of the patient 6
 ![panCK](Images/Patient_6_plots/Patient_6_panCK.png){#fig-p7-panCK}
 :::
 
-### Heatmap of top 10 genes
+### Heatmap of top differentially expressed genes
 
-![Seurat clusters](Images/Patient_6_plots/Patient_6_top_10_genes_heatmap.png){fig-align="center"}
+![Heatmap of differentially expressed genes](Images/Patient_6_plots/Patient_6_diff_expr_genes_heatmap.png){fig-align="center"}
 
-### Cell-genes pheatmap
+<!-- ### Cell-genes pheatmap -->
 
-![Cell-genes pheatmap](Images/Patient_6_plots/Patient_6_cell-genes_pheatmap.png){fig-align="center"}
+<!-- ![Cell-genes pheatmap](Images/Patient_6_plots/Patient_6_cell-genes_pheatmap.png){fig-align="center"} -->
 
 ### InSituType clustering
 
@@ -78,11 +78,11 @@ Overview of the patient 6
 
 ### Stamps
 
-![Stamp 2](Images/Patient_6_plots/Patient_6_stamp_2.png){#fig-p7-panCK}
+![Core M7 Stamp 2](Images/Patient_6_plots/Patient_6_core_M7_stamp_2.png){#fig-p7-panCK}
 
 ## Patient 5
 
-Overview of the patient 5
+Overview of patient 5
 
 ### Seurat clusters
 
@@ -95,13 +95,13 @@ Overview of the patient 5
 ![panCK](Images/Patient_5_plots/Patient_5_panCK.png){#fig-p7-panCK}
 :::
 
-### Heatmap of top 10 genes
+### Heatmap of top differentially expressed genes
 
-![Seurat clusters](Images/Patient_5_plots/Patient_5_top_10_genes_heatmap.png){fig-align="center"}
+![Heatmap of differentially expressed genes](Images/Patient_5_plots/Patient_5_diff_expr_genes_heatmap.png){fig-align="center"}
 
-### Cell-genes pheatmap
+<!-- ### Cell-genes pheatmap -->
 
-![Cell-genes pheatmap](Images/Patient_5_plots/Patient_5_cell-genes_pheatmap.png){fig-align="center"}
+<!-- ![Cell-genes pheatmap](Images/Patient_5_plots/Patient_5_cell-genes_pheatmap.png){fig-align="center"} -->
 
 ### InSituType clustering
 
@@ -110,9 +110,9 @@ Overview of the patient 5
 ### Stamps
 
 ::: {layout-ncol=2}
-![Stamp 1](Images/Patient_5_plots/Patient_5_stamp_1.png){#fig-p7-krt17}
+![Core M6 Stamp 1](Images/Patient_5_plots/Patient_5_core_M6_stamp_1.png){#fig-p7-krt17}
 
-![Stamp 2](Images/Patient_5_plots/Patient_5_stamp_2.png){#fig-p7-panCK}
+![Core M6 Stamp 2](Images/Patient_5_plots/Patient_5_core_M6_stamp_2.png){#fig-p7-panCK}
 :::
 
 ## Patient 4
@@ -130,13 +130,13 @@ Overview of patient 4
 ![panCK](Images/Patient_4_plots/Patient_4_panCK.png){#fig-p7-panCK}
 :::
 
-### Heatmap of top 10 genes
+### Heatmap of top differentially expressed genes
 
-![Seurat clusters](Images/Patient_4_plots/Patient_4_top_10_genes_heatmap.png){fig-align="center"}
+![Heatmap of differentially expressed genes](Images/Patient_4_plots/Patient_4_diff_expr_genes_heatmap.png){fig-align="center"}
 
-### Cell-genes pheatmap
+<!-- ### Cell-genes pheatmap -->
 
-![Cell-genes pheatmap](Images/Patient_4_plots/Patient_4_cell-genes_pheatmap.png){fig-align="center"}
+<!-- ![Cell-genes pheatmap](Images/Patient_4_plots/Patient_4_cell-genes_pheatmap.png){fig-align="center"} -->
 
 ### InSituType clustering
 
@@ -145,9 +145,9 @@ Overview of patient 4
 ### Stamps
 
 ::: {layout-ncol=2}
-![Stamp 1](Images/Patient_4_plots/Patient_4_stamp_1.png){#fig-p7-krt17}
+![Core M5 Stamp 1](Images/Patient_4_plots/Patient_4_core_M5_stamp_1.png){#fig-p7-krt17}
 
-![Stamp 2](Images/Patient_4_plots/Patient_4_stamp_2.png){#fig-p7-panCK}
+![Core M5 Stamp 2](Images/Patient_4_plots/Patient_4_core_M5_stamp_2.png){#fig-p7-panCK}
 :::
 
 ## Patient 3
@@ -165,13 +165,13 @@ Overview of patient 3
 ![panCK](Images/Patient_3_plots/Patient_3_panCK.png){#fig-p7-panCK}
 :::
 
-### Heatmap of top 10 genes
+### Heatmap of top differentially expressed genes
 
-![Seurat clusters](Images/Patient_3_plots/Patient_3_top_10_genes_heatmap.png){fig-align="center"}
+![Heatmap of differentially expressed genes](Images/Patient_3_plots/Patient_3_diff_expr_genes_heatmap.png){fig-align="center"}
 
-### Cell-genes pheatmap
+<!-- ### Cell-genes pheatmap -->
 
-![Cell-genes pheatmap](Images/Patient_3_plots/Patient_3_cell-genes_pheatmap.png){fig-align="center"}
+<!-- ![Cell-genes pheatmap](Images/Patient_3_plots/Patient_3_cell-genes_pheatmap.png){fig-align="center"} -->
 
 ### InSituType clustering
 
@@ -180,14 +180,14 @@ Overview of patient 3
 ### Stamps
 
 ::: {layout-ncol=2}
-![Stamp 1](Images/Patient_3_plots/Patient_3_stamp_1.png){#fig-p7-krt17}
+![Core M4 Stamp 1](Images/Patient_3_plots/Patient_3_core_M4_stamp_1.png){#fig-p7-krt17}
 
-![Stamp 2](Images/Patient_3_plots/Patient_3_stamp_2.png){#fig-p7-panCK}
+![Core M4 Stamp 2](Images/Patient_3_plots/Patient_3_core_M4_stamp_2.png){#fig-p7-panCK}
 :::
 
 ## Patient 2
 
-Overview of the patient 2
+Overview of patient 2
 
 ### Seurat clusters
 
@@ -200,13 +200,13 @@ Overview of the patient 2
 ![panCK](Images/Patient_2_plots/Patient_2_panCK.png){#fig-p7-panCK}
 :::
 
-### Heatmap of top 10 genes
+### Heatmap of top differentially expressed genes
 
-![Seurat clusters](Images/Patient_2_plots/Patient_2_top_10_genes_heatmap.png){fig-align="center"}
+![Heatmap of differentially expressed genes](Images/Patient_2_plots/Patient_2_diff_expr_genes_heatmap.png){fig-align="center"}
 
-### Cell-genes pheatmap
+<!-- ### Cell-genes pheatmap -->
 
-![Cell-genes pheatmap](Images/Patient_2_plots/Patient_2_cell-genes_pheatmap.png){fig-align="center"}
+<!-- ![Cell-genes pheatmap](Images/Patient_2_plots/Patient_2_cell-genes_pheatmap.png){fig-align="center"} -->
 
 ### InSituType clustering
 
@@ -214,7 +214,7 @@ Overview of the patient 2
 
 ### Stamps
 
-![Stamp 1](Images/Patient_2_plots/Patient_2_stamp_1.png){#fig-p7-krt17}
+![Core M3 Stamp 1](Images/Patient_2_plots/Patient_2_core_M3_stamp_1.png){#fig-p7-krt17}
 
 ## Patient 1
 
@@ -231,13 +231,13 @@ Overview of patient 1
 ![panCK](Images/Patient_1_plots/Patient_1_panCK.png){#fig-p7-panCK}
 :::
 
-### Heatmap of top 10 genes
+### Heatmap of top differentially expressed genes
 
-![Seurat clusters](Images/Patient_1_plots/Patient_1_top_10_genes_heatmap.png){fig-align="center"}
+![Heatmap of differentially expressed genes](Images/Patient_1_plots/Patient_1_diff_expr_genes_heatmap.png){fig-align="center"}
 
-### Cell-genes pheatmap
+<!-- ### Cell-genes pheatmap -->
 
-![Cell-genes pheatmap](Images/Patient_1_plots/Patient_1_cell-genes_pheatmap.png){fig-align="center"}
+<!-- ![Cell-genes pheatmap](Images/Patient_1_plots/Patient_1_cell-genes_pheatmap.png){fig-align="center"} -->
 
 ### InSituType clustering
 
@@ -245,8 +245,10 @@ Overview of patient 1
 
 ### Stamps
 
-::: {layout-ncol=2}
-![Stamp 1](Images/Patient_1_plots/Patient_1_stamp_1.png){#fig-p7-krt17}
+::: {layout-ncol=3}
+![Core M1 Stamp 2](Images/Patient_1_plots/Patient_1_core_M1_stamp_2.png){#fig-p7-krt17}
 
-![Stamp 2](Images/Patient_1_plots/Patient_1_stamp_2.png){#fig-p7-panCK}
+![Core M2 Stamp 1](Images/Patient_1_plots/Patient_1_core_M2_stamp_1.png){#fig-p7-panCK}
+
+![Core M2 Stamp 2](Images/Patient_1_plots/Patient_1_core_M2_stamp_2.png){#fig-p7-panCK}
 :::
