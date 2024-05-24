@@ -260,3 +260,9 @@ Overview of patient 7
 
 ![Core M8 Stamp 2](Images/Patient_7_plots/Patient_7_core_M8_stamp_2.png){#fig-p7-panCK}
 :::
+
+## Compare patients
+
+### InSituType clusters
+
+![InSituType clusters all patients barplot](Images/Compare_patients/InSituType_clusters_all_patients_barplot.png){fig-align="center"}
