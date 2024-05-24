@@ -22,6 +22,10 @@ plan("multisession", workers = 6)
 library("ggplot2")
 library("InSituType")
 library("openxlsx")
+# Used for the barplots
+library("dittoSeq")
+
+image_dir <- "Images/"
 ```
 
 ## General overview of the data
@@ -150,7 +154,7 @@ analyze_patient <- function(patient_num) {
   # RNA data only
   patient_rna_only <- subset(x = patient_data, features = rownames(breast.cancer.patients)[1:1000])
   # Create folder to save the plots
-  patient_subfolder <- paste("Images/Patient_", patient_num, "_plots/", sep = "")
+  patient_subfolder <- paste(image_dir, "Patient_", patient_num, "_plots/", sep = "")
   dir.create(patient_subfolder)
 
   # Normalize the count data present in a given assay
@@ -287,6 +291,8 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
 
   # add phenotypes to the metadata for plotting
   patient_rna_only$InSituTypeIDs_semisupervised <- patient_semisup$clust
+  # add phenotypes to the global object
+  breast.cancer.patients$InSituTypeIDs_semisupervised <<- patient_rna_only$InSituTypeIDs_semisupervised
 
   # I CAN NOT FIND A WAY TO MAKE IT WORK NICELY WITH THE REST OF CODE
   # IT POLLUTES THE PLOTTING DEVICE
@@ -388,4 +394,25 @@ analyze_patient("6")
 #| label: analyze-patient-7
 
 analyze_patient("7")
+```
+
+## Comparing patients
+
+```{r}
+#| label: compare-patients
+
+# Save plots comparing patients in this subfolder
+compare_patients_subfolder <- paste(image_dir, "Compare_patients/", sep = "")
+
+# Create folder for the plots id it does not exist
+if (!dir.exists(compare_patients_subfolder)) {
+  dir.create(compare_patients_subfolder, recursive = TRUE)
+}
+
+# Plot a barplot comparing the InSituTypeID clusters of all patients
+dittoBarPlot(breast.cancer.patients,
+             var = "InSituTypeIDs_semisupervised",
+             group.by = "Patient.ID") +
+    guides(fill = guide_legend(ncol = 2, byrow = TRUE))
+  ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot.png"))
 ```
