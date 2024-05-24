@@ -122,7 +122,9 @@ ggsave("Images/TMA_breast_cancer_stamps_highlighted.png")
 
 ## Clustering per patient
 
+::: {.content-hidden}
 ### Generic function
+:::
 
 ```{r}
 #| label: analyze-patient
