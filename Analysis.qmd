@@ -385,5 +385,3 @@ analyze_patient("6")
 
 analyze_patient("7")
 ```
-
-```
