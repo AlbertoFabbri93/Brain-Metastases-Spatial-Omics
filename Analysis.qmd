@@ -4,6 +4,10 @@ author: "Alberto Fabbri"
 format: html
 ---
 
+::: {.content-hidden}
+### Install the necessary packages
+:::
+
 ```{r}
 #| label: setup
 #| include: false
@@ -101,7 +105,7 @@ breast_cancer_fovs <- sort(unique(unlist(breast.cancer.patients$fov)))
 length(unique(paste(breast.cancer.patients@meta.data$core_serial, breast.cancer.patients@meta.data$stamp)))
 ```
 
-## Tissue micro array
+### Tissue micro array
 
 ```{r}
 #| label: plot-breast-cancer-stamps
@@ -357,9 +361,9 @@ analyze_patient("3")
 ### Patient 4
 
 ```{r}
-analyze_patient("4")
 #| label: analyze-patient-4
 
+analyze_patient("4")
 ```
 
 ### Patient 5
