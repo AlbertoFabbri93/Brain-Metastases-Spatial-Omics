@@ -182,10 +182,12 @@ analyze_patient <- function(patient_num) {
   # Plot KRT17
   KRT17_plot <- FeaturePlot(patient_rna_only, features = "KRT17", cols = c("white", "red")) + ggtitle(paste("Patient", patient_num), subtitle = "KRT17")
 ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""))
+
+  ################## HEATMAP ##################
+
   # Plot heatmap per cluster
   Idents(patient_rna_only) <- "seurat_clusters"
   markers.patient_rna_only <- FindAllMarkers(patient_rna_only, only.pos = T)
-
 
   markers.patient_rna_only %>%
     # For every cluster...
@@ -195,8 +197,35 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
     # ...and only keep the 10 most significant (based on the p value)
     slice_head(n = 10) %>%
     ungroup() -> most_significant_markers
-  diff_expr_genes_heatmap <- DoHeatmap(patient_rna_only, features = most_significant_markers$gene, assay = "Nanostring") + ggtitle(paste("Patient", patient_num), subtitle = "Top 10 Differentially Expressed Genes")
-  ggsave(filename = paste(patient_subfolder, "Patient_",  patient_num, "_diff_expr_genes_heatmap.png", sep = ""), plot = diff_expr_genes_heatmap)
+  
+  # Calculate the number of features (rows)
+  num_features <- length(most_significant_markers$gene)
+
+  # Define a function to dynamically calculate label size
+  calculate_label_size <- function(num_features) {
+    base_size <- 400
+    scaled_size <- base_size / (num_features)
+    return(scaled_size)
+  }
+
+  # Calculate the label size for the current figure
+  label_size <- calculate_label_size(num_features)
+  
+  # Create the heatmap with the scaled text
+  diff_expr_genes_heatmap <- DoHeatmap(
+    patient_rna_only,
+    features = most_significant_markers$gene,
+    assay = "Nanostring",
+    label = TRUE,
+  ) + theme(
+  axis.text.y = element_text(size = label_size)
+  ) + ggtitle(paste("Patient", patient_num), subtitle = "Top 10 Differentially Expressed Genes")
+  
+  # Save the heatmap to an image
+  ggsave(
+    filename = paste(patient_subfolder, "Patient_",  patient_num, "_diff_expr_genes_heatmap.png", sep = ""),
+    plot = diff_expr_genes_heatmap
+  )
 
   ################## INSITUTYPE ##################
   
