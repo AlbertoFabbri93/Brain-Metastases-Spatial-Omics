@@ -5,7 +5,7 @@ format: html
 ---
 
 ```{r}
-#| label: load-packages
+#| label: setup
 #| include: false
 
 library("data.table")
@@ -23,6 +23,7 @@ library("openxlsx")
 ## General overview of the data
 
 ```{r}
+#| label: data-overview
 #| echo: false
 
 # Get cell reference profile data from NanoString
@@ -124,6 +125,9 @@ ggsave("Images/TMA_breast_cancer_stamps_highlighted.png")
 ### Generic function
 
 ```{r}
+#| label: analyze-patient
+#| echo: false
+
 analyze_patient <- function(patient_num) {
   # Extract patient data
   patient_data <- subset(x = breast.cancer.patients, subset = Patient.ID == patient_num)
@@ -324,44 +328,60 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
 }
 ```
 
-### Patient 7
+### Patient 1
 
 ```{r}
-analyze_patient("7")
+#| label: analyze-patient-1
+
+analyze_patient("1")
 ```
 
-### Patient 6
+### Patient 2
 
 ```{r}
-analyze_patient("6")
+#| label: analyze-patient-2
+
+analyze_patient("2")
 ```
 
-### Patient 5
+### Patient 3
 
 ```{r}
-analyze_patient("5")
+#| label: analyze-patient-3
+
+analyze_patient("3")
 ```
 
 ### Patient 4
 
 ```{r}
 analyze_patient("4")
+#| label: analyze-patient-4
+
 ```
 
-### Patient 3
+### Patient 5
 
 ```{r}
-analyze_patient("3")
+#| label: analyze-patient-5
+
+analyze_patient("5")
 ```
 
-### Patient 2
+### Patient 6
 
 ```{r}
-analyze_patient("2")
+#| label: analyze-patient-6
+
+analyze_patient("6")
 ```
 
-### Patient 1
+### Patient 7
 
 ```{r}
-analyze_patient("1")
+#| label: analyze-patient-7
+
+analyze_patient("7")
+```
+
 ```
