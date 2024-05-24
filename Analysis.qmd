@@ -127,8 +127,16 @@ ggsave("Images/TMA_breast_cancer_stamps_highlighted.png")
 analyze_patient <- function(patient_num) {
   # Extract patient data
   patient_data <- subset(x = breast.cancer.patients, subset = Patient.ID == patient_num)
+  # Print cores and fovs associated with the patient
   print(paste("FOVs and cell count associated with patient", patient_num))
-  print(table(patient_data@meta.data$fov))
+  for(core in unique(patient_data@meta.data$core_serial)) {
+    print("------------------------------------")
+    print(core)
+    for(stamp in unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == core])) {
+      print(paste("Stamp", stamp))
+      print(table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core &  patient_data@meta.data$stamp == stamp]))
+    }
+  }
   # RNA data only
   patient_rna_only <- subset(x = patient_data, features = rownames(breast.cancer.patients)[1:1000])
   # Create folder to save the plots
