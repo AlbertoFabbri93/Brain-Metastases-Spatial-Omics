@@ -3,7 +3,8 @@ title: "A study on brain metastases from primary breast cancer"
 author: "Alberto Fabbri"
 format: 
   revealjs:
-    navigation-mode: vertical
+    navigation-mode: grid
+    slide-number: h.v
 slide-level: 3
 execute:
   echo: false
