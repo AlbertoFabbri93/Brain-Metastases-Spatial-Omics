@@ -272,15 +272,17 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
   # Plot all cells.
   # We recommend setting the border color to 'NA' as the default 'white' often masks all cells when zoomed out, leading to a fully white plot.
   stamps_list <- list()
-  for (stamp in unique(patient_rna_only@meta.data$stamp)) {
-    stamp_plot <- ImageDimPlot(patient_rna_only, fov = patient_image, border.color = NA, cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$stamp == stamp)]) + theme(
-  legend.text = element_text(size = 6),
-  legend.title = element_text(size = 8),
-  legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
-  legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
-)
-    stamps_list[[as.character(stamp)]] <- stamp_plot
-    ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_stamp_", stamp, ".png", sep = ""))
+  for(core in unique(patient_data@meta.data$core_serial)) {
+    for (stamp in unique(patient_rna_only@meta.data$stamp[patient_rna_only@meta.data$core_serial == core])) {
+      stamp_plot <- ImageDimPlot(patient_rna_only, fov = patient_image, border.color = NA, cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
+        legend.text = element_text(size = 6),
+        legend.title = element_text(size = 8),
+        legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
+        legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
+      ) + ggtitle(paste("Patient", patient_num), subtitle = paste("Core", core, ", Stamp", stamp))
+      stamps_list[[paste(core, as.character(stamp), sep = "_")]] <- stamp_plot
+      ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_core_", core, "_stamp_", stamp, ".png", sep = ""))
+    }
   }
   
   # Return all plots together, otherwise only the last one is shown
