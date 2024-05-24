@@ -294,7 +294,11 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
   Idents(patient_rna_only) <- "InSituTypeIDs_semisupervised"
   DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
 
-  InSituType_clusters <- DimPlot(patient_rna_only, reduction = "umap", group.by = "InSituTypeIDs_semisupervised")
+  InSituType_clusters <- DimPlot(
+    patient_rna_only, reduction = "umap",
+    group.by = "InSituTypeIDs_semisupervised") + ggtitle(
+      paste("Patient", patient_num),
+      subtitle = "InSituType Clusters")
   LabelClusters(plot = InSituType_clusters, id = "InSituTypeIDs_semisupervised")
   ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_InSituType_clusters.png", sep = ""))
 
