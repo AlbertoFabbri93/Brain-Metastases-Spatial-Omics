@@ -176,18 +176,8 @@ analyze_patient <- function(patient_num) {
   # Use the resolution parameter to fine tune the number of expected clusters
   patient_rna_only <- Seurat::FindClusters(patient_rna_only, resolution = 0.8)
   # Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
-  patient_rna_only <- RunUMAP(patient_rna_only, dims = 1:30, repulsion.strength = 5)
-
-  Seurat::Idents(patient_rna_only) <- "seurat_clusters"
-  print(paste("Clusters and number of cells in each of them associated with patient", patient_num))
-  print(table(patient_rna_only$seurat_clusters))
-  # Graphs the output of a dimensional reduction technique on a 2D scatter plot
-  # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
   set.seed(123)
-  patient_umap <- DimPlot(patient_rna_only, reduction = "umap", group.by = "seurat_clusters")
-  # Label clusters on a ggplot2-based scatter plot
-  umap_plot <- LabelClusters(plot = patient_umap, id = "seurat_clusters") + ggtitle(paste("Patient", patient_num), subtitle = "Seurat Clusters")
-  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_seurat_clusters.png", sep = ""))
+  patient_rna_only <- RunUMAP(patient_rna_only, dims = 1:30, repulsion.strength = 5)
   
   # Plot the Mean Pan CK
   panCK_plot <- FeaturePlot(patient_rna_only, features = "Mean.PanCK", min.cutoff = 2000) + ggtitle(paste("Patient", patient_num), subtitle = "Mean PanCK")
@@ -290,9 +280,10 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
   )
 
   # add phenotypes to the metadata for plotting
-  patient_rna_only$InSituTypeIDs_semisupervised <- patient_semisup$clust
+  patient_rna_only$InSituType_semisup_clusters <- patient_semisup$clust
   # add phenotypes to the global object
-  breast.cancer.patients$InSituTypeIDs_semisupervised <<- patient_rna_only$InSituTypeIDs_semisupervised
+  # this line fails to execute when run outside of a function
+  breast.cancer.patients$InSituType_semisup_clusters <<- patient_rna_only$InSituType_semisup_clusters
 
   # I CAN NOT FIND A WAY TO MAKE IT WORK NICELY WITH THE REST OF CODE
   # IT POLLUTES THE PLOTTING DEVICE
@@ -305,37 +296,65 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
   #   filename = paste(patient_subfolder, "Patient_",  patient_num, "_cell_genes_pheatmap.pdf", sep = "")
   # )
 
+
+  ################## PRINT CLUSTERING PLOTS ##################
+
   # Get name of the first image
   patient_image <- Images(patient_rna_only)[1]
-  Idents(patient_rna_only) <- "InSituTypeIDs_semisupervised"
-  DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
 
-  InSituType_clusters <- DimPlot(
-    patient_rna_only, reduction = "umap",
-    group.by = "InSituTypeIDs_semisupervised") + ggtitle(
-      paste("Patient", patient_num),
-      subtitle = "InSituType Clusters")
-  LabelClusters(plot = InSituType_clusters, id = "InSituTypeIDs_semisupervised")
-  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_InSituType_clusters.png", sep = ""))
+  # Create a list of the clusters
+  clusters <- c("seurat_clusters", "InSituType_semisup_clusters")
 
-  # Plot all cells.
-  # We recommend setting the border color to 'NA' as the default 'white' often masks all cells when zoomed out, leading to a fully white plot.
-  stamps_list <- list()
-  for(core in unique(patient_data@meta.data$core_serial)) {
-    for (stamp in unique(patient_rna_only@meta.data$stamp[patient_rna_only@meta.data$core_serial == core])) {
-      stamp_plot <- ImageDimPlot(patient_rna_only, fov = patient_image, border.color = NA, cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
-        legend.text = element_text(size = 6),
-        legend.title = element_text(size = 8),
-        legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
-        legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
-      ) + ggtitle(paste("Patient", patient_num), subtitle = paste("Core", core, ", Stamp", stamp))
-      stamps_list[[paste(core, as.character(stamp), sep = "_")]] <- stamp_plot
-      ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_core_", core, "_stamp_", stamp, ".png", sep = ""))
+  # Save all the plots in a list to return them all together
+  clustering_plots_list <- list()
+
+  for (cluster in clusters) {
+
+    print(paste(cluster, "and number of cells in each of them associated with patient", patient_num))
+    print(table(patient_rna_only[[cluster]]))
+
+    # Select the cluster as the identity
+    Idents(patient_rna_only) <- cluster
+    # Plot the cells using their polygonal boundaries
+    DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
+
+    # Graphs the output of a dimensional reduction technique on a 2D scatter plot
+    # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
+    umap_clusters <- DimPlot(
+      patient_rna_only, reduction = "umap",
+      group.by = cluster) +
+      ggtitle(
+        paste("Patient", patient_num),
+        subtitle = cluster)
+    # Label clusters on a ggplot2-based scatter plot
+    LabelClusters(plot = umap_clusters, id = cluster)
+    # Save plot to list
+    clustering_plots_list[[paste(cluster, "umap", sep = "_")]] <- umap_clusters
+    # Save plot to image file
+    ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_", cluster,"_umap.png", sep = ""))
+
+    # Plot cells in their spatial context
+    stamps_list <- list()
+    for(core in unique(patient_data@meta.data$core_serial)) {
+      for (stamp in unique(patient_rna_only@meta.data$stamp[patient_rna_only@meta.data$core_serial == core])) {
+        stamp_plot <- ImageDimPlot(
+          patient_rna_only,
+          fov = patient_image,
+          # Set border color to 'NA' as 'white' masks all cells when zoomed out
+          border.color = NA,
+          cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
+          legend.text = element_text(size = 6),
+          legend.title = element_text(size = 8),
+          legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
+          legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
+        ) + ggtitle(paste("Patient", patient_num, "Core", core, ", Stamp", stamp), subtitle = cluster)
+        clustering_plots_list[[paste(cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
+        ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, ".png", sep = ""))
+      }
     }
   }
-  
   # Return all plots together, otherwise only the last one is shown
-  plot_list <- c(list(elbow_plot, umap_plot, panCK_plot, KRT17_plot, diff_expr_genes_heatmap, InSituType_clusters), stamps_list)
+  plot_list <- c(list(elbow_plot, panCK_plot, KRT17_plot, diff_expr_genes_heatmap), clustering_plots_list)
   print(plot_list)
 }
 ```
@@ -411,7 +430,7 @@ if (!dir.exists(compare_patients_subfolder)) {
 
 # Plot a barplot comparing the InSituTypeID clusters of all patients
 dittoBarPlot(breast.cancer.patients,
-             var = "InSituTypeIDs_semisupervised",
+             var = "InSituType_semisup_clusters",
              group.by = "Patient.ID") +
     guides(fill = guide_legend(ncol = 2, byrow = TRUE))
   ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot.png"))
