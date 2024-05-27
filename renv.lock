@@ -1018,6 +1018,30 @@
       ],
       "Hash": "698ece7ba5a4fa4559e3d537e7ec3d31"
     },
+    "dittoSeq": {
+      "Package": "dittoSeq",
+      "Version": "1.16.0",
+      "Source": "Bioconductor",
+      "Repository": "Bioconductor 3.19",
+      "Requirements": [
+        "S4Vectors",
+        "SingleCellExperiment",
+        "SummarizedExperiment",
+        "colorspace",
+        "cowplot",
+        "ggplot2",
+        "ggrepel",
+        "ggridges",
+        "grDevices",
+        "gridExtra",
+        "methods",
+        "pheatmap",
+        "reshape2",
+        "stats",
+        "utils"
+      ],
+      "Hash": "6abfba5798a146ab1e3befcd20d3cd61"
+    },
     "dotCall64": {
       "Package": "dotCall64",
       "Version": "1.1-1",
