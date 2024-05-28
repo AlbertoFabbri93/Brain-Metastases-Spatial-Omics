@@ -343,6 +343,7 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
           fov = patient_image,
           # Set border color to 'NA' as 'white' masks all cells when zoomed out
           border.color = NA,
+          flip_xy = FALSE,
           cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
           legend.text = element_text(size = 6),
           legend.title = element_text(size = 8),
