@@ -323,12 +323,14 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
     # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
     umap_clusters <- DimPlot(
       patient_rna_only, reduction = "umap",
-      group.by = cluster) +
+      group.by = cluster,
+      label=TRUE,
+      label.box=TRUE,
+      repel=TRUE) +
       ggtitle(
         paste("Patient", patient_num),
-        subtitle = cluster)
-    # Label clusters on a ggplot2-based scatter plot
-    LabelClusters(plot = umap_clusters, id = cluster)
+        subtitle = cluster) +
+      NoLegend()
     # Save plot to list
     clustering_plots_list[[paste(cluster, "umap", sep = "_")]] <- umap_clusters
     # Save plot to image file
