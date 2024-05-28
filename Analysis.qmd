@@ -187,50 +187,6 @@ analyze_patient <- function(patient_num) {
   KRT17_plot <- FeaturePlot(patient_rna_only, features = "KRT17", cols = c("white", "red")) + ggtitle(paste("Patient", patient_num), subtitle = "KRT17")
 ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""))
 
-  ################## HEATMAP ##################
-
-  # Plot heatmap per cluster
-  Idents(patient_rna_only) <- "seurat_clusters"
-  markers.patient_rna_only <- FindAllMarkers(patient_rna_only, only.pos = T)
-
-  markers.patient_rna_only %>%
-    # For every cluster...
-    group_by(cluster) %>%
-    # ...filter out the genes whose expression is not at least double that in other clusters...
-    dplyr::filter(avg_log2FC > 1) %>%
-    # ...and only keep the 10 most significant (based on the p value)
-    slice_head(n = 10) %>%
-    ungroup() -> most_significant_markers
-  
-  # Calculate the number of features (rows)
-  num_features <- length(most_significant_markers$gene)
-
-  # Define a function to dynamically calculate label size
-  calculate_label_size <- function(num_features) {
-    base_size <- 400
-    scaled_size <- base_size / (num_features)
-    return(scaled_size)
-  }
-
-  # Calculate the label size for the current figure
-  label_size <- calculate_label_size(num_features)
-  
-  # Create the heatmap with the scaled text
-  diff_expr_genes_heatmap <- DoHeatmap(
-    patient_rna_only,
-    features = most_significant_markers$gene,
-    assay = "Nanostring",
-    label = TRUE,
-  ) + theme(
-  axis.text.y = element_text(size = label_size)
-  ) + ggtitle(paste("Patient", patient_num), subtitle = "Top 10 Differentially Expressed Genes")
-  
-  # Save the heatmap to an image
-  ggsave(
-    filename = paste(patient_subfolder, "Patient_",  patient_num, "_diff_expr_genes_heatmap.png", sep = ""),
-    plot = diff_expr_genes_heatmap
-  )
-
   ################## INSITUTYPE ##################
   
   # Cohort of all the patients
@@ -307,6 +263,13 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
 
   # Save all the plots in a list to return them all together
   clustering_plots_list <- list()
+  
+  # Heatmap plot, define a function to dynamically calculate label size based on the number of features
+  calculate_label_size <- function(num_features) {
+    base_size <- 400
+    scaled_size <- base_size / (num_features)
+    return(scaled_size)
+  }
 
   for (cluster in clusters) {
 
@@ -317,6 +280,44 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
     Idents(patient_rna_only) <- cluster
     # Plot the cells using their polygonal boundaries
     DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
+    # Finds markers (differentially expressed genes) for each of the identity classes in a dataset
+    markers.patient_rna_only <- FindAllMarkers(patient_rna_only, only.pos = T)
+
+    markers.patient_rna_only %>%
+    # For every cluster...
+    group_by(cluster) %>%
+    # ...filter out the genes whose expression is not at least double that in other clusters...
+    dplyr::filter(avg_log2FC > 1) %>%
+    # ...and only keep the 10 most significant (based on the p value)
+    slice_head(n = 10) %>%
+    ungroup() -> most_significant_markers
+  
+    # Calculate the number of features (rows)
+    num_features <- length(most_significant_markers$gene)
+
+    # Calculate the label size for the current figure
+    label_size <- calculate_label_size(num_features)
+  
+    # Create the heatmap with the scaled text
+    diff_expr_genes_heatmap <- DoHeatmap(
+      patient_rna_only,
+      features = most_significant_markers$gene,
+      assay = "Nanostring",
+      label = TRUE,
+      size = 4,
+    ) + theme(
+    axis.text.y = element_text(size = label_size),
+    ) + ggtitle(paste("Patient", patient_num, cluster), subtitle = "Top 10 Differentially Expressed Genes per Cluster")
+
+    # Save plot to list
+    clustering_plots_list[[paste(cluster, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
+
+    # Save the heatmap to an image
+    ggsave(
+      filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_diff_expr_genes_heatmap.png"),
+      plot = diff_expr_genes_heatmap
+    )
+
 
     # Graphs the output of a dimensional reduction technique on a 2D scatter plot
     # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
@@ -354,7 +355,7 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
     }
   }
   # Return all plots together, otherwise only the last one is shown
-  plot_list <- c(list(elbow_plot, panCK_plot, KRT17_plot, diff_expr_genes_heatmap), clustering_plots_list)
+  plot_list <- c(list(elbow_plot, panCK_plot, KRT17_plot), clustering_plots_list)
   print(plot_list)
 }
 ```
