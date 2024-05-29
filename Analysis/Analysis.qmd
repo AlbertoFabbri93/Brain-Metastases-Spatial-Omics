@@ -25,7 +25,8 @@ library("openxlsx")
 # Used for the barplots
 library("dittoSeq")
 
-image_dir <- "Images/"
+image_dir <- "../Images/"
+image_ext <- ".svg"
 ```
 
 ## General overview of the data
@@ -41,7 +42,7 @@ rownames(ioprofiles) <- ioprofiles[, 1]
 ioprofiles <- ioprofiles[, -1] %>% as.matrix()
 
 # Cohort of all the patients
-breast.cancer.patients <- readRDS("./breast.cancer.patients.rds")
+breast.cancer.patients <- readRDS("./Seurat_objects/breast.cancer.patients.rds")
 immunofluorescence <- breast.cancer.patients@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
 cohort <- fastCohorting(immunofluorescence,
   gaussian_transform = TRUE, n_cohorts = 5
@@ -125,7 +126,7 @@ breast_cancer_stamps_highlighted <- ggplot(tissue_micro_array, aes(x = X_mm, y =
   coord_equal() +
   labs(color = "Breast cancer")
 print(breast_cancer_stamps_highlighted)
-ggsave("Images/TMA_breast_cancer_stamps_highlighted.png")
+ggsave(paste0(image_dir, "/TMA_breast_cancer_stamps_highlighted", image_ext))
 ```
 
 ## Clustering per patient
@@ -169,7 +170,7 @@ analyze_patient <- function(patient_num) {
   # Show the significance of every principal component of the PCA
   # It can be used to decide the number of dims of the FindNeighbors function
   elbow_plot <- ElbowPlot(patient_rna_only, ndims = 50) + ggtitle(paste("Patient", patient_num))
-  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_elbow_plot.png", sep = ""))
+  ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_elbow_plot", image_ext))
   # Computes the k.param nearest neighbors
   patient_rna_only <- Seurat::FindNeighbors(patient_rna_only, dims = 1:25)
   # Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
@@ -181,11 +182,11 @@ analyze_patient <- function(patient_num) {
   
   # Plot the Mean Pan CK
   panCK_plot <- FeaturePlot(patient_rna_only, features = "Mean.PanCK", min.cutoff = 2000) + ggtitle(paste("Patient", patient_num), subtitle = "Mean PanCK")
-  ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_panCK.png", sep = ""))
+  ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_panCK", image_ext))
   
   # Plot KRT17
   KRT17_plot <- FeaturePlot(patient_rna_only, features = "KRT17", cols = c("white", "red")) + ggtitle(paste("Patient", patient_num), subtitle = "KRT17")
-ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""))
+ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_krt17", image_ext))
 
   ################## INSITUTYPE ##################
   
@@ -333,7 +334,7 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
 
     # Save the heatmap to an image
     ggsave(
-      filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_diff_expr_genes_heatmap.png"),
+      filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_diff_expr_genes_heatmap", image_ext),
       plot = diff_expr_genes_heatmap
     )
 
@@ -353,7 +354,7 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
     # Save plot to list
     clustering_plots_list[[paste(cluster, "umap", sep = "_")]] <- umap_clusters
     # Save plot to image file
-    ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_", cluster,"_umap.png", sep = ""))
+    ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster,"_umap", image_ext))
 
     # Plot cells in their spatial context
     stamps_list <- list()
@@ -372,7 +373,7 @@ ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_krt17.png", sep = ""
           legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
         ) + ggtitle(paste("Patient", patient_num, "Core", core, ", Stamp", stamp), subtitle = cluster)
         clustering_plots_list[[paste(cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
-        ggsave(paste(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, ".png", sep = ""))
+        ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, image_ext))
       }
     }
   }
@@ -456,5 +457,5 @@ dittoBarPlot(breast.cancer.patients,
              var = "InSituType_semisup_clusters",
              group.by = "Patient.ID") +
     guides(fill = guide_legend(ncol = 2, byrow = TRUE))
-  ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot.png"))
+  ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot", image_ext))
 ```
