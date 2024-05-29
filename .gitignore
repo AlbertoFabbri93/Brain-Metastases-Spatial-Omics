@@ -1,21 +1,27 @@
-flat_files/
-.Rproj.user
 *.xlsx
 *.gz
-*.RData
-*.Rhistory
-*.png
-*.html
 *.pdf
+*.txt
+
+# Ignore image files
+/Images
+*.png
+
+# Ignore source files
+Analysis/flat_files/
+Analysis/metadata
 
 # Ignore Quarto output files
-Analysis_files/
-Presentation_files/
+Analysis/Analysis_files/
+Presentation/Presentation_files/
 
 # Ignore MacOs files
 *.DS_Store
 
-# Ignore R serialized objects
+# Ignore R files
+.Rproj.user
+*.RData
+*.Rhistory
 *.rds
 
 # Ignore web files
