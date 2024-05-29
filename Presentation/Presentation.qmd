@@ -8,12 +8,54 @@ format:
 slide-level: 3
 execute:
   echo: false
+  keep-md: true
 ---
 
 
 ## Cores overview
 
 ![TMA primary tumor breast cancer](Images/TMA_breast_cancer_stamps_highlighted.png){fig-align="center"}
+
+```{r}
+#| echo: false
+#| output: asis
+
+patients <- 1:7
+
+for (patient_num in patients) {
+  
+  cat(paste("## Patient", patient_num, "\n"))
+  
+  cat(paste("Overview of patient", patient_num, "\n"))
+  
+  cat("### Seurat clusters\n")
+  
+  cat("::: {layout-ncol=3}\n")
+  
+  cat(paste("![Seurat clusters](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_seurat_clusters.png){#fig-p", patient_num,"-seurat-cluster}\n", sep=""))
+  
+  cat(paste("![KRT17](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_krt17.png){#fig-p", patient_num,"-krt17}\n", sep=""))
+  
+  cat(paste("![panCK](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_panCK.png){#fig-p", patient_num,"-panCK}\n", sep=""))
+  
+  cat(":::\n")
+
+  cat("### Heatmap of top differentially expressed genes\n")
+
+  cat(paste("![Heatmap of differentially expressed genes](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_diff_expr_genes_heatmap.png){fig-align=\"center\"}\n", sep=""))
+  
+  cat("### InSituType clustering\n")
+  
+  cat(paste("![InSituType clusters](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_InSituType_clusters.png){fig-align=\"center\"}\n", sep=""))
+  
+  # cat("### Stamps\n")
+
+  # cat("::: {layout-ncol=3}\n")
+  
+  # cat(paste("![Core M1 Stamp 2](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_core_M1_stamp_2.png){#fig-p", patient_num,"-krt17}\n", sep=""))
+}
+  
+```
 
 
 ## Patient 1
