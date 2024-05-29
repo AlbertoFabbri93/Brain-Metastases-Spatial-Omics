@@ -13,7 +13,7 @@ Analysis/metadata
 
 # Ignore Quarto output files
 Analysis/Analysis_files/
-Presentation/Presentation_files/
+Presentation/Presentation*
 
 # Ignore MacOs files
 *.DS_Store
@@ -28,3 +28,5 @@ Presentation/Presentation_files/
 *.html
 *.css
 *.js
+
+/.quarto/
