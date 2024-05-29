@@ -11,10 +11,15 @@ execute:
   keep-md: true
 ---
 
+```{css}
+.quarto-float-caption {
+    display: none;
+}
+```
 
 ## Cores overview
 
-![TMA primary tumor breast cancer](Images/TMA_breast_cancer_stamps_highlighted.png){fig-align="center"}
+![TMA primary tumor breast cancer](../Images/TMA_breast_cancer_stamps_highlighted.png){fig-align="center"}
 
 ```{r}
 #| echo: false
@@ -24,287 +29,51 @@ patients <- 1:7
 
 for (patient_num in patients) {
   
-  cat(paste("## Patient", patient_num, "\n"))
-  
-  cat(paste("Overview of patient", patient_num, "\n"))
-  
-  cat("### Seurat clusters\n")
-  
-  cat("::: {layout-ncol=3}\n")
-  
-  cat(paste("![Seurat clusters](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_seurat_clusters.png){#fig-p", patient_num,"-seurat-cluster}\n", sep=""))
-  
-  cat(paste("![KRT17](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_krt17.png){#fig-p", patient_num,"-krt17}\n", sep=""))
-  
-  cat(paste("![panCK](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_panCK.png){#fig-p", patient_num,"-panCK}\n", sep=""))
-  
-  cat(":::\n")
+  # Specify the path to the folder
+  folder_path <- paste0("../Images/Patient_", patient_num, "_plots/")
 
-  cat("### Heatmap of top differentially expressed genes\n")
+  # List all files in the folder
+  all_patient_files <- list.files(path = folder_path)
 
-  cat(paste("![Heatmap of differentially expressed genes](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_diff_expr_genes_heatmap.png){fig-align=\"center\"}\n", sep=""))
+  cat(paste("\n## Patient", patient_num, "\n\n"))
   
-  cat("### InSituType clustering\n")
+  cat('::: {layout-ncol=2}\n')
+  cat(paste0("![KRT17](../Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_krt17.png){#fig-p", patient_num,"-krt17}\n\n"))
   
-  cat(paste("![InSituType clusters](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_InSituType_clusters.png){fig-align=\"center\"}\n", sep=""))
-  
-  # cat("### Stamps\n")
+  cat(paste0("![panCK](../Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_panCK.png){#fig-p", patient_num,"-panCK}\n"))
+  cat(':::\n\n')
 
-  # cat("::: {layout-ncol=3}\n")
   
-  # cat(paste("![Core M1 Stamp 2](Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_core_M1_stamp_2.png){#fig-p", patient_num,"-krt17}\n", sep=""))
-}
+  cluster_types <- c("InSituType_semisup_clusters", "seurat_clusters")
   
+  cat("### Clustering\n\n")
+  
+      cat(paste0("::: {layout-nrow=2}\n"))
+
+  
+  for(cluster_type in cluster_types) {
+    
+    # Construct the regular expression pattern
+    pattern <- paste0("^Patient_", patient_num, ".*", cluster_type, ".*", "core")
+
+    # Filter files that match the pattern
+    patient_core_files <- grep(pattern, all_patient_files, value = TRUE)
+  
+    # Count the number of files that match the criteria
+    num_patient_files <- length(patient_core_files)+2
+    
+    cat(paste("![](../Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_", cluster_type, "_umap.png){#fig-p", patient_num,"-seurat-cluster}\n\n", sep=""))
+      
+    for(core_image in patient_core_files) {
+        
+      cat(paste0("![](../Images/Patient_", patient_num, "_plots/", core_image, "){#fig-p", patient_num,"-", core_image, "}\n\n"))
+    }
+      
+    cat(paste("![](../Images/Patient_", patient_num, "_plots/Patient_", patient_num, "_", cluster_type, "_diff_expr_genes_heatmap.png)\n\n", sep=""))
+    
+  }
+    cat(':::\n\n')
+
+
+}  
 ```
-
-
-## Patient 1
-
-Overview of patient 1
-
-### Seurat clusters
-
-::: {layout-ncol=3}
-
-![Seurat clusters](Images/Patient_1_plots/Patient_1_seurat_clusters.png){#fig-p7-seurat-cluster}
-
-![KRT17](Images/Patient_1_plots/Patient_1_krt17.png){#fig-p7-krt17}
-
-![panCK](Images/Patient_1_plots/Patient_1_panCK.png){#fig-p7-panCK}
-:::
-
-### Heatmap of top differentially expressed genes
-
-![Heatmap of differentially expressed genes](Images/Patient_1_plots/Patient_1_diff_expr_genes_heatmap.png){fig-align="center"}
-
-<!-- ### Cell-genes pheatmap -->
-
-<!-- ![Cell-genes pheatmap](Images/Patient_1_plots/Patient_1_cell-genes_pheatmap.png){fig-align="center"} -->
-
-### InSituType clustering
-
-![InSituType clusters](Images/Patient_1_plots/Patient_1_InSituType_clusters.png){fig-align="center"}
-
-### Stamps
-
-::: {layout-ncol=3}
-![Core M1 Stamp 2](Images/Patient_1_plots/Patient_1_core_M1_stamp_2.png){#fig-p7-krt17}
-
-![Core M2 Stamp 1](Images/Patient_1_plots/Patient_1_core_M2_stamp_1.png){#fig-p7-panCK}
-
-![Core M2 Stamp 2](Images/Patient_1_plots/Patient_1_core_M2_stamp_2.png){#fig-p7-panCK}
-:::
-
-
-## Patient 2
-
-Overview of patient 2
-
-### Seurat clusters
-
-::: {layout-ncol=3}
-
-![Seurat clusters](Images/Patient_2_plots/Patient_2_seurat_clusters.png){#fig-p7-seurat-cluster}
-
-![KRT17](Images/Patient_2_plots/Patient_2_krt17.png){#fig-p7-krt17}
-
-![panCK](Images/Patient_2_plots/Patient_2_panCK.png){#fig-p7-panCK}
-:::
-
-### Heatmap of top differentially expressed genes
-
-![Heatmap of differentially expressed genes](Images/Patient_2_plots/Patient_2_diff_expr_genes_heatmap.png){fig-align="center"}
-
-<!-- ### Cell-genes pheatmap -->
-
-<!-- ![Cell-genes pheatmap](Images/Patient_2_plots/Patient_2_cell-genes_pheatmap.png){fig-align="center"} -->
-
-### InSituType clustering
-
-![InSituType clusters](Images/Patient_2_plots/Patient_2_InSituType_clusters.png){fig-align="center"}
-
-### Stamps
-
-![Core M3 Stamp 1](Images/Patient_2_plots/Patient_2_core_M3_stamp_1.png){#fig-p7-krt17}
-
-
-## Patient 3
-
-Overview of patient 3
-
-### Seurat clusters
-
-::: {layout-ncol=3}
-
-![Seurat clusters](Images/Patient_3_plots/Patient_3_seurat_clusters.png){#fig-p7-seurat-cluster}
-
-![KRT17](Images/Patient_3_plots/Patient_3_krt17.png){#fig-p7-krt17}
-
-![panCK](Images/Patient_3_plots/Patient_3_panCK.png){#fig-p7-panCK}
-:::
-
-### Heatmap of top differentially expressed genes
-
-![Heatmap of differentially expressed genes](Images/Patient_3_plots/Patient_3_diff_expr_genes_heatmap.png){fig-align="center"}
-
-<!-- ### Cell-genes pheatmap -->
-
-<!-- ![Cell-genes pheatmap](Images/Patient_3_plots/Patient_3_cell-genes_pheatmap.png){fig-align="center"} -->
-
-### InSituType clustering
-
-![InSituType clusters](Images/Patient_3_plots/Patient_3_InSituType_clusters.png){fig-align="center"}
-
-### Stamps
-
-::: {layout-ncol=2}
-![Core M4 Stamp 1](Images/Patient_3_plots/Patient_3_core_M4_stamp_1.png){#fig-p7-krt17}
-
-![Core M4 Stamp 2](Images/Patient_3_plots/Patient_3_core_M4_stamp_2.png){#fig-p7-panCK}
-:::
-
-
-## Patient 4
-
-Overview of patient 4
-
-### Seurat clusters
-
-::: {layout-ncol=3}
-
-![Seurat clusters](Images/Patient_4_plots/Patient_4_seurat_clusters.png){#fig-p7-seurat-cluster}
-
-![KRT17](Images/Patient_4_plots/Patient_4_krt17.png){#fig-p7-krt17}
-
-![panCK](Images/Patient_4_plots/Patient_4_panCK.png){#fig-p7-panCK}
-:::
-
-### Heatmap of top differentially expressed genes
-
-![Heatmap of differentially expressed genes](Images/Patient_4_plots/Patient_4_diff_expr_genes_heatmap.png){fig-align="center"}
-
-<!-- ### Cell-genes pheatmap -->
-
-<!-- ![Cell-genes pheatmap](Images/Patient_4_plots/Patient_4_cell-genes_pheatmap.png){fig-align="center"} -->
-
-### InSituType clustering
-
-![InSituType clusters](Images/Patient_4_plots/Patient_4_InSituType_clusters.png){fig-align="center"}
-
-### Stamps
-
-::: {layout-ncol=2}
-![Core M5 Stamp 1](Images/Patient_4_plots/Patient_4_core_M5_stamp_1.png){#fig-p7-krt17}
-
-![Core M5 Stamp 2](Images/Patient_4_plots/Patient_4_core_M5_stamp_2.png){#fig-p7-panCK}
-:::
-
-
-## Patient 5
-
-Overview of patient 5
-
-### Seurat clusters
-
-::: {layout-ncol=3}
-
-![Seurat clusters](Images/Patient_5_plots/Patient_5_seurat_clusters.png){#fig-p7-seurat-cluster}
-
-![KRT17](Images/Patient_5_plots/Patient_5_krt17.png){#fig-p7-krt17}
-
-![panCK](Images/Patient_5_plots/Patient_5_panCK.png){#fig-p7-panCK}
-:::
-
-### Heatmap of top differentially expressed genes
-
-![Heatmap of differentially expressed genes](Images/Patient_5_plots/Patient_5_diff_expr_genes_heatmap.png){fig-align="center"}
-
-<!-- ### Cell-genes pheatmap -->
-
-<!-- ![Cell-genes pheatmap](Images/Patient_5_plots/Patient_5_cell-genes_pheatmap.png){fig-align="center"} -->
-
-### InSituType clustering
-
-![InSituType clusters](Images/Patient_5_plots/Patient_5_InSituType_clusters.png){fig-align="center"}
-
-### Stamps
-
-::: {layout-ncol=2}
-![Core M6 Stamp 1](Images/Patient_5_plots/Patient_5_core_M6_stamp_1.png){#fig-p7-krt17}
-
-![Core M6 Stamp 2](Images/Patient_5_plots/Patient_5_core_M6_stamp_2.png){#fig-p7-panCK}
-:::
-
-
-## Patient 6
-
-Overview of patient 6
-
-### Seurat clusters
-
-::: {layout-ncol=3}
-
-![Seurat clusters](Images/Patient_6_plots/Patient_6_seurat_clusters.png){#fig-p7-seurat-cluster}
-
-![KRT17](Images/Patient_6_plots/Patient_6_krt17.png){#fig-p7-krt17}
-
-![panCK](Images/Patient_6_plots/Patient_6_panCK.png){#fig-p7-panCK}
-:::
-
-### Heatmap of top differentially expressed genes
-
-![Heatmap of differentially expressed genes](Images/Patient_6_plots/Patient_6_diff_expr_genes_heatmap.png){fig-align="center"}
-
-<!-- ### Cell-genes pheatmap -->
-
-<!-- ![Cell-genes pheatmap](Images/Patient_6_plots/Patient_6_cell-genes_pheatmap.png){fig-align="center"} -->
-
-### InSituType clustering
-
-![InSituType clusters](Images/Patient_6_plots/Patient_6_InSituType_clusters.png){fig-align="center"}
-
-### Stamps
-
-![Core M7 Stamp 2](Images/Patient_6_plots/Patient_6_core_M7_stamp_2.png){#fig-p7-panCK}
-
-
-## Patient 7
-
-Overview of patient 7
-
-### Seurat clusters
-
-::: {layout-ncol=3}
-
-![Seurat clusters](Images/Patient_7_plots/Patient_7_seurat_clusters.png){#fig-p7-seurat-cluster}
-
-![KRT17](Images/Patient_7_plots/Patient_7_krt17.png){#fig-p7-krt17}
-
-![panCK](Images/Patient_7_plots/Patient_7_panCK.png){#fig-p7-panCK}
-:::
-
-### Heatmap of top differentially expressed genes
-
-![Heatmap of differentially expressed genes](Images/Patient_7_plots/Patient_7_diff_expr_genes_heatmap.png){fig-align="center"}
-
-<!-- ### Cell-genes pheatmap -->
-
-<!-- ![Cell-genes pheatmap](Images/Patient_7_plots/Patient_7_cell-genes_pheatmap.png){fig-align="center"} -->
-
-### InSituType clustering
-
-![InSituType clusters](Images/Patient_7_plots/Patient_7_InSituType_clusters.png){fig-align="center"}
-
-### Stamps
-
-::: {layout-ncol=2}
-![Core M8 Stamp 1](Images/Patient_7_plots/Patient_7_core_M8_stamp_1.png){#fig-p7-krt17}
-
-![Core M8 Stamp 2](Images/Patient_7_plots/Patient_7_core_M8_stamp_2.png){#fig-p7-panCK}
-:::
-
-## Compare patients
-
-### InSituType clusters
-
-![InSituType clusters all patients barplot](Images/Compare_patients/InSituType_clusters_all_patients_barplot.png){fig-align="center"}
