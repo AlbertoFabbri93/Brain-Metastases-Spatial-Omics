@@ -324,9 +324,11 @@ ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_krt17", image_ext))
           legend.title = element_text(size = 8),
           legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
           legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
-        ) + labs(
+        ) +
+        labs(
           title = paste("Patient", patient_num, "Core", core, ", Stamp", stamp),
-          subtitle = cluster)
+          subtitle = cluster
+        )
         clustering_plots_list[[paste(cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
         ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, image_ext))
       }
