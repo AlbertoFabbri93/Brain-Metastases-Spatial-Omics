@@ -122,6 +122,7 @@ length(unique(paste(breast.cancer.patients@meta.data$core_serial, breast.cancer.
 # Print the tissue micro array
 # Read the tissue micro array data from a CSV file
 tissue_micro_array <- read.csv("./flat_files/LU001FFP03/LU001FFP03_fov_positions_file.csv")
+tissue_micro_array <- read.csv(gzfile("./flat_files/LU001FFP03/LU001FFP03_fov_positions_file.csv.gz"))
 breast_cancer_stamps_highlighted <- ggplot(tissue_micro_array, aes(x = X_mm, y = Y_mm)) +
   geom_point(aes(color = FOV %in% breast_cancer_fovs), shape = 15, size = 4) +
   geom_text(aes(label = FOV), size = 1.5) +
