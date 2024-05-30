@@ -186,12 +186,32 @@ analyze_patient <- function(patient_num) {
   patient_rna_only <- RunUMAP(patient_rna_only, dims = 1:30, repulsion.strength = 5)
   
   # Plot the Mean Pan CK
-  panCK_plot <- FeaturePlot(patient_rna_only, features = "Mean.PanCK", min.cutoff = 2000) + ggtitle(paste("Patient", patient_num), subtitle = "Mean PanCK")
-  ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_panCK", image_ext))
+  panCK_plot <- FeaturePlot(
+    object = patient_rna_only,
+    features = "Mean.PanCK",
+    min.cutoff = 2000
+  ) +
+  labs(
+    title = paste("Patient", patient_num),
+    subtitle = "Mean PanCK"
+  )
+  ggsave(
+    filename = paste0(patient_subfolder, "Patient_",  patient_num, "_panCK", image_ext)
+  )
   
   # Plot KRT17
-  KRT17_plot <- FeaturePlot(patient_rna_only, features = "KRT17", cols = c("white", "red")) + ggtitle(paste("Patient", patient_num), subtitle = "KRT17")
-ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_krt17", image_ext))
+  KRT17_plot <- FeaturePlot(
+    object = patient_rna_only,
+    features = "KRT17",
+    cols = c("white", "red")
+  ) + 
+  labs(
+    title = paste("Patient", patient_num),
+    subtitle = "KRT17"
+  )
+  ggsave(
+    filename = paste0(patient_subfolder, "Patient_",  patient_num, "_krt17", image_ext)
+  )
 
   ################## INSITUTYPE ##################
   
