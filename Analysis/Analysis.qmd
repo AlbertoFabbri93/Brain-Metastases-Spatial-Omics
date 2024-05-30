@@ -24,6 +24,8 @@ library("InSituType")
 library("openxlsx")
 # Used for the barplots
 library("dittoSeq")
+# Used to visualize the raw images from AtoMx
+library(EBImage)
 
 image_dir <- "../Images/"
 image_ext <- ".svg"
