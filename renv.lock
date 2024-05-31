@@ -1784,6 +1784,11 @@
       ],
       "Hash": "c6fafa6cccb1e1dfe7f7d122efd6e6a7"
     },
+    "lsa": {
+      "Package": "lsa",
+      "Version": "0.73.3",
+      "Source": "Repository"
+    },
     "lubridate": {
       "Package": "lubridate",
       "Version": "1.9.3",
