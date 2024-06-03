@@ -10,9 +10,10 @@
 # Ignore source files
 Analysis/flat_files/
 Analysis/metadata
-
-# Ignore Quarto output files
 Analysis/Analysis_files/
+Analysis/Akoya_spatial_multiplex_immune_cell_data
+Analysis/morphology_2D
+Analysis/qupath-akoya
 Presentation/Presentation*
 
 # Ignore MacOs files
