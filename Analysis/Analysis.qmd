@@ -281,7 +281,10 @@ analyze_patient <- function(patient_num) {
     # Save plot to list
     clustering_plots_list[[paste(cluster, "umap", sep = "_")]] <- umap_clusters
     # Save plot to image file
-    ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster,"_umap", image_ext))
+    ggsave(
+      filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster,"_umap", image_ext),
+      plot = umap_clusters
+    )
 
     # Plot cells in their spatial context
     stamps_list <- list()
@@ -304,7 +307,9 @@ analyze_patient <- function(patient_num) {
           subtitle = cluster
         )
         clustering_plots_list[[paste(cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
-        ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, image_ext))
+        ggsave(
+          filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, image_ext),
+          plot = stamp_plot)
       }
     }
   }
