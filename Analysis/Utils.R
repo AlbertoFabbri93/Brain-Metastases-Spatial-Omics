@@ -73,3 +73,56 @@ generateDynTextHeatmap <- function(data, clusters_column_name) {
   
   return(diff_expr_genes_heatmap)
 }
+
+####### INSITUTYPE SEMISUPERVISED #######
+
+runInSituTypeSemisupervised <- function(patient_data, ioprofiles) {
+
+  # Cohort of all the patients
+  patient_immunofluorescence <- patient_data@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+  # "Gaussian_transform = TRUE" maps variables to gaussians in order to place dramatically different variables on the same scale
+  patient_cohort <- fastCohorting(patient_immunofluorescence, gaussian_transform = TRUE, n_cohorts = 5)
+  # check clusters and cohort numbers
+  table(patient_cohort)
+  
+  # Extract the count data from the Seurat object
+  patient_rna.counts <- GetAssayData(subset(patient_data, features = row.names(GetAssayData(patient_data))[1:1000]), layer = "counts") %>%
+    as.matrix() %>%
+    t()
+  # Extract the negative probes from the Seurat object
+  patient_neg.probes <- GetAssayData(subset(patient_data, features = row.names(GetAssayData(patient_data)) %>% grep("Negative", ., value = TRUE))) %>%
+    as.matrix() %>%
+    t()
+  # Calculate the average negative probes per cell
+  patient_avg.neg.probes <- Matrix::rowMeans(patient_neg.probes)
+  
+  # Semi-supervised learning with insitutype and reference profiles
+  # InSituType needs integers, if given floating point numbers it fails with misleading errors
+  patient_semisup <- insitutype(
+    x = patient_rna.counts,
+    neg = patient_avg.neg.probes,
+    cohort = patient_cohort,
+    reference_profiles = ioprofiles,
+    
+    # Enter your own per-cell background estimates here if you
+    # have them; otherwise insitutype will use the negprobes to
+    # estimate background for you.
+    bg = NULL,
+    # condensed to save time. n_clusts = 5:15 would be more optimal
+    # Group the cells the do not correspond to any type in the reference matrix
+    n_clusts = c(5),
+    # reference_profiles = updatedprofiles$updated_profiles,
+    # Update the reference profile based on the current data
+    update_reference_profiles = FALSE,
+    # choosing inadvisably low numbers to speed the vignette; using the defaults
+    # in recommended.
+    # This is the number of cells used in each phase, because of random sampling
+    n_phase1 = 20,
+    n_phase2 = 50,
+    n_phase3 = 200,
+    n_starts = 1,
+    max_iters = 5
+  )
+  
+  return(patient_semisup)
+}
