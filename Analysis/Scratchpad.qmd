@@ -1,0 +1,62 @@
+## LIBRARIES
+
+```{r}
+#| label: setup
+
+library("tidyverse")
+library(EBImage)
+```
+
+
+## PHEATMAP CODE
+
+```{r}
+# I CAN NOT FIND A WAY TO MAKE IT WORK NICELY WITH THE REST OF CODE
+  # IT POLLUTES THE PLOTTING DEVICE
+  # mat <- patient_semisup$profiles
+  # # Force the values in the range 0 to 1 otherwise the biggest value obscure all the others
+  # mat <- sweep(mat, 1, pmax(apply(mat, 1, max), 0.1), "/")
+  # cell_genes_pheatmap <- pheatmap(mat,
+  #   col = colorRampPalette(c("white", "darkblue"))(100),
+  #   fontsize_row = 0.5,
+  #   filename = paste(patient_subfolder, "Patient_",  patient_num, "_cell_genes_pheatmap.pdf", sep = "")
+  # )
+```
+
+## OPEN ATOMX IMAGES
+
+```{r}
+path1 <- "./morphology_2D/LU001FFP03/20240307_005220_S2_C902_P99_N99_F213.tif"
+path2 <- "./morphology_2D/LU001FFP03/20240307_005220_S2_C902_P99_N99_F214.tif"
+path3 <- "./morphology_2D/LU001FFP03/20240307_005220_S2_C902_P99_N99_F215.tif"
+path4 <- "./morphology_2D/LU001FFP03/20240307_005220_S2_C902_P99_N99_F216.tif"
+
+image1 <- readImage(path1)
+image2 <- readImage(path2)
+image3 <- readImage(path3)
+image4 <- readImage(path4)
+
+# 2 -> PanCK
+# 5 -> DNA (DAPI)
+
+# ? -> CD68
+# ? -> CD45
+# ? -> membrane
+
+for (layer in 1:5) {
+  stamp <- EBImage::combine(image1[,,layer], image2[,,layer], image3[,,layer], image4[,,layer])%>%normalize()
+  display(stamp, method = "raster", nx = 2, all = TRUE)
+}
+
+display(rgbImage(red=image1[,,1], blue=image1[,,3], green=image1[,,5]))
+
+display(image1)
+
+
+
+image2=readImage(path1)%>%normalize()%>%flip()%>%resize(0.5)
+
+images=combine(image, image2)
+
+display(images, nx=2)#, ny=1)
+```
