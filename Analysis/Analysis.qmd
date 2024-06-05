@@ -29,9 +29,10 @@ library(EBImage)
 
 # Import utility functions
 source("Utils.R")
-
-image_dir <- "../Images/"
-image_ext <- ".png"
+# Import environment variables as global variables
+rds_dir <- Sys.getenv("RDS_DIR")
+image_dir <- Sys.getenv("IMAGE_DIR")
+image_ext <- Sys.getenv("IMAGE_EXT")
 ```
 
 ## General overview of the data
@@ -40,16 +41,9 @@ image_ext <- ".png"
 #| label: data-overview
 #| echo: false
 
-# Get cell reference profile data from NanoString
-# Use this reference profile as it is the only one available from CosMx data, originally from:
-# https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
-ioprofiles <- read.csv("./Cell_profile_matrices/NanoString.CosMx.Human.IO.profiles.csv", header = T, sep = ",", fill = T)
-rownames(ioprofiles) <- ioprofiles[, 1]
-ioprofiles <- ioprofiles[, -1] %>% as.matrix()
-
 # Cohort of all the patients
-breast.cancer.patients <- readRDS("./Seurat_objects/breast.cancer.patients.rds")
-immunofluorescence <- breast.cancer.patients@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+breast_cancer_patients <- readRDS("./Seurat_objects/breast_cancer_patients.rds")
+immunofluorescence <- breast_cancer_patients@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
 cohort <- fastCohorting(immunofluorescence,
   gaussian_transform = TRUE, n_cohorts = 5
 )
@@ -57,7 +51,7 @@ cohort <- fastCohorting(immunofluorescence,
 table(cohort)
 
 # List of the gene data (1000-plex RNA)
-rownames(breast.cancer.patients)
+rownames(breast_cancer_patients)
 # Create a data frame to store the table
 patient_table <- data.frame(
   Patient_ID = character(),
@@ -68,9 +62,9 @@ patient_table <- data.frame(
 )
 
 # Iterate over each patient
-for (patient_id in sort(unique(unlist(breast.cancer.patients$Patient.ID)))) {
+for (patient_id in sort(unique(unlist(breast_cancer_patients$Patient.ID)))) {
   # Subset the data for the current patient
-  patient_data <- subset(x = breast.cancer.patients@meta.data, subset = Patient.ID == patient_id)
+  patient_data <- subset(x = breast_cancer_patients@meta.data, subset = Patient.ID == patient_id)
 
   # Get the unique serial cores for the current patient
   serial_cores <- unique(patient_data$core_serial)
@@ -107,13 +101,13 @@ for (patient_id in sort(unique(unlist(breast.cancer.patients$Patient.ID)))) {
 # Print the patient table
 print(patient_table)
 # Print all the patients ID
-sort(unique(unlist(breast.cancer.patients$Patient.ID)))
+sort(unique(unlist(breast_cancer_patients$Patient.ID)))
 
 # Print all the FOV
-breast_cancer_fovs <- sort(unique(unlist(breast.cancer.patients$fov)))
+breast_cancer_fovs <- sort(unique(unlist(breast_cancer_patients$fov)))
 
 # Print the number of stamps
-length(unique(paste(breast.cancer.patients@meta.data$core_serial, breast.cancer.patients@meta.data$stamp)))
+length(unique(paste(breast_cancer_patients@meta.data$core_serial, breast_cancer_patients@meta.data$stamp)))
 ```
 
 ### Tissue micro array
@@ -137,215 +131,10 @@ ggsave(paste0(image_dir, "/TMA_breast_cancer_stamps_highlighted", image_ext))
 
 ## Clustering per patient
 
-::: {.content-hidden}
-### Generic function
-:::
-
 ```{r}
-#| label: analyze-patient
-#| echo: false
+#| label: merged-data
 
-analyze_patient <- function(patient_num) {
-  # Extract patient data
-  patient_data <- subset(x = breast.cancer.patients, subset = Patient.ID == patient_num)
-  # Print cores and fovs associated with the patient
-  print(paste("FOVs and cell count associated with patient", patient_num))
-  for(core in unique(patient_data@meta.data$core_serial)) {
-    print("------------------------------------")
-    print(core)
-    for(stamp in unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == core])) {
-      print(paste("Stamp", stamp))
-      print(table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core &  patient_data@meta.data$stamp == stamp]))
-    }
-  }
-  # RNA data only
-  patient_rna_only <- subset(x = patient_data, features = rownames(breast.cancer.patients)[1:1000])
-  # Create folder to save the plots
-  patient_subfolder <- paste(image_dir, "Patient_", patient_num, "_plots/", sep = "")
-  dir.create(patient_subfolder)
-
-  # Normalize the count data present in a given assay
-  patient_rna_only <- NormalizeData(patient_rna_only, assay = "Nanostring")
-  # Scales and centers features in the dataset
-  patient_rna_only <- ScaleData(patient_rna_only)
-  # Detect highly variable genes for the pca
-  # Identifies features that are outliers on a 'mean variability plot'
-  patient_rna_only <- FindVariableFeatures(patient_rna_only)
-  # Run a PCA dimensionality reduction
-  patient_rna_only <- RunPCA(patient_rna_only)
-  # Show the significance of every principal component of the PCA
-  # It can be used to decide the number of dims of the FindNeighbors function
-  elbow_plot <- ElbowPlot(patient_rna_only, ndims = 50) + ggtitle(paste("Patient", patient_num))
-  ggsave(paste0(patient_subfolder, "Patient_",  patient_num, "_elbow_plot", image_ext))
-  # Computes the k.param nearest neighbors
-  patient_rna_only <- Seurat::FindNeighbors(patient_rna_only, dims = 1:25)
-  # Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
-  # Use the resolution parameter to fine tune the number of expected clusters
-  patient_rna_only <- Seurat::FindClusters(patient_rna_only, resolution = 0.8)
-  # Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
-  set.seed(123)
-  patient_rna_only <- RunUMAP(patient_rna_only, dims = 1:30, repulsion.strength = 5)
-  
-  # Plot the Mean Pan CK
-  panCK_plot <- FeaturePlot(
-    object = patient_rna_only,
-    features = "Mean.PanCK",
-    min.cutoff = 2000
-  ) +
-  labs(
-    title = paste("Patient", patient_num),
-    subtitle = "Mean PanCK"
-  )
-  ggsave(
-    filename = paste0(patient_subfolder, "Patient_",  patient_num, "_panCK", image_ext)
-  )
-  
-  # Plot KRT17
-  KRT17_plot <- FeaturePlot(
-    object = patient_rna_only,
-    features = "KRT17",
-    cols = c("white", "red")
-  ) + 
-  labs(
-    title = paste("Patient", patient_num),
-    subtitle = "KRT17"
-  )
-  ggsave(
-    filename = paste0(patient_subfolder, "Patient_",  patient_num, "_krt17", image_ext)
-  )
-
-  # Run InSituType semisupervised clustering
-  patient_semisup <- runInSituTypeSemisupervised(patient_data, ioprofiles)
-  # add phenotypes to the metadata for plotting
-  patient_rna_only$InSituType_semisup_clusters <- patient_semisup$clust
-  # add phenotypes to the global object
-  # this line fails to execute when run outside of a function
-  breast.cancer.patients$InSituType_semisup_clusters <<- patient_rna_only$InSituType_semisup_clusters
-
-  # I CAN NOT FIND A WAY TO MAKE IT WORK NICELY WITH THE REST OF CODE
-  # IT POLLUTES THE PLOTTING DEVICE
-  # mat <- patient_semisup$profiles
-  # # Force the values in the range 0 to 1 otherwise the biggest value obscure all the others
-  # mat <- sweep(mat, 1, pmax(apply(mat, 1, max), 0.1), "/")
-  # cell_genes_pheatmap <- pheatmap(mat,
-  #   col = colorRampPalette(c("white", "darkblue"))(100),
-  #   fontsize_row = 0.5,
-  #   filename = paste(patient_subfolder, "Patient_",  patient_num, "_cell_genes_pheatmap.pdf", sep = "")
-  # )
-
-
-  ################## PRINT CLUSTERING PLOTS ##################
-
-  # Get name of the first image
-  patient_image <- Images(patient_rna_only)[1]
-
-  # Create a list of the clusters
-  clusters <- c("seurat_clusters", "InSituType_semisup_clusters")
-
-  # Save all the plots in a list to return them all together
-  clustering_plots_list <- list()
-
-  for (cluster in clusters) {
-
-    print(paste(cluster, "and number of cells in each of them associated with patient", patient_num))
-    print(table(patient_rna_only[[cluster]]))
-
-    # Select the cluster as the identity
-    Idents(patient_rna_only) <- cluster
-    # Plot the cells using their polygonal boundaries
-    DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
-
-    diff_expr_genes_heatmap <- generateDynTextHeatmap(patient_rna_only, cluster)
-
-    # Save plot to list
-    clustering_plots_list[[paste(cluster, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
-
-    # Save the heatmap to an image
-    ggsave(
-      filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_diff_expr_genes_heatmap", image_ext),
-      plot = diff_expr_genes_heatmap
-    )
-
-
-    # Graphs the output of a dimensional reduction technique on a 2D scatter plot
-    # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
-    umap_clusters <- DimPlot(
-      patient_rna_only, reduction = "umap",
-      group.by = cluster,
-      label=TRUE,
-      label.box=TRUE,
-      repel=TRUE) +
-      ggtitle(
-        paste("Patient", patient_num),
-        subtitle = cluster) +
-      NoLegend()
-    # Save plot to list
-    clustering_plots_list[[paste(cluster, "umap", sep = "_")]] <- umap_clusters
-    # Save plot to image file
-    ggsave(
-      filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster,"_umap", image_ext),
-      plot = umap_clusters
-    )
-
-    # Plot cells in their spatial context
-    stamps_list <- list()
-    for(core in unique(patient_rna_only@meta.data$core_serial)) {
-      for (stamp in unique(patient_rna_only@meta.data$stamp[patient_rna_only@meta.data$core_serial == core])) {
-        stamp_plot <- ImageDimPlot(
-          patient_rna_only,
-          fov = patient_image,
-          # Set border color to 'NA' as 'white' masks all cells when zoomed out
-          border.color = NA,
-          flip_xy = FALSE,
-          cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
-          legend.text = element_text(size = 6),
-          legend.title = element_text(size = 8),
-          legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
-          legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
-        ) +
-        labs(
-          title = paste("Patient", patient_num, "Core", core, ", Stamp", stamp),
-          subtitle = cluster
-        )
-        clustering_plots_list[[paste(cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
-        ggsave(
-          filename = paste0(patient_subfolder, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, image_ext),
-          plot = stamp_plot)
-      }
-    }
-  }
-
-  ######## COMPARE CLUSTERING METHODS ########
-  
-  contingency_tab_clusters <- table(
-    patient_rna_only$InSituType_semisup_clusters,
-    patient_rna_only$seurat_clusters,
-    dnn = c("InSituType", "Seurat"))
-
-  # Convert the table to a data frame for ggplot2
-  df_compare_clusters <- as.data.frame(as.table(contingency_tab_clusters))
-  df_compare_clusters$Freq <- log10(df_compare_clusters$Freq + 10)
-
-  # Plot using ggplot2 with geom_tile
-  heatmap_seurat_vs_insitutype <- ggplot(df_compare_clusters, aes(InSituType, Seurat, fill = Freq)) +
-    geom_tile(color = "white") +
-    scale_fill_viridis_c() +
-    labs(fill = "Correlation") +
-    theme_minimal() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-    labs(
-      title = paste("Patient", patient_num),
-      subtitle = "Seurat vs InSituType clusters"
-    )
-  ggsave(
-    filename = paste0(patient_subfolder, "Patient_",  patient_num, "_heatmap_seurat_vs_insitutype", image_ext),
-    plot = heatmap_seurat_vs_insitutype
-  )
-
-  # Return all plots together, otherwise only the last one is shown
-  plot_list <- c(list(elbow_plot, panCK_plot, KRT17_plot, heatmap_seurat_vs_insitutype), clustering_plots_list)
-  print(plot_list)
-}
+patients_rna_data <- list()
 ```
 
 ### Patient 1
@@ -353,7 +142,8 @@ analyze_patient <- function(patient_num) {
 ```{r}
 #| label: analyze-patient-1
 
-analyze_patient("1")
+patient_1_rna_data <- analyze_patient(breast_cancer_patients, "1")
+patients_rna_data[["1"]] <- patient_1_rna_data
 ```
 
 ### Patient 2
@@ -361,7 +151,8 @@ analyze_patient("1")
 ```{r}
 #| label: analyze-patient-2
 
-analyze_patient("2")
+patient_2_rna_data <- analyze_patient(breast_cancer_patients, "2")
+patients_rna_data[["2"]] <- patient_2_rna_data
 ```
 
 ### Patient 3
@@ -369,7 +160,8 @@ analyze_patient("2")
 ```{r}
 #| label: analyze-patient-3
 
-analyze_patient("3")
+patient_3_rna_data <- analyze_patient(breast_cancer_patients, "3")
+patients_rna_data[["3"]] <- patient_3_rna_data
 ```
 
 ### Patient 4
@@ -377,7 +169,8 @@ analyze_patient("3")
 ```{r}
 #| label: analyze-patient-4
 
-analyze_patient("4")
+patient_4_rna_data <- analyze_patient(breast_cancer_patients, "4")
+patients_rna_data[["4"]] <- patient_4_rna_data
 ```
 
 ### Patient 5
@@ -385,7 +178,8 @@ analyze_patient("4")
 ```{r}
 #| label: analyze-patient-5
 
-analyze_patient("5")
+patient_5_rna_data <- analyze_patient(breast_cancer_patients, "5")
+patients_rna_data[["5"]] <- patient_5_rna_data
 ```
 
 ### Patient 6
@@ -393,7 +187,8 @@ analyze_patient("5")
 ```{r}
 #| label: analyze-patient-6
 
-analyze_patient("6")
+patient_6_rna_data <- analyze_patient(breast_cancer_patients, "6")
+patients_rna_data[["6"]] <- patient_6_rna_data
 ```
 
 ### Patient 7
@@ -401,7 +196,8 @@ analyze_patient("6")
 ```{r}
 #| label: analyze-patient-7
 
-analyze_patient("7")
+patient_7_rna_data <- analyze_patient(breast_cancer_patients, "7")
+patients_rna_data[["7"]] <- patient_7_rna_data
 ```
 
 ## Comparing patients
@@ -417,10 +213,19 @@ if (!dir.exists(compare_patients_subfolder)) {
   dir.create(compare_patients_subfolder, recursive = TRUE)
 }
 
+# Merge all the Seurat objects together
+combined_patients <- patients_rna_data[[1]]
+combined_patients <- RenameCells(combined_patients, add.cell.id = "Patient_1")
+for (i in 2:length(patients_rna_data)) {
+  # Provide a unique identifier for each object
+  seurat_obj <- RenameCells(patients_rna_data[[i]], add.cell.id = paste0("Patient_", i))
+  combined_patients <- merge(combined_patients, y = seurat_obj, merge.data = TRUE)
+}
+
 # Plot a barplot comparing the InSituTypeID clusters of all patients
-dittoBarPlot(breast.cancer.patients,
+dittoBarPlot(combined_patients,
              var = "InSituType_semisup_clusters",
              group.by = "Patient.ID") +
     guides(fill = guide_legend(ncol = 2, byrow = TRUE))
-  ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot", image_ext))
+ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot", image_ext))
 ```
