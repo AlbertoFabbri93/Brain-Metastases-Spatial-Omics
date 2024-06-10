@@ -26,6 +26,8 @@ library("openxlsx")
 library("dittoSeq")
 # Used to visualize the raw images from AtoMx
 library(EBImage)
+# Used to annotate images with multiple plots
+library(patchwork)
 
 # Import utility functions
 source("Utils.R")
