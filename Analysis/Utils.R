@@ -225,6 +225,89 @@ compare_clustering_methods <- function(patient_rna_data) {
   return(heatmap_seurat_vs_insitutype)
 }
 
+####### ANALYZE PROTEINS #######
+
+analyze_proteins <- function(patient_data) {
+  
+  for (i in 19:28) {
+    column_name <- names(patient_data@meta.data)[i]
+    patient_data[[column_name]] <- as.numeric(as.factor(patient_data@meta.data[[column_name]]))
+  }
+  
+  # Extract metadata features and replace underscores in column names
+  metadata_features <- patient_data@meta.data[, 18:27]
+  colnames(metadata_features) <- gsub("_", "-", colnames(metadata_features))
+  metadata_matrix <- as.matrix(metadata_features)
+  
+  # Ensure row names (cell names) match the Seurat object cell names
+  rownames(metadata_matrix) <- rownames(patient_data@meta.data)
+  
+  # Create a new assay with the metadata
+  metadata_assay <- CreateAssayObject(counts = t(metadata_matrix))
+  
+  # Add the new assay to the Seurat object with the name "metadata"
+  patient_data[["metadata"]] <- metadata_assay
+  DefaultAssay(patient_data) <- "metadata"
+  
+  # Scale the raw metadata values
+  features_to_scale <- colnames(metadata_matrix)
+  patient_data <- ScaleData(patient_data, assay = "metadata", features = features_to_scale, do.center = TRUE, do.scale = TRUE)
+  
+  # Run PCA and specify the number of PCs to compute
+  # Only 10 features available, use 10 PCs
+  n_pcs <- 9
+  patient_data <- RunPCA(patient_data, assay = "metadata", features = features_to_scale, npcs = n_pcs)
+  
+  # Use the available number of PCs for FindNeighbors and clustering
+  patient_data <- FindNeighbors(patient_data, dims = 1:n_pcs, assay = "metadata")
+  patient_data <- FindClusters(patient_data, resolution = 0.5, assay = "metadata")
+  
+  # Run UMAP for visualization
+  patient_data <- RunUMAP(patient_data, dims = 1:n_pcs, assay = "metadata")
+  
+  return(patient_data)
+  
+}
+
+print_protein_data <- function(patient_data, patient_num, patient_dir_img, patient_dir_rds_img) {
+  
+  # Plots
+  print("Generate DimPlot from protein data")
+  protein_data_clusters_plot <- paste0("Patient_",  patient_num, "_protein_clusters")
+  protein_data_clusters_rds <- paste0(patient_dir_rds_img, protein_data_clusters_plot, ".rds")
+  if (!file.exists(protein_data_clusters_rds)) {
+    protein_clusters <- DimPlot(patient_data, reduction = "umap") +
+      labs(title = paste("Patient", patient_num ), subtitle = "Protein clusters")
+    saveRDS(protein_clusters, file = protein_data_clusters_rds)
+    protein_clusters_image <- paste0(patient_dir_img, protein_data_clusters_plot, image_ext)
+    ggsave(filename = protein_clusters_image, plot = protein_clusters)
+  } else {
+    protein_clusters <- readRDS(protein_data_clusters_rds)
+  }
+  
+  print("Generate FeaturePlot from protein data")
+  protein_data_feature_plots <- paste0("Patient_",  patient_num, "_protein_feature_plots")
+  protein_data_feature_plots_rds <- paste0(patient_dir_rds_img, "Patient_",  protein_data_feature_plots, ".rds")
+  if (!file.exists(protein_data_feature_plots_rds)) {
+    protein_plots <- FeaturePlot(
+      object = patient_data,
+      features = c("Mean.PanCK", "Mean.CD45", "Mean.Membrane", "Mean.DAPI", "Area" ),
+      reduction = "umap",
+      max.cutoff = "q95") +
+      plot_annotation(
+        title = 'Patient 1',
+        subtitle = 'UMAP from protein data',
+      )  & NoLegend() & NoAxes()
+    saveRDS(protein_plots, file = protein_data_feature_plots_rds)
+    protein_plots_image <- paste0(patient_dir_img, protein_data_feature_plots, image_ext)
+    ggsave(filename = protein_plots_image, plot = protein_plots)
+  } else {
+    protein_plots <- readRDS(protein_data_feature_plots_rds)
+  }
+  
+  return(list(protein_clusters, protein_plots))
+}
+
 ####### ANALYZE PATIENT #######
 
 analyze_patient <- function(all_patients_data, patient_num) {
@@ -267,6 +350,9 @@ analyze_patient <- function(all_patients_data, patient_num) {
     patient_semisup <- runInSituTypeSemisupervised(patient_rna_only, ioprofiles, patient_cohort, patient_rna_counts, patient_avg_neg_probes)
     # add phenotypes to the metadata for plotting
     patient_rna_only$InSituType_semisup_clusters <- patient_semisup$clust
+    
+    # Analyze protein data
+    patient_rna_only <- analyze_proteins(patient_rna_only)
 
     # Save the data to RDS files
     saveRDS(patient_rna_only, file = patient_rna_rds)
@@ -430,7 +516,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   }
   
   # Return all plots together, otherwise only the last one is shown
-  plot_list <- c(list(elbow_plot, mean_panck_plot, KRT17_plot, seurat_vs_insitutype_plot), clustering_plots_list)
+  plot_list <- c(list(elbow_plot, mean_panck_plot, KRT17_plot, protein_data_plots, seurat_vs_insitutype_plot), clustering_plots_list)
   print(plot_list)
   
   return(patient_rna_only)
