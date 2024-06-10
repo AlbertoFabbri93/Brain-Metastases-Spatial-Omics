@@ -342,7 +342,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     # Get cell reference profile data from NanoString
     # Use this reference profile as it is the only one available from CosMx data, originally from:
     # https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
-    ioprofiles <- read.csv("./Analysis/Cell_profile_matrices/NanoString.CosMx.Human.IO.profiles.csv", header = T, sep = ",", fill = T)
+    ioprofiles <- read.csv("./Cell_profile_matrices/NanoString.CosMx.Human.IO.profiles.csv", header = T, sep = ",", fill = T)
     rownames(ioprofiles) <- ioprofiles[, 1]
     ioprofiles <- ioprofiles[, -1] %>% as.matrix()
     
