@@ -20,13 +20,13 @@ calculate_clusters_names_size <- function(smallest_cluster_proportion) {
   return(base_size * exp(log(smallest_cluster_proportion)/3))
 }
 
-generateDynTextHeatmap <- function(data, clusters_column_name) {
+generate_dyn_text_heatmap <- function(patient_data, clusters_column_name) {
   
   # Select the cluster as the identity
-  Idents(data) <- clusters_column_name
-  
+  Idents(patient_data) <- clusters_column_name
+
   # Calculate the size of each cluster
-  cluster_sizes <- table(Idents(data))
+  cluster_sizes <- table(Idents(patient_data))
   smallest_cluster_size <- min(cluster_sizes)
   total_cells <- sum(cluster_sizes)
   cluster_proportions <- cluster_sizes / total_cells
@@ -35,10 +35,11 @@ generateDynTextHeatmap <- function(data, clusters_column_name) {
   # Identify clusters above threshold
   clusters_above_threshold <- names(cluster_proportions[cluster_proportions >= 0.01])
   # Subset the Seurat object to include only cells from clusters above the threshold
-  data_filtered <- subset(data, idents = clusters_above_threshold)
+  data_filtered <- subset(patient_data, idents = clusters_above_threshold)
   # Find markers (differentially expressed genes) for each of the identity classes in the filtered dataset
-  markers.data_filtered <- FindAllMarkers(data_filtered, only.pos = TRUE)
-  
+  # If you have more than one assay it is necessary to specify the assay parameter
+  markers.data_filtered <- FindAllMarkers(data_filtered, assay = "Nanostring", only.pos = TRUE)
+
   # Calculate the size of each cluster
   cluster_sizes_filtered <- table(Idents(data_filtered))
   smallest_cluster_size_filtered <- min(cluster_sizes_filtered)
@@ -49,7 +50,7 @@ generateDynTextHeatmap <- function(data, clusters_column_name) {
   # Filter markers to get the most significant ones per cluster
   most_significant_markers <- markers.data_filtered %>%
     group_by(cluster) %>%
-    filter(avg_log2FC > 1) %>%
+    dplyr::filter(avg_log2FC > 1) %>%
     slice_head(n = 10) %>%
     ungroup()
   
@@ -60,7 +61,7 @@ generateDynTextHeatmap <- function(data, clusters_column_name) {
   label_size <- calculate_label_size(num_features)
   
   # Read patient number
-  patient_num <- data$Patient.ID[1]
+  patient_num <- patient_data$Patient.ID[1]
   
   # Create the heatmap with the scaled text
   diff_expr_genes_heatmap <- DoHeatmap(
@@ -331,50 +332,49 @@ analyze_patient <- function(all_patients_data, patient_num) {
   patient_image <- Images(patient_rna_only)[1]
   
   # Create a list of the clusters
-  clusters <- c("Seurat_clusters", "InSituType_semisup_clusters")
+  cell_clusters <- c("Seurat_clusters", "InSituType_semisup_clusters")
   
   # Save all the plots in a list to return them all together
   clustering_plots_list <- list()
   
-  for (cluster in clusters) {
+  for (cell_cluster in cell_clusters) {
     
-    print(paste(cluster, "and number of cells in each of them associated with patient", patient_num))
-    print(table(patient_rna_only[[cluster]]))
+    print(paste(cell_cluster, "and number of cells in each of them associated with patient", patient_num))
+    print(table(patient_rna_only[[cell_cluster]]))
     
     # Select the cluster as the identity
-    Idents(patient_rna_only) <- cluster
+    Idents(patient_rna_only) <- cell_cluster
     # Plot the cells using their polygonal boundaries
     DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
     
-    diff_expr_genes_heatmap <- generateDynTextHeatmap(patient_rna_only, cluster)
+    diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster)
     
     # Save plot to list
-    clustering_plots_list[[paste(cluster, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
+    clustering_plots_list[[paste(cell_cluster, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
     
     # Save the heatmap to an image
     ggsave(
-      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cluster, "_diff_expr_genes_heatmap", image_ext),
+      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster, "_diff_expr_genes_heatmap", image_ext),
       plot = diff_expr_genes_heatmap
     )
-    
     
     # Graphs the output of a dimensional reduction technique on a 2D scatter plot
     # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
     umap_clusters <- Seurat::DimPlot(
       patient_rna_only, reduction = "umap",
-      group.by = cluster,
+      group.by = cell_cluster,
       label=TRUE,
       label.box=TRUE,
       repel=TRUE) +
       labs(
         title = paste("Patient", patient_num),
-        subtitle = cluster) +
+        subtitle = cell_cluster) +
       NoLegend()
     # Save plot to list
-    clustering_plots_list[[paste(cluster, "umap", sep = "_")]] <- umap_clusters
+    clustering_plots_list[[paste(cell_cluster, "umap", sep = "_")]] <- umap_clusters
     # Save plot to image file
     ggsave(
-      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cluster,"_umap", image_ext),
+      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster,"_umap", image_ext),
       plot = umap_clusters
     )
     
@@ -396,11 +396,11 @@ analyze_patient <- function(all_patients_data, patient_num) {
           ) +
           labs(
             title = paste("Patient", patient_num, "Core", core, ", Stamp", stamp),
-            subtitle = cluster
+            subtitle = cell_cluster
           )
-        clustering_plots_list[[paste(cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
+        clustering_plots_list[[paste(cell_cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
         ggsave(
-          filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cluster, "_core_", core, "_stamp_", stamp, image_ext),
+          filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster, "_core_", core, "_stamp_", stamp, image_ext),
           plot = stamp_plot)
       }
     }
