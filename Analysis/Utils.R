@@ -313,18 +313,26 @@ analyze_patient <- function(all_patients_data, patient_num) {
   
   # Plot KRT17
   print("Generate KRT17 plot")
-  KRT17_plot <- FeaturePlot(
-    object = patient_rna_only,
-    features = "KRT17",
-    cols = c("white", "red")
-  ) + 
-    labs(
-      title = paste("Patient", patient_num),
-      subtitle = "KRT17"
-    )
-  ggsave(
-    filename = paste0(patient_dir_img, "Patient_",  patient_num, "_krt17", image_ext)
-  )
+  krt17_plot_name <- paste0("Patient_",  patient_num, "_krt17")
+  krt17_plot_rds <- paste0(patient_dir_rds_img, krt17_plot_name, ".rds")
+  if (!file.exists(krt17_plot_rds)) {
+    KRT17_plot <- FeaturePlot(
+      object = patient_rna_only,
+      features = "KRT17",
+      cols = c("white", "red")
+    ) + 
+      labs(
+        title = paste("Patient", patient_num),
+        subtitle = "KRT17"
+      )
+    saveRDS(KRT17_plot, file = krt17_plot_rds)
+    KRT17_plot_image <- paste0(patient_dir_img, krt17_plot_name, image_ext)
+    ggsave(filename = KRT17_plot_image, plot = KRT17_plot)
+  } else {
+    KRT17_plot <- readRDS(krt17_plot_rds)
+  }
+  
+  protein_data_plots <- print_protein_data(patient_rna_only, patient_num, patient_dir_img, patient_dir_rds_img)
   
   ################## PRINT CLUSTERING PLOTS ##################
   
