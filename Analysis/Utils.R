@@ -468,50 +468,55 @@ analyze_patient <- function(all_patients_data, patient_num) {
   patient_image <- Images(patient_rna_only)[1]
   
   # Create a list of the clusters
-  cell_clusters <- c("RNA_clusters", "InSituType_semisup_clusters")
+  RNA_cluster <- list(name = "RNA Clusters", var = "RNA_clusters", assay = "Nanostring", reduction = "umap", heatmap = TRUE)
+  InSituType_cluster <- list(name = "InSituType Semisupervised Clusters", var = "InSituType_semisup_clusters", assay = "Nanostring", reduction = "umap", heatmap = TRUE)
+  protein_cluster <- list(name = "Protein Clusters", var = "protein_clusters", assay = "proteins", reduction = "umap_proteins", heatmap = FALSE)
+  cell_clusters <- list(RNA_cluster, InSituType_cluster, protein_cluster)
   
   # Save all the plots in a list to return them all together
   clustering_plots_list <- list()
   
   for (cell_cluster in cell_clusters) {
     
-    print(paste(cell_cluster, "and number of cells in each of them associated with patient", patient_num))
-    print(table(patient_rna_only[[cell_cluster]]))
+    print(paste(cell_cluster$name, "and number of cells in each of them associated with patient", patient_num))
+    print(table(patient_rna_only[[cell_cluster$var]]))
     
     # Select the cluster as the identity
-    Idents(patient_rna_only) <- cell_cluster
+    Idents(patient_rna_only) <- cell_cluster$var
     # Plot the cells using their polygonal boundaries
     DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
     
-    diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster)
-    
-    # Save plot to list
-    clustering_plots_list[[paste(cell_cluster, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
-    
-    # Save the heatmap to an image
-    ggsave(
-      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster, "_diff_expr_genes_heatmap", image_ext),
-      plot = diff_expr_genes_heatmap
-    )
+    if (cell_cluster$heatmap) {
       diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster$var, cell_cluster$assay)
+      
+      # Save plot to list
+      clustering_plots_list[[paste(cell_cluster$var, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
+      
+      # Save the heatmap to an image
+      ggsave(
+        filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var, "_diff_expr_genes_heatmap", image_ext),
+        plot = diff_expr_genes_heatmap
+      )
+    }
     
     # Graphs the output of a dimensional reduction technique on a 2D scatter plot
     # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
     umap_clusters <- Seurat::DimPlot(
-      patient_rna_only, reduction = "umap",
-      group.by = cell_cluster,
+      patient_rna_only,
+      reduction = cell_cluster$reduction,,
+      group.by = cell_cluster$var,
       label=TRUE,
       label.box=TRUE,
       repel=TRUE) +
       labs(
         title = paste("Patient", patient_num),
-        subtitle = cell_cluster) +
+        subtitle = cell_cluster$name) +
       NoLegend()
     # Save plot to list
-    clustering_plots_list[[paste(cell_cluster, "umap", sep = "_")]] <- umap_clusters
+    clustering_plots_list[[paste(cell_cluster$var, "umap", sep = "_")]] <- umap_clusters
     # Save plot to image file
     ggsave(
-      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster,"_umap", image_ext),
+      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var,"_umap", image_ext),
       plot = umap_clusters
     )
     
@@ -533,11 +538,11 @@ analyze_patient <- function(all_patients_data, patient_num) {
           ) +
           labs(
             title = paste("Patient", patient_num, "Core", core, ", Stamp", stamp),
-            subtitle = cell_cluster
+            subtitle = cell_cluster$name
           )
-        clustering_plots_list[[paste(cell_cluster, core, as.character(stamp), sep = "_")]] <- stamp_plot
+        clustering_plots_list[[paste(cell_cluster$var, core, as.character(stamp), sep = "_")]] <- stamp_plot
         ggsave(
-          filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster, "_core_", core, "_stamp_", stamp, image_ext),
+          filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var, "_core_", core, "_stamp_", stamp, image_ext),
           plot = stamp_plot)
       }
     }
