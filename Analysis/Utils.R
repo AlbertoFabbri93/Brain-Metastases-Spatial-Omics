@@ -122,18 +122,6 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   # Extract patient data from global Seurat object
   patient_data <- subset(x = all_patients_data, subset = Patient.ID == patient_num)
   
-  # Print cores and fovs associated with the patient
-  print(paste("FOVs and cell count associated with patient", patient_num))
-  patient_cores <- sort(unique(patient_data@meta.data$core_serial))
-  for(core in patient_cores) {
-    print(paste("----------", "CORE", core, "----------"))
-    patient_core_stamps <- sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == core]))
-    for(stamp in patient_core_stamps) {
-      print(paste("-----", "STAMP", stamp, "-----"))
-      print(table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core &  patient_data@meta.data$stamp == stamp]))
-    }
-  }
-  
   # Create Seurat object with only the RNA data
   patient_rna_only <- subset(x = patient_data, features = rownames(patient_data)[1:1000])
   
@@ -162,6 +150,24 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   patient_avg_neg_probes <- Matrix::rowMeans(patient_neg_probes)
   
   return(list(patient_rna_only, patient_cohort, patient_rna_counts, patient_avg_neg_probes))
+}
+
+####### PRINT PATIENT DATA #######
+
+print_patient_info <- function(patient_data) {
+  
+  # Print cores and fovs associated with the patient
+  print(paste("FOVs and cell count associated with patient", patient_num))
+  patient_cores <- sort(unique(patient_data@meta.data$core_serial))
+  for(core in patient_cores) {
+    print(paste("----------", "CORE", core, "----------"))
+    patient_core_stamps <- sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == core]))
+    for(stamp in patient_core_stamps) {
+      print(paste("-----", "STAMP", stamp, "-----"))
+      print(table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core &  patient_data@meta.data$stamp == stamp]))
+    }
+  }
+  
 }
 
 ####### ANALYZE RNA #######
@@ -401,6 +407,9 @@ analyze_patient <- function(all_patients_data, patient_num) {
     patient_rna_counts <- patient_misc_data[[2]]
     patient_avg_neg_probes <- patient_misc_data[[3]]
   }
+  
+  # Print patient information
+  print_patient_info(patient_rna_only)
   
   # Show the significance of every principal component of the PCA
   # It can be used to decide the number of dims of the FindNeighbors function
