@@ -164,7 +164,7 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   return(list(patient_rna_only, patient_cohort, patient_rna_counts, patient_avg_neg_probes))
 }
 
-####### NORMALIZE, CLUSTER, ... PATIENT DATA #######
+####### ANALYZE RNA #######
 
 normalize_cluster_data <- function(patient_rna_only, patient_dims, patient_res) {
   
