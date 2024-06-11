@@ -285,7 +285,9 @@ analyze_proteins <- function(patient_data) {
   
 }
 
-print_protein_data <- function(patient_data, patient_num, patient_dir_img, patient_dir_rds_img) {
+####### PRINT PROTEINS DATA #######
+
+print_proteins_data <- function(patient_data, patient_num, patient_dir_img, patient_dir_rds_img) {
   
   # Plots
   print("Generate DimPlot from protein data")
@@ -438,7 +440,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     KRT17_plot <- readRDS(krt17_plot_rds)
   }
   
-  protein_data_plots <- print_protein_data(patient_rna_only, patient_num, patient_dir_img, patient_dir_rds_img)
+  protein_data_plots <- print_proteins_data(patient_rna_only, patient_num, patient_dir_img, patient_dir_rds_img)
   
   ################## PRINT CLUSTERING PLOTS ##################
   
