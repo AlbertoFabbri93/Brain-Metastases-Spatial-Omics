@@ -306,22 +306,6 @@ analyze_proteins <- function(patient_data) {
 
 print_proteins_data <- function(patient_data, patient_num, patient_dir_img, patient_dir_rds_img) {
   
-  # Plots
-  print("Generate DimPlot from protein data")
-  protein_data_clusters_plot <- paste0("Patient_",  patient_num, "_protein_clusters")
-  protein_data_clusters_rds <- paste0(patient_dir_rds_img, protein_data_clusters_plot, ".rds")
-  if (!file.exists(protein_data_clusters_rds)) {
-    
-    protein_clusters <- DimPlot(patient_data, reduction = "umap_proteins") +
-      labs(title = paste("Patient", patient_num ), subtitle = "Protein clusters")
-    
-    saveRDS(protein_clusters, file = protein_data_clusters_rds)
-    protein_clusters_image <- paste0(patient_dir_img, protein_data_clusters_plot, image_ext)
-    ggsave(filename = protein_clusters_image, plot = protein_clusters)
-  } else {
-    protein_clusters <- readRDS(protein_data_clusters_rds)
-  }
-  
   print("Generate FeaturePlot from protein data")
   protein_data_feature_plots <- paste0("Patient_",  patient_num, "_protein_feature_plots")
   protein_data_feature_plots_rds <- paste0(patient_dir_rds_img, "Patient_",  protein_data_feature_plots, ".rds")
@@ -344,7 +328,7 @@ print_proteins_data <- function(patient_data, patient_num, patient_dir_img, pati
     protein_plots <- readRDS(protein_data_feature_plots_rds)
   }
   
-  return(list(protein_clusters, protein_plots))
+  return(list(protein_plots))
 }
 
 ####### ANALYZE PATIENT #######
