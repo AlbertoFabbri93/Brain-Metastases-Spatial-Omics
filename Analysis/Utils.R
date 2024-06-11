@@ -185,7 +185,7 @@ normalize_cluster_data <- function(patient_rna_only, patient_dims, patient_res) 
     patient_rna_only,
     resolution = patient_res,
     random.seed = 1,
-    cluster.name = "Seurat_clusters")
+    cluster.name = "RNA_clusters")
   # Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
   patient_rna_only <- Seurat::RunUMAP(patient_rna_only, dims = patient_dims, repulsion.strength = 5, seed.use = 1)
   
@@ -203,7 +203,7 @@ compare_clustering_methods <- function(patient_rna_data) {
   # Create the contingency table (table used to study the correlation between the two variables)
   contingency_tab_clusters <- table(
     patient_rna_data$InSituType_semisup_clusters,
-    patient_rna_data$Seurat_clusters,
+    patient_rna_data$RNA_clusters,
     dnn = c("InSituType", "Seurat"))
   
   # Convert the table to a data frame for ggplot2
@@ -426,7 +426,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   patient_image <- Images(patient_rna_only)[1]
   
   # Create a list of the clusters
-  cell_clusters <- c("Seurat_clusters", "InSituType_semisup_clusters")
+  cell_clusters <- c("RNA_clusters", "InSituType_semisup_clusters")
   
   # Save all the plots in a list to return them all together
   clustering_plots_list <- list()
