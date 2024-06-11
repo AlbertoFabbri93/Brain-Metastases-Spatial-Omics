@@ -154,22 +154,35 @@ extract_patient_data <- function(all_patients_data, patient_num) {
 
 ####### PRINT PATIENT DATA #######
 
-print_patient_info <- function(patient_data) {
+get_patient_info <- function(patient_data) {
   
   patient_num <- patient_data$Patient.ID[1]
   
+  # Inilitize list to store the cores, stamps and fovs associated with the patient
+  cores <- list()
   # Print cores and fovs associated with the patient
   print(paste("FOVs and cell count associated with patient", patient_num))
+  
+  # Get cores for the current patient
   patient_cores <- sort(unique(patient_data@meta.data$core_serial))
   for(core in patient_cores) {
+    
     print(paste("----------", "CORE", core, "----------"))
+    stamps <- list()
+    
+    # Get stamps for the current core
     patient_core_stamps <- sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == core]))
     for(stamp in patient_core_stamps) {
+      
       print(paste("-----", "STAMP", stamp, "-----"))
-      print(table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core &  patient_data@meta.data$stamp == stamp]))
+      fovs <- table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core &  patient_data@meta.data$stamp == stamp])
+      print(fovs)
+      
+      stamps[[stamp]] <- as.list(fovs)
     }
+    cores[[core]] <- stamps
   }
-  
+  return(invisible(cores))
 }
 
 ####### ANALYZE RNA #######
@@ -395,7 +408,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   }
   
   # Print patient information
-  print_patient_info(patient_rna_only)
+  get_patient_info(patient_rna_only)
   
   # Show the significance of every principal component of the PCA
   # It can be used to decide the number of dims of the FindNeighbors function
