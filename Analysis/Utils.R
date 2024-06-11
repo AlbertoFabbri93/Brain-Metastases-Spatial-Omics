@@ -20,7 +20,7 @@ calculate_clusters_names_size <- function(smallest_cluster_proportion) {
   return(base_size * exp(log(smallest_cluster_proportion)/3))
 }
 
-generate_dyn_text_heatmap <- function(patient_data, clusters_column_name) {
+generate_dyn_text_heatmap <- function(patient_data, clusters_column_name, assay_name) {
   
   # Select the cluster as the identity
   Idents(patient_data) <- clusters_column_name
@@ -38,7 +38,7 @@ generate_dyn_text_heatmap <- function(patient_data, clusters_column_name) {
   data_filtered <- subset(patient_data, idents = clusters_above_threshold)
   # Find markers (differentially expressed genes) for each of the identity classes in the filtered dataset
   # If you have more than one assay it is necessary to specify the assay parameter
-  markers.data_filtered <- FindAllMarkers(data_filtered, assay = "Nanostring", only.pos = TRUE)
+  markers.data_filtered <- FindAllMarkers(data_filtered, assay = assay_name, only.pos = TRUE)
 
   # Calculate the size of each cluster
   cluster_sizes_filtered <- table(Idents(data_filtered))
@@ -67,7 +67,7 @@ generate_dyn_text_heatmap <- function(patient_data, clusters_column_name) {
   diff_expr_genes_heatmap <- DoHeatmap(
     data_filtered,
     features = most_significant_markers$gene,
-    assay = "Nanostring",
+    assay = assay_name,
     label = TRUE,
     size = calculate_clusters_names_size(smallest_cluster_proportion_filtered),
   ) + theme(
@@ -493,6 +493,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
       filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster, "_diff_expr_genes_heatmap", image_ext),
       plot = diff_expr_genes_heatmap
     )
+      diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster$var, cell_cluster$assay)
     
     # Graphs the output of a dimensional reduction technique on a 2D scatter plot
     # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
