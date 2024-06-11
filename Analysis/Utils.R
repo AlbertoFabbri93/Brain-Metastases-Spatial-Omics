@@ -156,6 +156,8 @@ extract_patient_data <- function(all_patients_data, patient_num) {
 
 print_patient_info <- function(patient_data) {
   
+  patient_num <- patient_data$Patient.ID[1]
+  
   # Print cores and fovs associated with the patient
   print(paste("FOVs and cell count associated with patient", patient_num))
   patient_cores <- sort(unique(patient_data@meta.data$core_serial))
@@ -514,6 +516,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
           # Set border color to 'NA' as 'white' masks all cells when zoomed out
           border.color = NA,
           flip_xy = FALSE,
+          cols = "polychrome",
           cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
             legend.text = element_text(size = 6),
             legend.title = element_text(size = 8),
