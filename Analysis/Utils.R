@@ -229,54 +229,65 @@ compare_clustering_methods <- function(patient_rna_data) {
 
 analyze_proteins <- function(patient_data) {
   
-  for (i in 19:28) {
-    column_name <- names(patient_data@meta.data)[i]
-    patient_data[[column_name]] <- as.numeric(as.factor(patient_data@meta.data[[column_name]]))
+  metadata_proteins_columns <- c(
+    "Mean.PanCK",
+    "Max.PanCK",
+    "Mean.CD68",
+    "Max.CD68",
+    "Mean.Membrane",
+    "Max.Membrane",
+    "Mean.CD45",
+    "Max.CD45",
+    "Mean.DAPI",
+    "Max.DAPI")
+  
+  for (col in metadata_proteins_columns) {
+    patient_data[[col]] <- as.numeric(as.factor(patient_data@meta.data[[col]]))
   }
   
-  # Extract metadata features and replace underscores in column names
-  metadata_features <- patient_data@meta.data[, 18:27]
-  colnames(metadata_features) <- gsub("_", "-", colnames(metadata_features))
-  metadata_matrix <- as.matrix(metadata_features)
+  # Extract proteins features and replace underscores in column names
+  proteins_features <- patient_data@meta.data[, metadata_proteins_columns]
+  colnames(proteins_features) <- gsub("_", "-", colnames(proteins_features))
+  proteins_matrix <- as.matrix(proteins_features)
   
   # Ensure row names (cell names) match the Seurat object cell names
-  rownames(metadata_matrix) <- rownames(patient_data@meta.data)
+  rownames(proteins_matrix) <- rownames(patient_data@meta.data)
   
-  # Create a new assay with the metadata
-  metadata_assay <- CreateAssayObject(counts = t(metadata_matrix))
+  # Create a new assay with the proteins data
+  proteins_assay <- CreateAssayObject(counts = t(proteins_matrix))
   
-  # Add the new assay to the Seurat object with the name "metadata"
-  patient_data[["metadata"]] <- metadata_assay
-  DefaultAssay(patient_data) <- "metadata"
+  # Add the new assay to the Seurat object with the name "proteins"
+  patient_data[["proteins"]] <- proteins_assay
+  DefaultAssay(patient_data) <- "proteins"
   
   # Scale the raw metadata values
-  features_to_scale <- colnames(metadata_matrix)
-  patient_data <- ScaleData(patient_data, assay = "metadata", features = features_to_scale, do.center = TRUE, do.scale = TRUE)
+  features_to_scale <- colnames(proteins_matrix)
+  patient_data <- ScaleData(patient_data, assay = "proteins", features = features_to_scale, do.center = TRUE, do.scale = TRUE)
   
   # Run PCA and specify the number of PCs to compute
   # Only 10 features available, use 10 PCs
   n_pcs <- 9
   patient_data <- RunPCA(
     patient_data,
-    assay = "metadata",
+    assay = "proteins",
     features = features_to_scale,
     npcs = n_pcs,
     reduction.name = "pca_proteins",
     reduction.key = "PCPR_")
   
   # Use the available number of PCs for FindNeighbors and clustering
-  patient_data <- FindNeighbors(patient_data, dims = 1:n_pcs, assay = "metadata", reduction = "pca_proteins")
+  patient_data <- FindNeighbors(patient_data, dims = 1:n_pcs, assay = "proteins", reduction = "pca_proteins")
   patient_data <- FindClusters(
     patient_data,
     resolution = 0.5,
-    assay = "metadata",
+    assay = "proteins",
     cluster.name="protein_clusters",
-    graph.name = "metadata_snn")
+    graph.name = "proteins_snn")
   
   # Run UMAP for visualization
   patient_data <- RunUMAP(
     patient_data,
-    assay = "metadata",
+    assay = "proteins",
     dims = 1:n_pcs,
     reduction.name = "umap_proteins",
     reduction.key = "UMAPPR_")
