@@ -256,14 +256,30 @@ analyze_proteins <- function(patient_data) {
   # Run PCA and specify the number of PCs to compute
   # Only 10 features available, use 10 PCs
   n_pcs <- 9
-  patient_data <- RunPCA(patient_data, assay = "metadata", features = features_to_scale, npcs = n_pcs)
+  patient_data <- RunPCA(
+    patient_data,
+    assay = "metadata",
+    features = features_to_scale,
+    npcs = n_pcs,
+    reduction.name = "pca_proteins",
+    reduction.key = "PCPR_")
   
   # Use the available number of PCs for FindNeighbors and clustering
-  patient_data <- FindNeighbors(patient_data, dims = 1:n_pcs, assay = "metadata")
-  patient_data <- FindClusters(patient_data, resolution = 0.5, assay = "metadata")
+  patient_data <- FindNeighbors(patient_data, dims = 1:n_pcs, assay = "metadata", reduction = "pca_proteins")
+  patient_data <- FindClusters(
+    patient_data,
+    resolution = 0.5,
+    assay = "metadata",
+    cluster.name="protein_clusters",
+    graph.name = "metadata_snn")
   
   # Run UMAP for visualization
-  patient_data <- RunUMAP(patient_data, dims = 1:n_pcs, assay = "metadata")
+  patient_data <- RunUMAP(
+    patient_data,
+    assay = "metadata",
+    dims = 1:n_pcs,
+    reduction.name = "umap_proteins",
+    reduction.key = "UMAPPR_")
   
   return(patient_data)
   
@@ -276,8 +292,10 @@ print_protein_data <- function(patient_data, patient_num, patient_dir_img, patie
   protein_data_clusters_plot <- paste0("Patient_",  patient_num, "_protein_clusters")
   protein_data_clusters_rds <- paste0(patient_dir_rds_img, protein_data_clusters_plot, ".rds")
   if (!file.exists(protein_data_clusters_rds)) {
-    protein_clusters <- DimPlot(patient_data, reduction = "umap") +
+    
+    protein_clusters <- DimPlot(patient_data, reduction = "umap_proteins") +
       labs(title = paste("Patient", patient_num ), subtitle = "Protein clusters")
+    
     saveRDS(protein_clusters, file = protein_data_clusters_rds)
     protein_clusters_image <- paste0(patient_dir_img, protein_data_clusters_plot, image_ext)
     ggsave(filename = protein_clusters_image, plot = protein_clusters)
@@ -289,15 +307,17 @@ print_protein_data <- function(patient_data, patient_num, patient_dir_img, patie
   protein_data_feature_plots <- paste0("Patient_",  patient_num, "_protein_feature_plots")
   protein_data_feature_plots_rds <- paste0(patient_dir_rds_img, "Patient_",  protein_data_feature_plots, ".rds")
   if (!file.exists(protein_data_feature_plots_rds)) {
+    
     protein_plots <- FeaturePlot(
       object = patient_data,
-      features = c("Mean.PanCK", "Mean.CD45", "Mean.Membrane", "Mean.DAPI", "Area" ),
-      reduction = "umap",
+      features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
+      reduction = "umap_proteins",
       max.cutoff = "q95") +
       plot_annotation(
         title = 'Patient 1',
         subtitle = 'UMAP from protein data',
       )  & NoLegend() & NoAxes()
+    
     saveRDS(protein_plots, file = protein_data_feature_plots_rds)
     protein_plots_image <- paste0(patient_dir_img, protein_data_feature_plots, image_ext)
     ggsave(filename = protein_plots_image, plot = protein_plots)
