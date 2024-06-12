@@ -20,7 +20,7 @@ calculate_clusters_names_size <- function(smallest_cluster_proportion) {
   return(base_size * exp(log(smallest_cluster_proportion)/3))
 }
 
-generate_dyn_text_heatmap <- function(patient_data, clusters_column_name, assay_name) {
+generate_dyn_text_heatmap <- function(patient_data, clusters_column_name, assay_name, group_colors = NULL) {
   
   # Select the cluster as the identity
   Idents(patient_data) <- clusters_column_name
@@ -70,6 +70,7 @@ generate_dyn_text_heatmap <- function(patient_data, clusters_column_name, assay_
     assay = assay_name,
     label = TRUE,
     size = calculate_clusters_names_size(smallest_cluster_proportion_filtered),
+    group.colors = group_colors
   ) + theme(
     axis.text.y = element_text(size = label_size),
   ) + labs(
@@ -472,6 +473,11 @@ analyze_patient <- function(all_patients_data, patient_num) {
   protein_cluster <- list(name = "Protein Clusters", var = "protein_clusters", assay = "proteins", reduction = "umap_proteins", heatmap = FALSE)
   cell_clusters <- list(RNA_cluster, InSituType_cluster, protein_cluster)
   
+  # Color of the clusters
+  clusters_colors <- palette("Alphabet")
+  # Print the color palette
+  # pie(rep(1, length(clusters_colors)), col = clusters_colors , main="")
+  
   # Save all the plots in a list to return them all together
   clustering_plots_list <- list()
   
@@ -486,7 +492,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
     
     if (cell_cluster$heatmap) {
-      diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster$var, cell_cluster$assay)
+      diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster$var, cell_cluster$assay, clusters_colors)
       
       # Save plot to list
       clustering_plots_list[[paste(cell_cluster$var, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
@@ -506,7 +512,8 @@ analyze_patient <- function(all_patients_data, patient_num) {
       group.by = cell_cluster$var,
       label=TRUE,
       label.box=TRUE,
-      repel=TRUE) +
+      repel=TRUE,
+      cols = clusters_colors) +
       labs(
         title = paste("Patient", patient_num),
         subtitle = cell_cluster$name) +
@@ -529,7 +536,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
           # Set border color to 'NA' as 'white' masks all cells when zoomed out
           border.color = NA,
           flip_xy = FALSE,
-          cols = "polychrome",
+          cols = clusters_colors,
           cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
             legend.text = element_text(size = 6),
             legend.title = element_text(size = 8),
