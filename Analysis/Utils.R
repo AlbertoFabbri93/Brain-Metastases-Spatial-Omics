@@ -474,7 +474,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   cell_clusters <- list(RNA_cluster, InSituType_cluster, protein_cluster)
   
   # Color of the clusters
-  clusters_colors <- palette("Alphabet")
+  clusters_colors <- DiscretePalette(20, palette = "polychrome", shuffle = TRUE)
   # Print the color palette
   # pie(rep(1, length(clusters_colors)), col = clusters_colors , main="")
   
