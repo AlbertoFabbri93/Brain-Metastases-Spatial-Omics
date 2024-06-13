@@ -26,6 +26,7 @@ jobs:
         run: |
           if (!requireNamespace("renv", quietly=TRUE)) install.packages("renv")
           renv::restore(packages = "lsa")
+        shell: Rscript {0}
 
       - name: Install R Dependencies
         uses: r-lib/actions/setup-renv@v2
