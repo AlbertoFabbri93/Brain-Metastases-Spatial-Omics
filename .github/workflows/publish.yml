@@ -22,6 +22,11 @@ jobs:
         with:
           r-version: '4.4.0'
 
+      - name: Run Bash commands
+        run: |
+          if (!requireNamespace("renv", quietly=TRUE)) install.packages("renv")
+          renv::restore(packages = "lsa")
+
       - name: Install R Dependencies
         uses: r-lib/actions/setup-renv@v2
         with:
