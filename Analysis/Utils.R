@@ -39,6 +39,11 @@ generate_dyn_text_heatmap <- function(
     cluster_name <- cluster_var
   }
   
+  # Use a better palette by default
+  if (is.null(color_lookup_table)) {
+    color_lookup_table <- generate_colors_lookup_table(patient_data, cluster_var)
+  }
+  
   # Select the cluster as the identity
   Idents(patient_data) <- cluster_var
 
