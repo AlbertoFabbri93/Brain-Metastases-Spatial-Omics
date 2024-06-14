@@ -367,33 +367,30 @@ print_proteins_data <- function(patient_data, patient_num, patient_dir_img, pati
 ####### COLOR CLUSTERS #######
 
 # Assign random colors to unknown clusters
-rand_colors_unknown_clusters <- function(data, cluster_column_name, color_palette, named_clusters = NULL) {
+generate_colors_lookup_table <- function(data, cluster_column_name, known_clusters_colors = NULL, color_palette = DiscretePalette(36, palette = "polychrome")) {
+  
+  # Remove the colors that are used by the known clusters
+  usable_color_palette <- setdiff(color_palette, known_clusters_colors)
   
   # Random colors for the unknown clusters
   # The cluster 0 in Seurat for example is different for every patient
-  color_palette <- sample(color_palette)
+  usable_color_palette <- sample(usable_color_palette)
   
   unknown_clusters_colors <- c()
   next_color <- 1
   # Loop over the unknown clusters and assign each of them a random color
-  for (cluster in setdiff(as.vector(as.character(unique(data[[cluster_column_name]])[[cluster_column_name]])), named_clusters)) {
-    unknown_clusters_colors <- c(unknown_clusters_colors, setNames(color_palette[next_color], cluster))
+  for (cluster in setdiff(
+    as.vector(as.character(unique(data[[cluster_column_name]])[[cluster_column_name]])),
+    as.vector(names(known_clusters_colors)))) {
+    unknown_clusters_colors <- c(unknown_clusters_colors, setNames(usable_color_palette[next_color], cluster))
     next_color <- next_color + 1
   }
-  return(unknown_clusters_colors)
+  # Return the colors for the known and unknown clusters
+  return(c(known_clusters_colors, unknown_clusters_colors))
 }
 
-# Assign fixed colors to know clusters
-fix_colors_known_clusters <- function(named_clusters) {
   
-  # Polychrome is the palette with the most colors (36)
-  color_palette <- DiscretePalette(36, palette = "polychrome")
-  # Set the colors for the known clusters
-  known_clusters_colors <- setNames(color_palette[1:length(named_clusters)], named_clusters)
-  # Create a vector with the remaining available colors so that they can be used for the unknown clusters
-  remaining_colors <- setdiff(color_palette, known_clusters_colors)
   
-  return <- list(known_clusters_colors, remaining_colors)
 }
 
 ####### ANALYZE PATIENT #######
