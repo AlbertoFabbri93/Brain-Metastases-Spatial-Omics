@@ -528,28 +528,31 @@ analyze_patient <- function(all_patients_data, patient_num) {
     
     # Plot cells in their spatial context
     stamps_list <- list()
-    for(core in sort(unique(patient_rna_only@meta.data$core_serial))) {
-      for (stamp in sort(unique(patient_rna_only@meta.data$stamp[patient_rna_only@meta.data$core_serial == core]))) {
+    for(curr_core in sort(unique(patient_rna_only@meta.data$core_serial))) {
+      for (curr_stamp in sort(unique(patient_rna_only@meta.data$stamp[patient_rna_only@meta.data$core_serial == curr_core]))) {
+        
+        # Subset data from current core and stamp
+        core_stamp_subset <- subset(patient_rna_only, subset = core_serial == curr_core & stamp == curr_stamp)
+        
         stamp_plot <- ImageDimPlot(
-          patient_rna_only,
+          core_stamp_subset,
           fov = patient_image,
           # Set border color to 'NA' as 'white' masks all cells when zoomed out
           border.color = NA,
           flip_xy = FALSE,
-          cols = clusters_colors,
-          cells = row.names(patient_rna_only@meta.data)[which(patient_rna_only@meta.data$core_serial == core & patient_rna_only@meta.data$stamp == stamp)]) + theme(
+          cols = color_lookup_table) + theme(
             legend.text = element_text(size = 6),
             legend.title = element_text(size = 8),
             legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
             legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
           ) +
           labs(
-            title = paste("Patient", patient_num, "Core", core, ", Stamp", stamp),
+            title = paste("Patient", patient_num, "Core", curr_core, ", Stamp", curr_stamp),
             subtitle = cell_cluster$name
           )
-        clustering_plots_list[[paste(cell_cluster$var, core, as.character(stamp), sep = "_")]] <- stamp_plot
+        clustering_plots_list[[paste(cell_cluster$var, curr_core, as.character(curr_stamp), sep = "_")]] <- stamp_plot
         ggsave(
-          filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var, "_core_", core, "_stamp_", stamp, image_ext),
+          filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var, "_core_", curr_core, "_stamp_", curr_stamp, image_ext),
           plot = stamp_plot)
       }
     }
