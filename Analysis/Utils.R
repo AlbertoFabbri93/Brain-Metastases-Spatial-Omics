@@ -394,8 +394,102 @@ generate_colors_lookup_table <- function(data, cluster_column_name, known_cluste
   return(c(known_clusters_colors, unknown_clusters_colors))
 }
 
+####### PRINT CLUSTERING PLOTS #######
+
+generate_clustering_plots <- function(
+    patient_data,
+    cluster_var,
+    cluster_assay,
+    cluster_reduction = "umap",
+    create_heatmap = FALSE,
+    cluster_name = NULL,
+    color_lookup_table = NULL
+    ) {
   
+  # If a human friendly name is not given, use the name of the column in the Seurat object
+  if (is.null(cluster_name)) {
+    cluster_name <- cluster_var
+  }
   
+  # If no color lookup table is given create one
+  if (is.null(color_lookup_table)) {
+    color_lookup_table <- generate_colors_lookup_table(patient_data, cluster_var)
+  }
+
+  # Get name of the first image
+  patient_image <- Images(patient_data)[1]
+  
+  # List to be returned with all the plots
+  clustering_plots <- list()
+  
+  patient_num <- get_patient_num(patient_data)
+
+  # Print some information about the clusters
+  print(paste(cluster_name, "and number of cells in each of them associated with patient", patient_num))
+  print(table(patient_data[[cluster_var]]))
+  
+  # Select the cluster as the identity
+  Idents(patient_data) <- cluster_var
+  # Plot the cells using their polygonal boundaries
+  DefaultBoundary(patient_data[[patient_image]]) <- "segmentation"
+  
+  # Create heatmap of most differentially expressed genes
+  if (create_heatmap) {
+    diff_expr_genes_heatmap <- generate_dyn_text_heatmap(
+      patient_data,
+      cluster_var,
+      cluster_assay,
+      color_lookup_table = color_lookup_table,
+      cluster_name = cluster_name)
+    # Save plot to list
+    clustering_plots[[paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap", sep = "_")]] <- diff_expr_genes_heatmap
+  }
+  
+  # Graphs the output of a dimensional reduction technique on a 2D scatter plot
+  # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
+  umap_clusters <- Seurat::DimPlot(
+    patient_data,
+    reduction = cluster_reduction,,
+    group.by = cluster_var,
+    label=TRUE,
+    label.box=TRUE,
+    repel=TRUE,
+    cols = color_lookup_table) +
+    labs(
+      title = paste("Patient", patient_num),
+      subtitle = cluster_name) +
+    NoLegend()
+  # Save plot to list
+  clustering_plots[[paste("Patient",  patient_num, cluster_var, "umap", sep = "_")]] <- umap_clusters
+  
+  # Plot cells in their spatial context
+  stamps_list <- list()
+  for(curr_core in sort(unique(patient_data@meta.data$core_serial))) {
+    for (curr_stamp in sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == curr_core]))) {
+      
+      # Subset data from current core and stamp
+      core_stamp_subset <- subset(patient_data, subset = core_serial == curr_core & stamp == curr_stamp)
+      
+      stamp_plot <- ImageDimPlot(
+        core_stamp_subset,
+        fov = patient_image,
+        # Set border color to 'NA' as 'white' masks all cells when zoomed out
+        border.color = NA,
+        flip_xy = FALSE,
+        cols = color_lookup_table) + theme(
+          legend.text = element_text(size = 6),
+          legend.title = element_text(size = 8),
+          legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
+          legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
+        ) +
+        labs(
+          title = paste("Patient", patient_num, "Core", curr_core, ", Stamp", curr_stamp),
+          subtitle = cluster_name
+        )
+      clustering_plots[[paste("Patient",  patient_num, cluster_var, "core_", curr_core, "stamp_", as.character(curr_stamp), sep = "_")]] <- stamp_plot
+    }
+  }
+  return(clustering_plots)
 }
 
 ####### ANALYZE PATIENT #######
