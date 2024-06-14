@@ -3,6 +3,13 @@ rds_dir <- Sys.getenv("RDS_DIR")
 image_dir <- Sys.getenv("IMAGE_DIR")
 image_ext <- Sys.getenv("IMAGE_EXT")
 
+####### GET PATIENT NUM #######
+
+get_patient_num <- function(data) {
+  patient_num <- patient_data$Patient.ID[1]
+  return(patient_num)
+}
+
 ####### GENERATE HEATMAP #######
 
 # Heatmap plot, define a function to dynamically calculate label size based on the number of features
@@ -71,7 +78,7 @@ generate_dyn_text_heatmap <- function(
   label_size <- calculate_label_size(num_features)
   
   # Read patient number
-  patient_num <- patient_data$Patient.ID[1]
+  patient_num <- get_patient_num(patient_data)
   
   # Create the heatmap with the scaled text
   diff_expr_genes_heatmap <- DoHeatmap(
