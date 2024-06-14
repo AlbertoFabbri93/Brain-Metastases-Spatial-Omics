@@ -614,123 +614,60 @@ analyze_patient <- function(all_patients_data, patient_num) {
   
   ################## PRINT CLUSTERING PLOTS ##################
   
-  # Get name of the first image
-  patient_image <- Images(patient_rna_only)[1]
-  
-  # Create a list of the clusters
-  RNA_cluster <- list(name = "RNA Clusters", var = "RNA_clusters", assay = "Nanostring", reduction = "umap", heatmap = TRUE)
-  InSituType_cluster <- list(name = "InSituType Semisupervised Clusters", var = "InSituType_semisup_clusters", assay = "Nanostring", reduction = "umap", heatmap = TRUE)
-  protein_cluster <- list(name = "Protein Clusters", var = "protein_clusters", assay = "proteins", reduction = "umap_proteins", heatmap = FALSE)
-  cell_clusters <- list(RNA_cluster, InSituType_cluster, protein_cluster)
-  
-  # Save all the plots in a list to return them all together
-  clustering_plots_list <- list()
-  
   # Know clusters that should have consistent colors
-  named_clusters <- c(
-    "B.cell",
-    "Dendritic.cell",
-    "Endothelial",
-    "Fibroblast",
-    "Macrophage",
-    "Mast.cell",
-    "Monocyte",
-    "Neutrophil",
-    "NK.cell",
-    "Plasma",
-    "Plasmablast",
-    "Plasmacytoid.dendritic.cell",
-    "T.cell.CD4",
-    "T.cell.CD8",
-    "T.cell.regulatory"
+  known_clusters_colors <- c(
+    "B.cell" = "#5A5156",
+    "Dendritic.cell" = "#E4E1E3",
+    "Endothelial" = "#F6222E",
+    "Fibroblast" = "#FE00FA",
+    "Macrophage" = "#16FF32",
+    "Mast.cell" = "#3283FE",
+    "Monocyte" = "#FEAF16",
+    "Neutrophil" = "#B00068",
+    "NK.cell" = "#1CFFCE",
+    "Plasma" = "#90AD1C",
+    "Plasmablast" = "#2ED9FF",
+    "Plasmacytoid.dendritic.cell" = "#DEA0FD",
+    "T.cell.CD4" = "#AA0DFE",
+    "T.cell.CD8" = "#F8A19F",
+    "T.cell.regulatory" = "#325A9B"
   )
   
-  # Get colors for named clusters
-  packed_values <- fix_colors_known_clusters(named_clusters)
-  know_clusters_lookup_table <- packed_values[[1]]
-  color_palette <- packed_values[[2]]
+  RNA_cluster_var <- "RNA_clusters"
+  RNA_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, RNA_cluster_var, known_clusters_colors)
+  RNA_cluster <- generate_clustering_plots(
+    patient_rna_only,
+    RNA_cluster_var,
+    "Nanostring", 
+    cluster_reduction = "umap",
+    create_heatmap = TRUE,
+    cluster_name = "RNA Clusters",
+    color_lookup_table = RNA_color_lookup_table)
   
-  for (cell_cluster in cell_clusters) {
-    
-    # Add unnamed clusters to the final color lookup table
-    color_lookup_table <- c(
-      know_clusters_lookup_table,
-      rand_colors_unknown_clusters(patient_rna_only, cell_cluster$var, color_palette, named_clusters))
-
-    print(paste(cell_cluster$name, "and number of cells in each of them associated with patient", patient_num))
-    print(table(patient_rna_only[[cell_cluster$var]]))
-    
-    # Select the cluster as the identity
-    Idents(patient_rna_only) <- cell_cluster$var
-    # Plot the cells using their polygonal boundaries
-    DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
-    
-    if (cell_cluster$heatmap) {
-      diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster$var, cell_cluster$assay, color_lookup_table)
-      
-      # Save plot to list
-      clustering_plots_list[[paste(cell_cluster$var, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
-      
-      # Save the heatmap to an image
-      ggsave(
-        filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var, "_diff_expr_genes_heatmap", image_ext),
-        plot = diff_expr_genes_heatmap
-      )
-    }
-    
-    # Graphs the output of a dimensional reduction technique on a 2D scatter plot
-    # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
-    umap_clusters <- Seurat::DimPlot(
-      patient_rna_only,
-      reduction = cell_cluster$reduction,,
-      group.by = cell_cluster$var,
-      label=TRUE,
-      label.box=TRUE,
-      repel=TRUE,
-      cols = color_lookup_table) +
-      labs(
-        title = paste("Patient", patient_num),
-        subtitle = cell_cluster$name) +
-      NoLegend()
-    # Save plot to list
-    clustering_plots_list[[paste(cell_cluster$var, "umap", sep = "_")]] <- umap_clusters
-    # Save plot to image file
-    ggsave(
-      filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var,"_umap", image_ext),
-      plot = umap_clusters
-    )
-    
-    # Plot cells in their spatial context
-    stamps_list <- list()
-    for(curr_core in sort(unique(patient_rna_only@meta.data$core_serial))) {
-      for (curr_stamp in sort(unique(patient_rna_only@meta.data$stamp[patient_rna_only@meta.data$core_serial == curr_core]))) {
-        
-        # Subset data from current core and stamp
-        core_stamp_subset <- subset(patient_rna_only, subset = core_serial == curr_core & stamp == curr_stamp)
-        
-        stamp_plot <- ImageDimPlot(
-          core_stamp_subset,
-          fov = patient_image,
-          # Set border color to 'NA' as 'white' masks all cells when zoomed out
-          border.color = NA,
-          flip_xy = FALSE,
-          cols = color_lookup_table) + theme(
-            legend.text = element_text(size = 6),
-            legend.title = element_text(size = 8),
-            legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
-            legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
-          ) +
-          labs(
-            title = paste("Patient", patient_num, "Core", curr_core, ", Stamp", curr_stamp),
-            subtitle = cell_cluster$name
-          )
-        clustering_plots_list[[paste(cell_cluster$var, curr_core, as.character(curr_stamp), sep = "_")]] <- stamp_plot
-        ggsave(
-          filename = paste0(patient_dir_img, "Patient_",  patient_num, "_", cell_cluster$var, "_core_", curr_core, "_stamp_", curr_stamp, image_ext),
-          plot = stamp_plot)
-      }
-    }
-  }
+  InSituType_cluster_var <- "InSituType_semisup_clusters"
+  InSituType_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, InSituType_cluster_var, known_clusters_colors)
+  InSituType_cluster <- generate_clustering_plots(
+    patient_rna_only,
+    InSituType_cluster_var,
+    "Nanostring", 
+    cluster_reduction = "umap",
+    create_heatmap = TRUE,
+    cluster_name = "InSituType Semisupervised Clusters",
+    color_lookup_table = InSituType_color_lookup_table)
+  
+  protein_cluster_var <- "protein_clusters"
+  protein_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, protein_cluster_var, known_clusters_colors)
+  protein_cluster <- generate_clustering_plots(
+    patient_rna_only,
+    protein_cluster_var,
+    "proteins", 
+    cluster_reduction = "umap_proteins",
+    create_heatmap = FALSE,
+    cluster_name = "Protein Clusters",
+    color_lookup_table = protein_color_lookup_table)
+  
+  # List to be returned with all the plots
+  clustering_plots_list <- list(RNA_cluster, InSituType_cluster, protein_cluster)
   
   print("Generate Comparing Clusters plot")
   seurat_vs_insitutype_plot_name <- paste0("Patient_",  patient_num, "_heatmap_seurat_vs_insitutype")
