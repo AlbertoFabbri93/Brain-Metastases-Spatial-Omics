@@ -32,7 +32,7 @@ generate_dyn_text_heatmap <- function(
     cluster_var,
     assay_name,
     cluster_name = NULL,
-    group_colors = NULL) {
+    color_lookup_table = NULL) {
   
   # If a human friendly name is not given, use the name of the column in the Seurat object
   if (is.null(cluster_name)) {
@@ -87,7 +87,7 @@ generate_dyn_text_heatmap <- function(
     assay = assay_name,
     label = TRUE,
     size = calculate_clusters_names_size(smallest_cluster_proportion_filtered),
-    group.colors = group_colors
+    group.colors = color_lookup_table,
   ) + theme(
     axis.text.y = element_text(size = label_size),
   ) + labs(
