@@ -347,6 +347,38 @@ print_proteins_data <- function(patient_data, patient_num, patient_dir_img, pati
   return(list(protein_plots))
 }
 
+####### COLOR CLUSTERS #######
+
+# Assign random colors to unknown clusters
+rand_colors_unknown_clusters <- function(data, cluster_column_name, color_palette, named_clusters = NULL) {
+  
+  # Random colors for the unknown clusters
+  # The cluster 0 in Seurat for example is different for every patient
+  color_palette <- sample(color_palette)
+  
+  unknown_clusters_colors <- c()
+  next_color <- 1
+  # Loop over the unknown clusters and assign each of them a random color
+  for (cluster in setdiff(as.vector(as.character(unique(data[[cluster_column_name]])[[cluster_column_name]])), named_clusters)) {
+    unknown_clusters_colors <- c(unknown_clusters_colors, setNames(color_palette[next_color], cluster))
+    next_color <- next_color + 1
+  }
+  return(unknown_clusters_colors)
+}
+
+# Assign fixed colors to know clusters
+fix_colors_known_clusters <- function(named_clusters) {
+  
+  # Polychrome is the palette with the most colors (36)
+  color_palette <- DiscretePalette(36, palette = "polychrome")
+  # Set the colors for the known clusters
+  known_clusters_colors <- setNames(color_palette[1:length(named_clusters)], named_clusters)
+  # Create a vector with the remaining available colors so that they can be used for the unknown clusters
+  remaining_colors <- setdiff(color_palette, known_clusters_colors)
+  
+  return <- list(known_clusters_colors, remaining_colors)
+}
+
 ####### ANALYZE PATIENT #######
 
 analyze_patient <- function(all_patients_data, patient_num) {
@@ -478,16 +510,40 @@ analyze_patient <- function(all_patients_data, patient_num) {
   protein_cluster <- list(name = "Protein Clusters", var = "protein_clusters", assay = "proteins", reduction = "umap_proteins", heatmap = FALSE)
   cell_clusters <- list(RNA_cluster, InSituType_cluster, protein_cluster)
   
-  # Color of the clusters
-  clusters_colors <- DiscretePalette(20, palette = "polychrome", shuffle = TRUE)
-  # Print the color palette
-  # pie(rep(1, length(clusters_colors)), col = clusters_colors , main="")
-  
   # Save all the plots in a list to return them all together
   clustering_plots_list <- list()
   
+  # Know clusters that should have consistent colors
+  named_clusters <- c(
+    "B.cell",
+    "Dendritic.cell",
+    "Endothelial",
+    "Fibroblast",
+    "Macrophage",
+    "Mast.cell",
+    "Monocyte",
+    "Neutrophil",
+    "NK.cell",
+    "Plasma",
+    "Plasmablast",
+    "Plasmacytoid.dendritic.cell",
+    "T.cell.CD4",
+    "T.cell.CD8",
+    "T.cell.regulatory"
+  )
+  
+  # Get colors for named clusters
+  packed_values <- fix_colors_known_clusters(named_clusters)
+  know_clusters_lookup_table <- packed_values[[1]]
+  color_palette <- packed_values[[2]]
+  
   for (cell_cluster in cell_clusters) {
     
+    # Add unnamed clusters to the final color lookup table
+    color_lookup_table <- c(
+      know_clusters_lookup_table,
+      rand_colors_unknown_clusters(patient_rna_only, cell_cluster$var, color_palette, named_clusters))
+
     print(paste(cell_cluster$name, "and number of cells in each of them associated with patient", patient_num))
     print(table(patient_rna_only[[cell_cluster$var]]))
     
@@ -497,7 +553,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     DefaultBoundary(patient_rna_only[[patient_image]]) <- "segmentation"
     
     if (cell_cluster$heatmap) {
-      diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster$var, cell_cluster$assay, clusters_colors)
+      diff_expr_genes_heatmap <- generate_dyn_text_heatmap(patient_rna_only, cell_cluster$var, cell_cluster$assay, color_lookup_table)
       
       # Save plot to list
       clustering_plots_list[[paste(cell_cluster$var, "heatmap", sep = "_")]] <- diff_expr_genes_heatmap
@@ -518,7 +574,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
       label=TRUE,
       label.box=TRUE,
       repel=TRUE,
-      cols = clusters_colors) +
+      cols = color_lookup_table) +
       labs(
         title = paste("Patient", patient_num),
         subtitle = cell_cluster$name) +
