@@ -386,7 +386,12 @@ analyze_patient <- function(all_patients_data, patient_num) {
     ioprofiles <- ioprofiles[, -1] %>% as.matrix()
     
     # Run InSituType semisupervised clustering
-    patient_semisup <- runInSituTypeSemisupervised(patient_rna_only, ioprofiles, patient_cohort, patient_rna_counts, patient_avg_neg_probes)
+    patient_semisup <- runInSituTypeSemisupervised(
+      patient_rna_only,
+      ioprofiles,
+      patient_cohort,
+      patient_rna_counts,
+      patient_avg_neg_probes)
     # add phenotypes to the metadata for plotting
     patient_rna_only$InSituType_semisup_clusters <- patient_semisup$clust
     
