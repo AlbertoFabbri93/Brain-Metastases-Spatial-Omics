@@ -5,7 +5,7 @@ image_ext <- Sys.getenv("IMAGE_EXT")
 
 ####### GET PATIENT NUM #######
 
-get_patient_num <- function(data) {
+get_patient_num <- function(patient_data) {
   patient_num <- patient_data$Patient.ID[1]
   return(patient_num)
 }
