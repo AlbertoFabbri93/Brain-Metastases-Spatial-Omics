@@ -20,10 +20,20 @@ calculate_clusters_names_size <- function(smallest_cluster_proportion) {
   return(base_size * exp(log(smallest_cluster_proportion)/3))
 }
 
-generate_dyn_text_heatmap <- function(patient_data, clusters_column_name, assay_name, group_colors = NULL) {
+generate_dyn_text_heatmap <- function(
+    patient_data,
+    cluster_var,
+    assay_name,
+    cluster_name = NULL,
+    group_colors = NULL) {
+  
+  # If a human friendly name is not given, use the name of the column in the Seurat object
+  if (is.null(cluster_name)) {
+    cluster_name <- cluster_var
+  }
   
   # Select the cluster as the identity
-  Idents(patient_data) <- clusters_column_name
+  Idents(patient_data) <- cluster_var
 
   # Calculate the size of each cluster
   cluster_sizes <- table(Idents(patient_data))
@@ -74,7 +84,7 @@ generate_dyn_text_heatmap <- function(patient_data, clusters_column_name, assay_
   ) + theme(
     axis.text.y = element_text(size = label_size),
   ) + labs(
-    title = paste("Patient", patient_num, clusters_column_name),
+    title = paste("Patient", patient_num, cluster_name),
     subtitle = "Top 10 Differentially Expressed Genes per Cluster"
   )
   
