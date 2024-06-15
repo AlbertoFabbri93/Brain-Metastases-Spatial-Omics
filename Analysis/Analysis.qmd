@@ -16,9 +16,14 @@ library("data.table")
 library("tidyverse")
 library("Seurat")
 library("pheatmap")
-library(future)
+# Replace this future symbols with others because they conflict with the zeallot package
+library (future, exclude = c("%->%", "%<-%"));
+`%<--%` = future::`%<-%` ;
+`%-->%` = future::`%->%` ;
 # Parallelize the computation with several worker processes that will run in their own R session
 plan("multisession", workers = 6)
+# Unpack multiple values without temporary variables
+library("zeallot")
 library("ggplot2")
 library("InSituType")
 library("openxlsx")
