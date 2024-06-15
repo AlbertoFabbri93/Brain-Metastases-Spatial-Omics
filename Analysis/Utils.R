@@ -700,10 +700,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   } else {
     seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
   }
-  plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
-  
   # Return/print all plots together, otherwise only the last one is shown
-  print(plot_list)
-  
-  return(patient_rna_only)
+  plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
+  return(list(patient_rna_only, plot_list))
 }
