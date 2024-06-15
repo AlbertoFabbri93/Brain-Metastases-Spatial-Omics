@@ -10,6 +10,13 @@ get_patient_num <- function(patient_data) {
   return(patient_num)
 }
 
+####### GET PATIENT PLOT DIR #######
+
+get_patient_dir_img <- function(patient_num) {
+  patient_dir_img <- paste0(image_dir, "Patient_", patient_num, "_plots/")
+  return(patient_dir_img)
+}
+
 ####### GENERATE HEATMAP #######
 
 # Heatmap plot, define a function to dynamically calculate label size based on the number of features
