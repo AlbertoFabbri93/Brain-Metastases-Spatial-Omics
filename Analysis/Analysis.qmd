@@ -149,8 +149,22 @@ patients_rna_data <- list()
 ```{r}
 #| label: analyze-patient-1
 
-patient_1_rna_data <- analyze_patient(breast_cancer_patients, "1")
+c(patient_1_rna_data, patient_1_plots) %<-% analyze_patient(breast_cancer_patients, "1")
 patients_rna_data[["1"]] <- patient_1_rna_data
+print(patient_1_plots)
+```
+
+::: {.content-hidden}
+#### Save plots
+:::
+
+```{r}
+#| label: save-plots-patient-1
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(patient_1_plots, get_patient_dir_img("1"), image_ext)
 ```
 
 ### Patient 2
@@ -158,8 +172,22 @@ patients_rna_data[["1"]] <- patient_1_rna_data
 ```{r}
 #| label: analyze-patient-2
 
-patient_2_rna_data <- analyze_patient(breast_cancer_patients, "2")
+c(patient_2_rna_data, patient_2_plots) %<-% analyze_patient(breast_cancer_patients, "2")
 patients_rna_data[["2"]] <- patient_2_rna_data
+print(patient_2_plots)
+```
+
+::: {.content-hidden}
+#### Save plots
+:::
+
+```{r}
+#| label: save-plots-patient-2
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(patient_2_plots, get_patient_dir_img("2"), image_ext)
 ```
 
 ### Patient 3
@@ -167,8 +195,22 @@ patients_rna_data[["2"]] <- patient_2_rna_data
 ```{r}
 #| label: analyze-patient-3
 
-patient_3_rna_data <- analyze_patient(breast_cancer_patients, "3")
+c(patient_3_rna_data, patient_3_plots) %<-% analyze_patient(breast_cancer_patients, "3")
 patients_rna_data[["3"]] <- patient_3_rna_data
+print(patient_3_plots)
+```
+
+::: {.content-hidden}
+#### Save plots
+:::
+
+```{r}
+#| label: save-plots-patient-3
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(patient_3_plots, get_patient_dir_img("3"), image_ext)
 ```
 
 ### Patient 4
@@ -176,8 +218,22 @@ patients_rna_data[["3"]] <- patient_3_rna_data
 ```{r}
 #| label: analyze-patient-4
 
-patient_4_rna_data <- analyze_patient(breast_cancer_patients, "4")
+c(patient_4_rna_data, patient_4_plots) %<-% analyze_patient(breast_cancer_patients, "4")
 patients_rna_data[["4"]] <- patient_4_rna_data
+print(patient_4_plots)
+```
+
+::: {.content-hidden}
+#### Save plots
+:::
+
+```{r}
+#| label: save-plots-patient-4
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(patient_4_plots, get_patient_dir_img("4"), image_ext)
 ```
 
 ### Patient 5
@@ -185,8 +241,22 @@ patients_rna_data[["4"]] <- patient_4_rna_data
 ```{r}
 #| label: analyze-patient-5
 
-patient_5_rna_data <- analyze_patient(breast_cancer_patients, "5")
+c(patient_5_rna_data, patient_5_plots) %<-% analyze_patient(breast_cancer_patients, "5")
 patients_rna_data[["5"]] <- patient_5_rna_data
+print(patient_5_plots)
+```
+
+::: {.content-hidden}
+#### Save plots
+:::
+
+```{r}
+#| label: save-plots-patient-5
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(patient_5_plots, get_patient_dir_img("5"), image_ext)
 ```
 
 ### Patient 6
@@ -194,8 +264,22 @@ patients_rna_data[["5"]] <- patient_5_rna_data
 ```{r}
 #| label: analyze-patient-6
 
-patient_6_rna_data <- analyze_patient(breast_cancer_patients, "6")
+c(patient_6_rna_data, patient_6_plots) %<-% analyze_patient(breast_cancer_patients, "6")
 patients_rna_data[["6"]] <- patient_6_rna_data
+print(patient_6_plots)
+```
+
+::: {.content-hidden}
+#### Save plots
+:::
+
+```{r}
+#| label: save-plots-patient-6
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(patient_6_plots, get_patient_dir_img("6"), image_ext)
 ```
 
 ### Patient 7
@@ -203,8 +287,22 @@ patients_rna_data[["6"]] <- patient_6_rna_data
 ```{r}
 #| label: analyze-patient-7
 
-patient_7_rna_data <- analyze_patient(breast_cancer_patients, "7")
+c(patient_7_rna_data, patient_7_plots) %<-% analyze_patient(breast_cancer_patients, "7")
 patients_rna_data[["7"]] <- patient_7_rna_data
+print(patient_7_plots)
+```
+
+::: {.content-hidden}
+#### Save plots
+:::
+
+```{r}
+#| label: save-plots-patient-7
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(patient_7_plots, get_patient_dir_img("7"), image_ext)
 ```
 
 ## Comparing patients
