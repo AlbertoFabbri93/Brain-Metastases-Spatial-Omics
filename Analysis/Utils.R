@@ -368,7 +368,6 @@ print_proteins_data <- function(patient_data, patient_num, patient_dir_img, pati
     
     saveRDS(protein_plots, file = protein_data_feature_plots_rds)
     protein_plots_image <- paste0(patient_dir_img, protein_data_feature_plots, image_ext)
-    ggsave(filename = protein_plots_image, plot = protein_plots)
   } else {
     protein_plots <- readRDS(protein_data_feature_plots_rds)
   }
@@ -581,7 +580,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
     elbow_plot <- ElbowPlot(patient_rna_only, ndims = 50) + labs(title = paste("Patient", patient_num))
     saveRDS(elbow_plot, file = elbow_plot_rds)
     elbow_plot_image <- paste0(patient_dir_img, elbow_plot_name, image_ext)
-    ggsave(filename = elbow_plot_image,plot = elbow_plot)
   } else {
     elbow_plot <- readRDS(elbow_plot_rds)
   }
@@ -596,7 +594,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
       labs(title = paste("Patient", patient_num), subtitle = "Mean PanCK")
     saveRDS(mean_panck_plot, file = mean_panck_plot_rds)
     mean_panck_plot_image <- paste0(patient_dir_img, mean_panck_plot_name, image_ext)
-    ggsave(filename = mean_panck_plot_image, plot = mean_panck_plot)
   } else {
     mean_panck_plot <- readRDS(mean_panck_plot_rds)
   }
@@ -618,7 +615,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
       )
     saveRDS(KRT17_plot, file = krt17_plot_rds)
     KRT17_plot_image <- paste0(patient_dir_img, krt17_plot_name, image_ext)
-    ggsave(filename = KRT17_plot_image, plot = KRT17_plot)
   } else {
     KRT17_plot <- readRDS(krt17_plot_rds)
   }
@@ -693,10 +689,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
     seurat_vs_insitutype_plot <- compare_clustering_methods(patient_rna_only)
     saveRDS(seurat_vs_insitutype_plot, file = seurat_vs_insitutype_plot_rds)
     seurat_vs_insitutype_plot_image <- paste0(patient_dir_img, seurat_vs_insitutype_plot_name, image_ext)
-    ggsave(
-      filename = seurat_vs_insitutype_plot_image,
-      plot = seurat_vs_insitutype_plot
-    )
   } else {
     seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
   }
