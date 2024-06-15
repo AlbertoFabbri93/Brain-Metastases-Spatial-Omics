@@ -3,6 +3,43 @@ rds_dir <- Sys.getenv("RDS_DIR")
 image_dir <- Sys.getenv("IMAGE_DIR")
 image_ext <- Sys.getenv("IMAGE_EXT")
 
+save_plots <- function(plots_list, folder_path, file_extension) {
+  # Ensure the folder exists, if not, create it
+  if (!dir.exists(folder_path)) {
+    dir.create(folder_path, recursive = TRUE)
+  }
+  
+  # Helper function to flatten the list and collect plots
+  # Images are also lists so simply unflattening the list does not work
+  flatten_list <- function(lst) {
+    flat_list <- list()
+    
+    for (name in names(lst)) {
+      if (inherits(lst[[name]], "ggplot") || inherits(lst[[name]], "trellis")) {
+        flat_list[[name]] <- lst[[name]]
+      } else if (is.list(lst[[name]])) {
+        flat_list <- c(flat_list, flatten_list(lst[[name]]))
+      }
+    }
+    
+    return(flat_list)
+  }
+  
+  # Flatten the plots list
+  flat_plots <- flatten_list(plots_list)
+  
+  # Iterate over the flattened list of plots and save each plot
+  for (plot_name in names(flat_plots)) {
+    # Construct the file path
+    file_path <- file.path(folder_path, paste0(plot_name, file_extension))
+    
+    # Save the plot to the specified file path
+    png(file_path)
+    print(flat_plots[[plot_name]])
+    dev.off()
+  }
+}
+
 ####### GET PATIENT NUM #######
 
 get_patient_num <- function(patient_data) {
