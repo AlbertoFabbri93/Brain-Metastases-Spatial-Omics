@@ -365,8 +365,9 @@ print_proteins_data <- function(patient_data, patient_num, patient_dir_img, pati
   } else {
     protein_plots <- readRDS(protein_data_feature_plots_rds)
   }
+  plot_list <- list(protein_data_feature_plots = protein_plots)
   
-  return(list(protein_plots))
+  return(plot_list)
 }
 
 ####### COLOR CLUSTERS #######
@@ -496,6 +497,9 @@ generate_clustering_plots <- function(
 
 analyze_patient <- function(all_patients_data, patient_num) {
   
+  # List with all the plots to be printed
+  plot_list <- list()
+  
   # Create directories to save patient data if they do not exist
   patient_dir_img <- paste0(image_dir, "Patient_", patient_num, "_plots/")
   patient_dir_rds <- paste0(rds_dir, "Patient_", patient_num, "_data/")
@@ -574,6 +578,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   } else {
     elbow_plot <- readRDS(elbow_plot_rds)
   }
+  plot_list[[elbow_plot_name]] <- elbow_plot
   
   # Plot Mean PanCK
   print("Generate Mean PanCK plot")
@@ -588,6 +593,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   } else {
     mean_panck_plot <- readRDS(mean_panck_plot_rds)
   }
+  plot_list[[mean_panck_plot_name]] <- mean_panck_plot
   
   # Plot KRT17
   print("Generate KRT17 plot")
@@ -609,8 +615,9 @@ analyze_patient <- function(all_patients_data, patient_num) {
   } else {
     KRT17_plot <- readRDS(krt17_plot_rds)
   }
+  plot_list[[krt17_plot_name]] <- KRT17_plot
   
-  protein_data_plots <- print_proteins_data(patient_rna_only, patient_num, patient_dir_img, patient_dir_rds_img)
+  plot_list <- c(plot_list, print_proteins_data(patient_rna_only, patient_num, patient_dir_img, patient_dir_rds_img))
   
   ################## PRINT CLUSTERING PLOTS ##################
   
@@ -643,6 +650,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     create_heatmap = TRUE,
     cluster_name = "RNA Clusters",
     color_lookup_table = RNA_color_lookup_table)
+  plot_list[[RNA_cluster_var]] <- RNA_cluster
   
   InSituType_cluster_var <- "InSituType_semisup_clusters"
   InSituType_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, InSituType_cluster_var, known_clusters_colors)
@@ -654,6 +662,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     create_heatmap = TRUE,
     cluster_name = "InSituType Semisupervised Clusters",
     color_lookup_table = InSituType_color_lookup_table)
+  plot_list[[InSituType_cluster_var]] <- InSituType_cluster
   
   protein_cluster_var <- "protein_clusters"
   protein_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, protein_cluster_var, known_clusters_colors)
@@ -665,6 +674,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     create_heatmap = FALSE,
     cluster_name = "Protein Clusters",
     color_lookup_table = protein_color_lookup_table)
+  plot_list[[protein_cluster_var]] <- protein_cluster
   
   # List to be returned with all the plots
   clustering_plots_list <- list(RNA_cluster, InSituType_cluster, protein_cluster)
@@ -683,9 +693,9 @@ analyze_patient <- function(all_patients_data, patient_num) {
   } else {
     seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
   }
+  plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
   
-  # Return all plots together, otherwise only the last one is shown
-  plot_list <- c(list(elbow_plot, mean_panck_plot, KRT17_plot, protein_data_plots, seurat_vs_insitutype_plot), clustering_plots_list)
+  # Return/print all plots together, otherwise only the last one is shown
   print(plot_list)
   
   return(patient_rna_only)
