@@ -385,32 +385,26 @@ analyze_proteins <- function(patient_data) {
   
 }
 
-####### PRINT PROTEINS DATA #######
+####### GENERATE FEATUREPLOTS DATA #######
 
-print_proteins_data <- function(patient_data, patient_num, patient_dir_img, patient_dir_rds_img) {
+generate_feature_plot <- function(patient_data, reduction, features, max_cutoff = NA) {
   
-  print("Generate FeaturePlot from protein data")
-  # protein_data_feature_plots <- paste0("Patient_",  patient_num, "_protein_feature_plots")
-  # protein_data_feature_plots_rds <- paste0(patient_dir_rds_img, "Patient_",  protein_data_feature_plots, ".rds")
-  # if (!file.exists(protein_data_feature_plots_rds)) {
-    
-    protein_plots <- FeaturePlot(
-      object = patient_data,
-      features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
-      reduction = "umap_proteins",
-      max.cutoff = "q95") +
-      plot_annotation(
-        title = 'Patient 1',
-        subtitle = 'UMAP from protein data',
-      )  & NoLegend() & NoAxes()
-    
-  #   saveRDS(protein_plots, file = protein_data_feature_plots_rds)
-  # } else {
-  #   protein_plots <- readRDS(protein_data_feature_plots_rds)
-  # }
-  plot_list <- list(protein_data_feature_plots = protein_plots)
+  print(paste("Generate FeaturePlots from", reduction, "reduction of features", features))
   
-  return(plot_list)
+  patient_num <- get_patient_num(patient_data)
+  
+  features_plots <- FeaturePlot(
+    object = patient_data,
+    features = features,
+    reduction = reduction,
+    max.cutoff = max_cutoff) +
+    plot_annotation(
+      title = 'Patient 1',
+      subtitle = reduction,
+    )  & NoLegend() & NoAxes()
+    
+  features_plot_name <- paste0("Patient_",  patient_num, "_", reduction)
+  return(setNames(list(features_plots), features_plot_name))
 }
 
 ####### COLOR CLUSTERS #######
