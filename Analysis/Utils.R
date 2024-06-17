@@ -638,6 +638,32 @@ analyze_patient <- function(all_patients_data, patient_num) {
     "T.cell.regulatory" = "#325A9B"
   )
   
+  proteins_features_plots <- generate_feature_plot(
+    patient_data = patient_rna_only,
+    reduction = "umap_proteins",
+    features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
+    max_cutoff = "q95")
+  plot_list <- c(plot_list, proteins_features_plots)
+  
+  protein_cluster_var <- "protein_clusters"
+  protein_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, protein_cluster_var, known_clusters_colors)
+  protein_cluster <- generate_clustering_plots(
+    patient_rna_only,
+    protein_cluster_var,
+    "proteins", 
+    cluster_reduction = "umap_proteins",
+    create_heatmap = FALSE,
+    cluster_name = "Protein Clusters",
+    color_lookup_table = protein_color_lookup_table)
+  plot_list[[protein_cluster_var]] <- protein_cluster
+  
+  RNA_features_plots <- generate_feature_plot(
+    patient_data = patient_rna_only,
+    reduction = "umap",
+    features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
+    max_cutoff = "q100")
+  plot_list <- c(plot_list, RNA_features_plots)
+  
   RNA_cluster_var <- "RNA_clusters"
   RNA_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, RNA_cluster_var, known_clusters_colors)
   RNA_cluster <- generate_clustering_plots(
@@ -661,18 +687,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
     cluster_name = "InSituType Semisupervised Clusters",
     color_lookup_table = InSituType_color_lookup_table)
   plot_list[[InSituType_cluster_var]] <- InSituType_cluster
-  
-  protein_cluster_var <- "protein_clusters"
-  protein_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, protein_cluster_var, known_clusters_colors)
-  protein_cluster <- generate_clustering_plots(
-    patient_rna_only,
-    protein_cluster_var,
-    "proteins", 
-    cluster_reduction = "umap_proteins",
-    create_heatmap = FALSE,
-    cluster_name = "Protein Clusters",
-    color_lookup_table = protein_color_lookup_table)
-  plot_list[[protein_cluster_var]] <- protein_cluster
   
   # List to be returned with all the plots
   clustering_plots_list <- list(RNA_cluster, InSituType_cluster, protein_cluster)
