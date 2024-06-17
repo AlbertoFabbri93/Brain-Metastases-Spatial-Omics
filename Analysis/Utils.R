@@ -369,8 +369,9 @@ analyze_proteins <- function(patient_data) {
     patient_data,
     resolution = 0.5,
     assay = "proteins",
-    cluster.name="protein_clusters",
-    graph.name = "proteins_snn")
+    cluster.name = "protein_clusters",
+    graph.name = "proteins_snn",
+    random.seed = 2)
   
   # Run UMAP for visualization
   patient_data <- RunUMAP(
