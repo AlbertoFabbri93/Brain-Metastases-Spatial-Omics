@@ -390,9 +390,9 @@ analyze_proteins <- function(patient_data) {
 print_proteins_data <- function(patient_data, patient_num, patient_dir_img, patient_dir_rds_img) {
   
   print("Generate FeaturePlot from protein data")
-  protein_data_feature_plots <- paste0("Patient_",  patient_num, "_protein_feature_plots")
-  protein_data_feature_plots_rds <- paste0(patient_dir_rds_img, "Patient_",  protein_data_feature_plots, ".rds")
-  if (!file.exists(protein_data_feature_plots_rds)) {
+  # protein_data_feature_plots <- paste0("Patient_",  patient_num, "_protein_feature_plots")
+  # protein_data_feature_plots_rds <- paste0(patient_dir_rds_img, "Patient_",  protein_data_feature_plots, ".rds")
+  # if (!file.exists(protein_data_feature_plots_rds)) {
     
     protein_plots <- FeaturePlot(
       object = patient_data,
@@ -404,11 +404,10 @@ print_proteins_data <- function(patient_data, patient_num, patient_dir_img, pati
         subtitle = 'UMAP from protein data',
       )  & NoLegend() & NoAxes()
     
-    saveRDS(protein_plots, file = protein_data_feature_plots_rds)
-    protein_plots_image <- paste0(patient_dir_img, protein_data_feature_plots, image_ext)
-  } else {
-    protein_plots <- readRDS(protein_data_feature_plots_rds)
-  }
+  #   saveRDS(protein_plots, file = protein_data_feature_plots_rds)
+  # } else {
+  #   protein_plots <- readRDS(protein_data_feature_plots_rds)
+  # }
   plot_list <- list(protein_data_feature_plots = protein_plots)
   
   return(plot_list)
@@ -613,35 +612,33 @@ analyze_patient <- function(all_patients_data, patient_num) {
   # It can be used to decide the number of dims of the FindNeighbors function
   print("Generate Elbow plot")
   elbow_plot_name <- paste0("Patient_",  patient_num, "_elbow_plot")
-  elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
-  if (!file.exists(elbow_plot_rds)) {
+  # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
+  # if (!file.exists(elbow_plot_rds)) {
     elbow_plot <- ElbowPlot(patient_rna_only, ndims = 50) + labs(title = paste("Patient", patient_num))
-    saveRDS(elbow_plot, file = elbow_plot_rds)
-    elbow_plot_image <- paste0(patient_dir_img, elbow_plot_name, image_ext)
-  } else {
-    elbow_plot <- readRDS(elbow_plot_rds)
-  }
+  #   saveRDS(elbow_plot, file = elbow_plot_rds)
+  # } else {
+  #   elbow_plot <- readRDS(elbow_plot_rds)
+  # }
   plot_list[[elbow_plot_name]] <- elbow_plot
   
   # Plot Mean PanCK
   print("Generate Mean PanCK plot")
   mean_panck_plot_name <- paste0("Patient_",  patient_num, "_panCK")
-  mean_panck_plot_rds <- paste0(patient_dir_rds_img, mean_panck_plot_name, ".rds")
-  if (!file.exists(mean_panck_plot_rds)) {
+  # mean_panck_plot_rds <- paste0(patient_dir_rds_img, mean_panck_plot_name, ".rds")
+  # if (!file.exists(mean_panck_plot_rds)) {
     mean_panck_plot <- FeaturePlot(object = patient_rna_only, features = "Mean.PanCK", min.cutoff = 2000) +
       labs(title = paste("Patient", patient_num), subtitle = "Mean PanCK")
-    saveRDS(mean_panck_plot, file = mean_panck_plot_rds)
-    mean_panck_plot_image <- paste0(patient_dir_img, mean_panck_plot_name, image_ext)
-  } else {
-    mean_panck_plot <- readRDS(mean_panck_plot_rds)
-  }
+  #   saveRDS(mean_panck_plot, file = mean_panck_plot_rds)
+  # } else {
+  #   mean_panck_plot <- readRDS(mean_panck_plot_rds)
+  # }
   plot_list[[mean_panck_plot_name]] <- mean_panck_plot
   
   # Plot KRT17
   print("Generate KRT17 plot")
   krt17_plot_name <- paste0("Patient_",  patient_num, "_krt17")
-  krt17_plot_rds <- paste0(patient_dir_rds_img, krt17_plot_name, ".rds")
-  if (!file.exists(krt17_plot_rds)) {
+  # krt17_plot_rds <- paste0(patient_dir_rds_img, krt17_plot_name, ".rds")
+  # if (!file.exists(krt17_plot_rds)) {
     KRT17_plot <- FeaturePlot(
       object = patient_rna_only,
       features = "KRT17",
@@ -651,11 +648,10 @@ analyze_patient <- function(all_patients_data, patient_num) {
         title = paste("Patient", patient_num),
         subtitle = "KRT17"
       )
-    saveRDS(KRT17_plot, file = krt17_plot_rds)
-    KRT17_plot_image <- paste0(patient_dir_img, krt17_plot_name, image_ext)
-  } else {
-    KRT17_plot <- readRDS(krt17_plot_rds)
-  }
+  #   saveRDS(KRT17_plot, file = krt17_plot_rds)
+  # } else {
+  #   KRT17_plot <- readRDS(krt17_plot_rds)
+  # }
   plot_list[[krt17_plot_name]] <- KRT17_plot
   
   plot_list <- c(plot_list, print_proteins_data(patient_rna_only, patient_num, patient_dir_img, patient_dir_rds_img))
@@ -722,14 +718,13 @@ analyze_patient <- function(all_patients_data, patient_num) {
   
   print("Generate Comparing Clusters plot")
   seurat_vs_insitutype_plot_name <- paste0("Patient_",  patient_num, "_heatmap_seurat_vs_insitutype")
-  seurat_vs_insitutype_plot_rds <- paste0(patient_dir_rds_img, seurat_vs_insitutype_plot_name, ".rds")
-  if (!file.exists(seurat_vs_insitutype_plot_rds)) {
+  # seurat_vs_insitutype_plot_rds <- paste0(patient_dir_rds_img, seurat_vs_insitutype_plot_name, ".rds")
+  # if (!file.exists(seurat_vs_insitutype_plot_rds)) {
     seurat_vs_insitutype_plot <- compare_clustering_methods(patient_rna_only)
-    saveRDS(seurat_vs_insitutype_plot, file = seurat_vs_insitutype_plot_rds)
-    seurat_vs_insitutype_plot_image <- paste0(patient_dir_img, seurat_vs_insitutype_plot_name, image_ext)
-  } else {
-    seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
-  }
+  #   saveRDS(seurat_vs_insitutype_plot, file = seurat_vs_insitutype_plot_rds)
+  # } else {
+  #   seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
+  # }
   # Return/print all plots together, otherwise only the last one is shown
   plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
   return(list(patient_rna_only, plot_list))
