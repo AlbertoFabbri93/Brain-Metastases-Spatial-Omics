@@ -471,18 +471,6 @@ generate_clustering_plots <- function(
   # Plot the cells using their polygonal boundaries
   DefaultBoundary(patient_data[[patient_image]]) <- "segmentation"
   
-  # Create heatmap of most differentially expressed genes
-  if (create_heatmap) {
-    diff_expr_genes_heatmap <- generate_dyn_text_heatmap(
-      patient_data,
-      cluster_var,
-      cluster_assay,
-      color_lookup_table = color_lookup_table,
-      cluster_name = cluster_name)
-    # Save plot to list
-    clustering_plots[[paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap", sep = "_")]] <- diff_expr_genes_heatmap
-  }
-  
   # Graphs the output of a dimensional reduction technique on a 2D scatter plot
   # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
   umap_clusters <- Seurat::DimPlot(
@@ -528,6 +516,19 @@ generate_clustering_plots <- function(
       clustering_plots[[stamp_plot_name]] <- stamp_plot
     }
   }
+  
+  # Create heatmap of most differentially expressed genes
+  if (create_heatmap) {
+    diff_expr_genes_heatmap <- generate_dyn_text_heatmap(
+      patient_data,
+      cluster_var,
+      cluster_assay,
+      color_lookup_table = color_lookup_table,
+      cluster_name = cluster_name)
+    # Save plot to list
+    clustering_plots[[paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap", sep = "_")]] <- diff_expr_genes_heatmap
+  }
+  
   return(clustering_plots)
 }
 
