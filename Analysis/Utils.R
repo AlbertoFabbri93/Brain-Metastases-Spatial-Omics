@@ -617,41 +617,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
   # }
   plot_list[[elbow_plot_name]] <- elbow_plot
   
-  # Plot Mean PanCK
-  print("Generate Mean PanCK plot")
-  mean_panck_plot_name <- paste0("Patient_",  patient_num, "_panCK")
-  # mean_panck_plot_rds <- paste0(patient_dir_rds_img, mean_panck_plot_name, ".rds")
-  # if (!file.exists(mean_panck_plot_rds)) {
-    mean_panck_plot <- FeaturePlot(object = patient_rna_only, features = "Mean.PanCK", min.cutoff = 2000) +
-      labs(title = paste("Patient", patient_num), subtitle = "Mean PanCK")
-  #   saveRDS(mean_panck_plot, file = mean_panck_plot_rds)
-  # } else {
-  #   mean_panck_plot <- readRDS(mean_panck_plot_rds)
-  # }
-  plot_list[[mean_panck_plot_name]] <- mean_panck_plot
-  
-  # Plot KRT17
-  print("Generate KRT17 plot")
-  krt17_plot_name <- paste0("Patient_",  patient_num, "_krt17")
-  # krt17_plot_rds <- paste0(patient_dir_rds_img, krt17_plot_name, ".rds")
-  # if (!file.exists(krt17_plot_rds)) {
-    KRT17_plot <- FeaturePlot(
-      object = patient_rna_only,
-      features = "KRT17",
-      cols = c("white", "red")
-    ) + 
-      labs(
-        title = paste("Patient", patient_num),
-        subtitle = "KRT17"
-      )
-  #   saveRDS(KRT17_plot, file = krt17_plot_rds)
-  # } else {
-  #   KRT17_plot <- readRDS(krt17_plot_rds)
-  # }
-  plot_list[[krt17_plot_name]] <- KRT17_plot
-  
-  plot_list <- c(plot_list, print_proteins_data(patient_rna_only, patient_num, patient_dir_img, patient_dir_rds_img))
-  
   ################## PRINT CLUSTERING PLOTS ##################
   
   # Know clusters that should have consistent colors
