@@ -530,7 +530,8 @@ generate_clustering_plots <- function(
           title = paste("Patient", patient_num, "Core", curr_core, ", Stamp", curr_stamp),
           subtitle = cluster_name
         )
-      clustering_plots[[paste("Patient",  patient_num, cluster_var, "core", curr_core, "stamp", as.character(curr_stamp), sep = "_")]] <- stamp_plot
+      stamp_plot_name <- paste("Patient",  patient_num, cluster_var, "core", curr_core, "stamp", as.character(curr_stamp), sep = "_")
+      clustering_plots[[stamp_plot_name]] <- stamp_plot
     }
   }
   return(clustering_plots)
