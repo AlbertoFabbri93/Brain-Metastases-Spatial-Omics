@@ -360,7 +360,8 @@ analyze_proteins <- function(patient_data) {
     features = features_to_scale,
     npcs = n_pcs,
     reduction.name = "pca_proteins",
-    reduction.key = "PCPR_")
+    reduction.key = "PCPR_",
+    seed.use = 2)
   
   # Use the available number of PCs for FindNeighbors and clustering
   patient_data <- FindNeighbors(patient_data, dims = 1:n_pcs, assay = "proteins", reduction = "pca_proteins")
@@ -377,7 +378,8 @@ analyze_proteins <- function(patient_data) {
     assay = "proteins",
     dims = 1:n_pcs,
     reduction.name = "umap_proteins",
-    reduction.key = "UMAPPR_")
+    reduction.key = "UMAPPR_",
+    seed.use = 2)
   
   return(patient_data)
   
