@@ -3,7 +3,7 @@ rds_dir <- Sys.getenv("RDS_DIR")
 image_dir <- Sys.getenv("IMAGE_DIR")
 image_ext <- Sys.getenv("IMAGE_EXT")
 
-save_plots <- function(plots_list, folder_path, file_extension) {
+save_plots <- function(plots_list, folder_path, file_extension = ".png") {
   # Ensure the folder exists, if not, create it
   if (!dir.exists(folder_path)) {
     dir.create(folder_path, recursive = TRUE)
@@ -34,9 +34,8 @@ save_plots <- function(plots_list, folder_path, file_extension) {
     file_path <- file.path(folder_path, paste0(plot_name, file_extension))
     
     # Save the plot to the specified file path
-    png(file_path)
-    print(flat_plots[[plot_name]])
-    dev.off()
+    # Using png() resulted in low quality images
+    ggsave(filename = file_path, plot = flat_plots[[plot_name]])
   }
 }
 
