@@ -625,21 +625,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
   # Print patient information
   get_patient_info(patient_rna_only)
   
-  # Show the significance of every principal component of the PCA
-  # It can be used to decide the number of dims of the FindNeighbors function
-  print("Generate Elbow plot")
-  elbow_plot_red = "pca_RNA"
-  elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
-  # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
-  # if (!file.exists(elbow_plot_rds)) {
-    elbow_plot <- ElbowPlot(patient_rna_only, reduction = elbow_plot_red, ndims = 50) +
-      labs(title = paste("Patient", patient_num))
-  #   saveRDS(elbow_plot, file = elbow_plot_rds)
-  # } else {
-  #   elbow_plot <- readRDS(elbow_plot_rds)
-  # }
-  plot_list[[elbow_plot_name]] <- elbow_plot
-  
   ################## PRINT CLUSTERING PLOTS ##################
   
   # Know clusters that should have consistent colors
@@ -679,6 +664,21 @@ analyze_patient <- function(all_patients_data, patient_num) {
     cluster_name = "Protein Clusters",
     color_lookup_table = protein_color_lookup_table)
   plot_list[[protein_cluster_var]] <- protein_cluster
+  
+  # Show the significance of every principal component of the PCA
+  # It can be used to decide the number of dims of the FindNeighbors function
+  print("Generate Elbow plot")
+  elbow_plot_red = "pca_RNA"
+  elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
+  # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
+  # if (!file.exists(elbow_plot_rds)) {
+  elbow_plot <- ElbowPlot(patient_rna_only, reduction = elbow_plot_red, ndims = 50) +
+    labs(title = paste("Patient", patient_num))
+  #   saveRDS(elbow_plot, file = elbow_plot_rds)
+  # } else {
+  #   elbow_plot <- readRDS(elbow_plot_rds)
+  # }
+  plot_list[[elbow_plot_name]] <- elbow_plot
   
   RNA_features_plots <- generate_feature_plot(
     patient_data = patient_rna_only,
