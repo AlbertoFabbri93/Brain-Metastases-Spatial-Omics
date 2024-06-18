@@ -255,31 +255,44 @@ get_patient_info <- function(patient_data) {
 
 ####### ANALYZE RNA #######
 
-normalize_cluster_data <- function(patient_rna_only, patient_dims, patient_res) {
+normalize_cluster_data <- function(patient_data, assay, patient_dims, patient_res) {
   
+  # Set the assay to the one containing the RNA data
+  DefaultAssay(patient_data) <- assay
   # Normalize the count data present in a given assay
-  patient_rna_only <- Seurat::NormalizeData(patient_rna_only, assay = "Nanostring")
+  patient_data <- Seurat::NormalizeData(patient_data)
   # Scales and centers features in the dataset
-  patient_rna_only <- Seurat::ScaleData(patient_rna_only)
+  patient_data <- Seurat::ScaleData(patient_data)
   # Detect highly variable genes for the pca
   # Identifies features that are outliers on a 'mean variability plot'
-  patient_rna_only <- Seurat::FindVariableFeatures(patient_rna_only)
+  patient_data <- Seurat::FindVariableFeatures(patient_data)
   # Run a PCA dimensionality reduction
-  patient_rna_only <- Seurat::RunPCA(patient_rna_only, seed.use = 1)
+  patient_data <- Seurat::RunPCA(
+    patient_data,
+    reduction.name = "pca_RNA",
+    reduction.key = "PCRNA_",
+    seed.use = 1)
   # Computes the k.param nearest neighbors
-  patient_rna_only <- Seurat::FindNeighbors(patient_rna_only, dims = patient_dims)
+  patient_data <- Seurat::FindNeighbors(patient_data, dims = patient_dims, reduction = "pca_RNA")
   # Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
   # Use the resolution parameter to fine tune the number of expected clusters
-  patient_rna_only <- Seurat::FindClusters(
-    patient_rna_only,
+  patient_data <- Seurat::FindClusters(
+    patient_data,
     resolution = patient_res,
-    random.seed = 1,
-    cluster.name = "RNA_clusters")
+    cluster.name = "RNA_clusters",
+    graph.name = paste0(assay, "_snn"),
+    random.seed = 1)
   # Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
-  patient_rna_only <- Seurat::RunUMAP(patient_rna_only, dims = patient_dims, repulsion.strength = 5, seed.use = 1)
+  patient_data <- Seurat::RunUMAP(
+    patient_data,
+    dims = patient_dims,
+    repulsion.strength = 5,
+    reduction = "pca_RNA",
+    reduction.name = "umap_RNA",
+    reduction.key = "UMAPRNA_",
+    seed.use = 1)
   
-  return(patient_rna_only)
-  
+  return(patient_data)
 }
 
 ####### COMPARE CLUSTERING METHODS #######
@@ -567,7 +580,11 @@ analyze_patient <- function(all_patients_data, patient_num) {
     patient_avg_neg_probes <- all_patient_data[[4]]
     
     # Normalize, scale, cluster, ...
-    patient_rna_only <- normalize_cluster_data(patient_rna_only, patient_dims = 1:25, patient_res = 0.8)
+    patient_rna_only <- normalize_cluster_data(
+      patient_rna_only,
+      assay = "Nanostring",
+      patient_dims = 1:25,
+      patient_res = 0.8)
     
     # Get cell reference profile data from NanoString
     # Use this reference profile as it is the only one available from CosMx data, originally from:
@@ -662,7 +679,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   
   RNA_features_plots <- generate_feature_plot(
     patient_data = patient_rna_only,
-    reduction = "umap",
+    reduction = "umap_RNA",
     features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
     max_cutoff = "q100")
   plot_list <- c(plot_list, RNA_features_plots)
@@ -673,7 +690,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     patient_rna_only,
     RNA_cluster_var,
     "Nanostring", 
-    cluster_reduction = "umap",
+    cluster_reduction = "umap_RNA",
     create_heatmap = TRUE,
     cluster_name = "RNA Clusters",
     color_lookup_table = RNA_color_lookup_table)
@@ -685,7 +702,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
     patient_rna_only,
     InSituType_cluster_var,
     "Nanostring", 
-    cluster_reduction = "umap",
+    cluster_reduction = "umap_RNA",
     create_heatmap = TRUE,
     cluster_name = "InSituType Semisupervised Clusters",
     color_lookup_table = InSituType_color_lookup_table)
