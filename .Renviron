@@ -1,4 +1,4 @@
 renv.config.pak.enabled = TRUE
-RDS_DIR="./Seurat_objects/"
-IMAGE_DIR="./Images/"
+RDS_DIR="Analysis/Seurat_objects"
+IMAGE_DIR="Analysis/Images"
 IMAGE_EXT=".png"

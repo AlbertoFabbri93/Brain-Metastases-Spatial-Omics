@@ -33,6 +33,8 @@ library("dittoSeq")
 library(EBImage)
 # Used to annotate images with multiple plots
 library(patchwork)
+# Sane way to declare file paths
+library("here")
 
 # Import utility functions
 source("Utils.R")
@@ -49,7 +51,7 @@ image_ext <- Sys.getenv("IMAGE_EXT")
 #| echo: false
 
 # Cohort of all the patients
-breast_cancer_patients <- readRDS("./Seurat_objects/breast_cancer_patients.rds")
+breast_cancer_patients <- readRDS(here(rds_dir, "breast_cancer_patients.rds"))
 immunofluorescence <- breast_cancer_patients@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
 cohort <- fastCohorting(immunofluorescence,
   gaussian_transform = TRUE, n_cohorts = 5
@@ -126,14 +128,15 @@ length(unique(paste(breast_cancer_patients@meta.data$core_serial, breast_cancer_
 
 # Print the tissue micro array
 # Read the tissue micro array data from a CSV file
-tissue_micro_array <- read.csv(gzfile("./flat_files/LU001FFP03/LU001FFP03_fov_positions_file.csv.gz"))
+tissue_micro_array <- read.csv(gzfile(
+  here("Analysis", "flat_files", "LU001FFP03", "LU001FFP03_fov_positions_file.csv.gz")))
 breast_cancer_stamps_highlighted <- ggplot(tissue_micro_array, aes(x = X_mm, y = Y_mm)) +
   geom_point(aes(color = FOV %in% breast_cancer_fovs), shape = 15, size = 4) +
   geom_text(aes(label = FOV), size = 1.5) +
   coord_equal() +
   labs(color = "Breast cancer")
 print(breast_cancer_stamps_highlighted)
-ggsave(paste0(image_dir, "/TMA_breast_cancer_stamps_highlighted", image_ext))
+ggsave(here(image_dir, paste0("TMA_breast_cancer_stamps_highlighted", image_ext)))
 ```
 
 ## Clustering per patient

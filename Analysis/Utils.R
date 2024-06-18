@@ -48,11 +48,16 @@ get_patient_num <- function(patient_data) {
   return(patient_num)
 }
 
-####### GET PATIENT PLOT DIR #######
+####### GET PATIENT DIRECTORIES #######
 
 get_patient_dir_img <- function(patient_num) {
-  patient_dir_img <- paste0(image_dir, "Patient_", patient_num, "_plots/")
+  patient_dir_img <- here(image_dir, paste0("Patient_", patient_num, "_plots/"))
   return(patient_dir_img)
+}
+
+get_patient_dir_rds <- function(patient_num) {
+  patient_dir_rds <- here(rds_dir, paste0("Patient_", patient_num, "_data/"))
+  return(patient_dir_rds)
 }
 
 ####### GENERATE HEATMAP #######
@@ -557,10 +562,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   plot_list <- list()
   
   # Create directories to save patient data if they do not exist
-  patient_dir_img <- paste0(image_dir, "Patient_", patient_num, "_plots/")
-  patient_dir_rds <- paste0(rds_dir, "Patient_", patient_num, "_data/")
-  patient_dir_rds_img <- paste0(rds_dir, "Patient_", patient_num, "_data/", "Img_data/")
-  patient_directories <- list(patient_dir_img, patient_dir_rds, patient_dir_rds_img)
+  patient_directories <- list(get_patient_dir_img(patient_num), get_patient_dir_rds(patient_num))
   for (dir in patient_directories) {
     if (!dir.exists(dir)) {
       dir.create(dir, recursive = TRUE)
@@ -568,8 +570,12 @@ analyze_patient <- function(all_patients_data, patient_num) {
   }
   
   # Load patient data from RDS files if they exist, otherwise generate them
-  patient_rna_rds <- paste0(rds_dir, "Patient_", patient_num, "_data/", "Patient_", patient_num, "_rna_data.rds")
-  patient_misc_rds <- paste0(rds_dir, "Patient_", patient_num, "_data/", "Patient_", patient_num, "_misc_data.rds")
+  patient_rna_rds <- here(
+    rds_dir, 
+    paste0("Patient_", patient_num, "_data/", "Patient_", patient_num, "_rna_data.rds"))
+  patient_misc_rds <- here(
+    rds_dir,
+    paste0("Patient_", patient_num, "_data/", "Patient_", patient_num, "_misc_data.rds"))
   if ((!file.exists(patient_rna_rds)) || (!file.exists(patient_misc_rds))) {
     print("Generating patient data")
     
@@ -590,7 +596,11 @@ analyze_patient <- function(all_patients_data, patient_num) {
     # Get cell reference profile data from NanoString
     # Use this reference profile as it is the only one available from CosMx data, originally from:
     # https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
-    ioprofiles <- read.csv("./Cell_profile_matrices/NanoString.CosMx.Human.IO.profiles.csv", header = T, sep = ",", fill = T)
+    ioprofiles <- read.csv(
+      file = here("Analysis", "Cell_profile_matrices", "NanoString.CosMx.Human.IO.profiles.csv"),
+      header = T,
+      sep = ",",
+      fill = T)
     rownames(ioprofiles) <- ioprofiles[, 1]
     ioprofiles <- ioprofiles[, -1] %>% as.matrix()
     
