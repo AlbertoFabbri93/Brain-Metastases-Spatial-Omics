@@ -226,37 +226,69 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   return(list(patient_rna_only, patient_cohort, patient_rna_counts, patient_avg_neg_probes))
 }
 
-####### PRINT PATIENT DATA #######
+####### PATIENT INFO #######
 
 get_patient_info <- function(patient_data) {
   
-  patient_num <- patient_data$Patient.ID[1]
+  patient_num <- get_patient_num(patient_data)
   
-  # Inilitize list to store the cores, stamps and fovs associated with the patient
+  # Initialize list to store the cores, stamps, and fovs associated with the patient
   cores <- list()
-  # Print cores and fovs associated with the patient
-  print(paste("FOVs and cell count associated with patient", patient_num))
   
   # Get cores for the current patient
   patient_cores <- sort(unique(patient_data@meta.data$core_serial))
-  for(core in patient_cores) {
-    
-    print(paste("----------", "CORE", core, "----------"))
+  
+  for (core in patient_cores) {
     stamps <- list()
     
     # Get stamps for the current core
     patient_core_stamps <- sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == core]))
-    for(stamp in patient_core_stamps) {
-      
-      print(paste("-----", "STAMP", stamp, "-----"))
-      fovs <- table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core &  patient_data@meta.data$stamp == stamp])
-      print(fovs)
+    
+    for (stamp in patient_core_stamps) {
+      fovs <- table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core & patient_data@meta.data$stamp == stamp])
       
       stamps[[stamp]] <- as.list(fovs)
     }
+    
     cores[[core]] <- stamps
   }
-  return(invisible(cores))
+  
+  patient_info <- list(patient_num = patient_num, cores = cores)
+  return(invisible(patient_info))
+}
+
+print_patient_info <- function(patient_data) {
+    
+  patient_info <- get_patient_info(patient_data)
+  
+  patient_num <- patient_info$patient_num
+  
+  # Print cores and fovs associated with the patient
+  print(paste("FOVs and cell count associated with patient", patient_num))
+  
+  cores <- patient_info$cores
+  
+  for (core in names(cores)) {
+    print(paste("----------", "CORE", core, "----------"))
+    
+    stamps <- cores[[core]]
+    
+    # Iterate over stamps using indices
+    for (i in seq_along(stamps)) {
+      print(paste("-----", "STAMP", i, "-----"))
+      
+      # Print FOVs from the stamps list
+      fovs <- stamps[[i]]
+      
+      if (length(fovs) == 0) {
+        cat("Missing data\n\n")
+      } else {
+        fov_df <- data.frame(FOV = names(fovs), Count = unlist(fovs))
+        print(fov_df, row.names = FALSE)
+        cat("\n")
+      }
+    }
+  }
 }
 
 ####### ANALYZE RNA #######
@@ -634,7 +666,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   }
   
   # Print patient information
-  get_patient_info(patient_rna_only)
+  print_patient_info(patient_rna_only)
   
   ################## PRINT CLUSTERING PLOTS ##################
   
