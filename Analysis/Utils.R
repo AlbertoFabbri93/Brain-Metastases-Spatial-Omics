@@ -3,6 +3,8 @@ rds_dir <- Sys.getenv("RDS_DIR")
 image_dir <- Sys.getenv("IMAGE_DIR")
 image_ext <- Sys.getenv("IMAGE_EXT")
 
+####### SAVE PLOTS #######
+
 save_plots <- function(plots_list, folder_path, file_extension = ".png") {
   # Ensure the folder exists, if not, create it
   if (!dir.exists(folder_path)) {
