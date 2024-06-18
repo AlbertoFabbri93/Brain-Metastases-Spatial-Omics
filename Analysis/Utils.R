@@ -283,8 +283,11 @@ print_patient_info <- function(patient_data) {
       if (length(fovs) == 0) {
         cat("Missing data\n\n")
       } else {
-        fov_df <- data.frame(FOV = names(fovs), Count = unlist(fovs))
-        print(fov_df, row.names = FALSE)
+        # Print FOVs in a table
+        cat("FOV\tCell_count\n")
+        for (fov_name in names(fovs)) {
+          cat(fov_name, "\t", fovs[[fov_name]], "\n")
+        }
         cat("\n")
       }
     }
