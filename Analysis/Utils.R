@@ -673,7 +673,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
   # if (!file.exists(elbow_plot_rds)) {
   elbow_plot <- ElbowPlot(patient_rna_only, reduction = elbow_plot_red, ndims = 50) +
-    labs(title = paste("Patient", patient_num))
+    labs(title = paste("Patient", patient_num), subtitle = elbow_plot_red)
   #   saveRDS(elbow_plot, file = elbow_plot_rds)
   # } else {
   #   elbow_plot <- readRDS(elbow_plot_rds)
