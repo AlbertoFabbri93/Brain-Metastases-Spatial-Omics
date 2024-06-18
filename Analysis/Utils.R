@@ -294,6 +294,38 @@ print_patient_info <- function(patient_data) {
   }
 }
 
+####### CLUSTER INFO #######
+
+library(Seurat)
+
+# Define function to extract cluster information
+get_cluster_info <- function(seurat_obj, clustering_column) {
+  
+  # Check if clustering_column is valid
+  if (!clustering_column %in% colnames(seurat_obj@meta.data)) {
+    stop(paste("Column", clustering_column, "not found in meta.data of Seurat object."))
+  }
+  
+  # Get cluster information
+  clusters <- unique(seurat_obj@meta.data[[clustering_column]])
+  
+  # Initialize list to store cluster names and cell counts
+  cluster_info <- c()
+  
+  # Loop through clusters and get cell counts
+  for (i in seq_along(clusters)) {
+    cluster_name <- clusters[i]
+    cell_count <- sum(seurat_obj@meta.data[[clustering_column]] == cluster_name)
+    cluster_info[cluster_name] <- cell_count
+  }
+  
+  # Sort cluster_info vector by cell_count in descending order
+  cluster_info <- cluster_info[order(cluster_info, decreasing = TRUE)]
+  
+  return(cluster_info)
+}
+
+
 ####### ANALYZE RNA #######
 
 normalize_cluster_data <- function(patient_data, assay, patient_dims, patient_res) {
