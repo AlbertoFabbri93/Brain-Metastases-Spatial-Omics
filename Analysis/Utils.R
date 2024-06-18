@@ -393,6 +393,7 @@ analyze_proteins <- function(patient_data) {
     patient_data,
     assay = "proteins",
     dims = 1:n_pcs,
+    reduction = "pca_proteins",
     reduction.name = "umap_proteins",
     reduction.key = "UMAPPR_",
     seed.use = 2)
@@ -627,10 +628,12 @@ analyze_patient <- function(all_patients_data, patient_num) {
   # Show the significance of every principal component of the PCA
   # It can be used to decide the number of dims of the FindNeighbors function
   print("Generate Elbow plot")
-  elbow_plot_name <- paste0("Patient_",  patient_num, "_elbow_plot")
+  elbow_plot_red = "pca_RNA"
+  elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
   # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
   # if (!file.exists(elbow_plot_rds)) {
-    elbow_plot <- ElbowPlot(patient_rna_only, ndims = 50) + labs(title = paste("Patient", patient_num))
+    elbow_plot <- ElbowPlot(patient_rna_only, reduction = elbow_plot_red, ndims = 50) +
+      labs(title = paste("Patient", patient_num))
   #   saveRDS(elbow_plot, file = elbow_plot_rds)
   # } else {
   #   elbow_plot <- readRDS(elbow_plot_rds)
