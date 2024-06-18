@@ -44,7 +44,8 @@ save_plots <- function(plots_list, folder_path, file_extension = ".png") {
 ####### GET PATIENT NUM #######
 
 get_patient_num <- function(patient_data) {
-  patient_num <- patient_data$Patient.ID[1]
+  # The double [[ are necessary to make it return an unnamed number
+  patient_num <- patient_data$Patient.ID[[1]]
   return(patient_num)
 }
 
