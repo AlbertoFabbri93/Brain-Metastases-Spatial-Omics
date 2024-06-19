@@ -622,6 +622,17 @@ generate_clustering_plots <- function(
   return(clustering_plots)
 }
 
+remove_clusters <- function(patient_data, cluster_col, cluster_vals) {
+  
+  # Identify cells that do not belong to the clusters specified in cluster_vals
+  cells_to_keep <- !patient_data[[cluster_col, drop=TRUE]] %in% cluster_vals
+  
+  # Subset the Seurat object to keep only the desired cells
+  patient_data_clusters_removed <- subset(patient_data, cells = Cells(patient_data)[cells_to_keep])
+  
+  return(patient_data_clusters_removed)
+}
+
 ####### ANALYZE PATIENT #######
 
 analyze_patient <- function(all_patients_data, patient_num) {
