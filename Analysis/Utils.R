@@ -306,6 +306,8 @@ get_cluster_info <- function(seurat_obj, clustering_column) {
     stop(paste("Column", clustering_column, "not found in meta.data of Seurat object."))
   }
   
+  seurat_obj@meta.data[[clustering_column]] <- as.character(seurat_obj@meta.data[[clustering_column]])
+  
   # Get cluster information
   clusters <- unique(seurat_obj@meta.data[[clustering_column]])
   
