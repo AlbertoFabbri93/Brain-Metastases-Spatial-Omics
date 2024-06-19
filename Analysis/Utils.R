@@ -637,6 +637,8 @@ remove_clusters <- function(patient_data, cluster_col, cluster_vals) {
 
 generate_plots <- function(patient_data) {
   
+  patient_num <- get_patient_num(patient_data)
+  
   # Know clusters that should have consistent colors
   known_clusters_colors <- c(
     "B.cell" = "#5A5156",
