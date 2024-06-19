@@ -633,6 +633,108 @@ remove_clusters <- function(patient_data, cluster_col, cluster_vals) {
   return(patient_data_clusters_removed)
 }
 
+####### GENERATE PLOTS #######
+
+generate_plots <- function(patient_data) {
+  
+  # Know clusters that should have consistent colors
+  known_clusters_colors <- c(
+    "B.cell" = "#5A5156",
+    "Dendritic.cell" = "#E4E1E3",
+    "Endothelial" = "#F6222E",
+    "Fibroblast" = "#FE00FA",
+    "Macrophage" = "#16FF32",
+    "Mast.cell" = "#3283FE",
+    "Monocyte" = "#FEAF16",
+    "Neutrophil" = "#B00068",
+    "NK.cell" = "#1CFFCE",
+    "Plasma" = "#90AD1C",
+    "Plasmablast" = "#2ED9FF",
+    "Plasmacytoid.dendritic.cell" = "#DEA0FD",
+    "T.cell.CD4" = "#AA0DFE",
+    "T.cell.CD8" = "#F8A19F",
+    "T.cell.regulatory" = "#325A9B"
+  )
+  
+  proteins_features_plots <- generate_feature_plot(
+    patient_data = patient_data,
+    reduction = "umap_proteins",
+    features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
+    max_cutoff = "q95")
+  plot_list <- c(proteins_features_plots)
+  
+  protein_cluster_var <- "protein_clusters"
+  protein_color_lookup_table <- generate_colors_lookup_table(patient_data, protein_cluster_var, known_clusters_colors)
+  protein_cluster <- generate_clustering_plots(
+    patient_data,
+    protein_cluster_var,
+    "proteins", 
+    cluster_reduction = "umap_proteins",
+    create_heatmap = FALSE,
+    cluster_name = "Protein Clusters",
+    color_lookup_table = protein_color_lookup_table)
+  plot_list[[protein_cluster_var]] <- protein_cluster
+  
+  # Show the significance of every principal component of the PCA
+  # It can be used to decide the number of dims of the FindNeighbors function
+  print("Generate Elbow plot")
+  elbow_plot_red = "pca_RNA"
+  elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
+  # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
+  # if (!file.exists(elbow_plot_rds)) {
+  elbow_plot <- ElbowPlot(patient_data, reduction = elbow_plot_red, ndims = 50) +
+    labs(title = paste("Patient", patient_num), subtitle = elbow_plot_red)
+  #   saveRDS(elbow_plot, file = elbow_plot_rds)
+  # } else {
+  #   elbow_plot <- readRDS(elbow_plot_rds)
+  # }
+  plot_list[[elbow_plot_name]] <- elbow_plot
+  
+  RNA_features_plots <- generate_feature_plot(
+    patient_data = patient_data,
+    reduction = "umap_RNA",
+    features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
+    max_cutoff = "q100")
+  plot_list <- c(plot_list, RNA_features_plots)
+  
+  RNA_cluster_var <- "RNA_clusters"
+  RNA_color_lookup_table <- generate_colors_lookup_table(patient_data, RNA_cluster_var, known_clusters_colors)
+  RNA_cluster <- generate_clustering_plots(
+    patient_data,
+    RNA_cluster_var,
+    "Nanostring", 
+    cluster_reduction = "umap_RNA",
+    create_heatmap = TRUE,
+    cluster_name = "RNA Clusters",
+    color_lookup_table = RNA_color_lookup_table)
+  plot_list[[RNA_cluster_var]] <- RNA_cluster
+  
+  InSituType_cluster_var <- "InSituType_semisup_clusters"
+  InSituType_color_lookup_table <- generate_colors_lookup_table(patient_data, InSituType_cluster_var, known_clusters_colors)
+  InSituType_cluster <- generate_clustering_plots(
+    patient_data,
+    InSituType_cluster_var,
+    "Nanostring", 
+    cluster_reduction = "umap_RNA",
+    create_heatmap = TRUE,
+    cluster_name = "InSituType Semisupervised Clusters",
+    color_lookup_table = InSituType_color_lookup_table)
+  plot_list[[InSituType_cluster_var]] <- InSituType_cluster
+  
+  print("Generate Comparing Clusters plot")
+  seurat_vs_insitutype_plot_name <- paste0("Patient_",  patient_num, "_heatmap_seurat_vs_insitutype")
+  # seurat_vs_insitutype_plot_rds <- paste0(patient_dir_rds_img, seurat_vs_insitutype_plot_name, ".rds")
+  # if (!file.exists(seurat_vs_insitutype_plot_rds)) {
+  seurat_vs_insitutype_plot <- compare_clustering_methods(patient_data)
+  #   saveRDS(seurat_vs_insitutype_plot, file = seurat_vs_insitutype_plot_rds)
+  # } else {
+  #   seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
+  # }
+  plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
+  
+  return(plot_list)
+}
+
 ####### ANALYZE PATIENT #######
 
 analyze_patient <- function(all_patients_data, patient_num) {
@@ -714,105 +816,7 @@ analyze_patient <- function(all_patients_data, patient_num) {
   # Print patient information
   print_patient_info(patient_rna_only)
   
-  ################## PRINT CLUSTERING PLOTS ##################
-  
-  # Know clusters that should have consistent colors
-  known_clusters_colors <- c(
-    "B.cell" = "#5A5156",
-    "Dendritic.cell" = "#E4E1E3",
-    "Endothelial" = "#F6222E",
-    "Fibroblast" = "#FE00FA",
-    "Macrophage" = "#16FF32",
-    "Mast.cell" = "#3283FE",
-    "Monocyte" = "#FEAF16",
-    "Neutrophil" = "#B00068",
-    "NK.cell" = "#1CFFCE",
-    "Plasma" = "#90AD1C",
-    "Plasmablast" = "#2ED9FF",
-    "Plasmacytoid.dendritic.cell" = "#DEA0FD",
-    "T.cell.CD4" = "#AA0DFE",
-    "T.cell.CD8" = "#F8A19F",
-    "T.cell.regulatory" = "#325A9B"
-  )
-  
-  proteins_features_plots <- generate_feature_plot(
-    patient_data = patient_rna_only,
-    reduction = "umap_proteins",
-    features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
-    max_cutoff = "q95")
-  plot_list <- c(plot_list, proteins_features_plots)
-  
-  protein_cluster_var <- "protein_clusters"
-  protein_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, protein_cluster_var, known_clusters_colors)
-  protein_cluster <- generate_clustering_plots(
-    patient_rna_only,
-    protein_cluster_var,
-    "proteins", 
-    cluster_reduction = "umap_proteins",
-    create_heatmap = FALSE,
-    cluster_name = "Protein Clusters",
-    color_lookup_table = protein_color_lookup_table)
-  plot_list[[protein_cluster_var]] <- protein_cluster
-  
-  # Show the significance of every principal component of the PCA
-  # It can be used to decide the number of dims of the FindNeighbors function
-  print("Generate Elbow plot")
-  elbow_plot_red = "pca_RNA"
-  elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
-  # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
-  # if (!file.exists(elbow_plot_rds)) {
-  elbow_plot <- ElbowPlot(patient_rna_only, reduction = elbow_plot_red, ndims = 50) +
-    labs(title = paste("Patient", patient_num), subtitle = elbow_plot_red)
-  #   saveRDS(elbow_plot, file = elbow_plot_rds)
-  # } else {
-  #   elbow_plot <- readRDS(elbow_plot_rds)
-  # }
-  plot_list[[elbow_plot_name]] <- elbow_plot
-  
-  RNA_features_plots <- generate_feature_plot(
-    patient_data = patient_rna_only,
-    reduction = "umap_RNA",
-    features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
-    max_cutoff = "q100")
-  plot_list <- c(plot_list, RNA_features_plots)
-  
-  RNA_cluster_var <- "RNA_clusters"
-  RNA_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, RNA_cluster_var, known_clusters_colors)
-  RNA_cluster <- generate_clustering_plots(
-    patient_rna_only,
-    RNA_cluster_var,
-    "Nanostring", 
-    cluster_reduction = "umap_RNA",
-    create_heatmap = TRUE,
-    cluster_name = "RNA Clusters",
-    color_lookup_table = RNA_color_lookup_table)
-  plot_list[[RNA_cluster_var]] <- RNA_cluster
-  
-  InSituType_cluster_var <- "InSituType_semisup_clusters"
-  InSituType_color_lookup_table <- generate_colors_lookup_table(patient_rna_only, InSituType_cluster_var, known_clusters_colors)
-  InSituType_cluster <- generate_clustering_plots(
-    patient_rna_only,
-    InSituType_cluster_var,
-    "Nanostring", 
-    cluster_reduction = "umap_RNA",
-    create_heatmap = TRUE,
-    cluster_name = "InSituType Semisupervised Clusters",
-    color_lookup_table = InSituType_color_lookup_table)
-  plot_list[[InSituType_cluster_var]] <- InSituType_cluster
-  
-  # List to be returned with all the plots
-  clustering_plots_list <- list(RNA_cluster, InSituType_cluster, protein_cluster)
-  
-  print("Generate Comparing Clusters plot")
-  seurat_vs_insitutype_plot_name <- paste0("Patient_",  patient_num, "_heatmap_seurat_vs_insitutype")
-  # seurat_vs_insitutype_plot_rds <- paste0(patient_dir_rds_img, seurat_vs_insitutype_plot_name, ".rds")
-  # if (!file.exists(seurat_vs_insitutype_plot_rds)) {
-    seurat_vs_insitutype_plot <- compare_clustering_methods(patient_rna_only)
-  #   saveRDS(seurat_vs_insitutype_plot, file = seurat_vs_insitutype_plot_rds)
-  # } else {
-  #   seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
-  # }
   # Return/print all plots together, otherwise only the last one is shown
-  plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
+  plot_list <- generate_plots(patient_rna_only)
   return(list(patient_rna_only, plot_list))
 }
