@@ -303,23 +303,18 @@ get_patient_info <- function(patient_data) {
 print_patient_info <- function(patient_data) {
     
   patient_info <- get_patient_info(patient_data)
-  
   patient_num <- patient_info$patient_num
-  
   # Print cores and fovs associated with the patient
   print(paste("FOVs and cell count associated with patient", patient_num))
   
   cores <- patient_info$cores
-  
   for (core in names(cores)) {
     print(paste("----------", "CORE", core, "----------"))
     
     stamps <- cores[[core]]
-    
     # Iterate over stamps using indices
     for (i in seq_along(stamps)) {
       print(paste("-----", "STAMP", i, "-----"))
-      
       # Print FOVs from the stamps list
       fovs <- stamps[[i]]
       
