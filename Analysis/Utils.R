@@ -325,6 +325,64 @@ get_cluster_info <- function(seurat_obj, clustering_column) {
   return(cluster_info)
 }
 
+# Define function to create cluster summary dataframe with dynamic columns
+create_cluster_summary <- function(patient_data, clustering_column) {
+  
+  # Check if clustering_column is valid
+  if (!clustering_column %in% colnames(patient_data@meta.data)) {
+    stop(paste("Column", clustering_column, "not found in meta.data of Seurat object."))
+  }
+  
+  # Initialize a dataframe to store cluster summary
+  cluster_summary <- data.frame(cluster_name = character(),
+                                stringsAsFactors = FALSE)
+  
+  # Get unique clusters
+  clusters <- as.vector(unique(patient_data[[clustering_column]][[clustering_column]]))
+  
+  # Combine two existing columns to create a new column
+  dataa <- paste(patient_data$core_serial, patient_data$stamp, sep = "_")
+  
+  patient_data <- AddMetaData(patient_data, dataa, "combined_id")
+  
+  # Get unique combinations of core_serial and stamp in the current cluster
+  unique_combinations <- sort(unique(dataa))
+  
+  
+  # Loop through clusters
+  for (cluster_name in clusters) {
+    
+    # Subset data for the current cluster
+    cluster_data <- patient_data[ , patient_data[[clustering_column]] == cluster_name]
+    
+    # Get total cell count for the cluster
+    cell_count <- nrow(cluster_data@meta.data)
+    
+    # Create a new row for the cluster in cluster_summary dataframe
+    new_row <- data.frame(cluster_name = cluster_name,
+                          total_cells = cell_count,
+                          stringsAsFactors = FALSE)
+    
+    # Loop through unique combinations of core_serial and stamp
+    for (core_stamp in unique_combinations) {
+      
+      # Count cells for the current core_stamp combination
+      cell_count <- sum(cluster_data$combined_id == core_stamp)
+      
+      # Add a column for the current core_stamp combination
+      new_row[[core_stamp]] <- cell_count
+    }
+    
+    # Append new_row to cluster_summary dataframe
+    cluster_summary <- rbind(cluster_summary, new_row)
+  }
+  
+  # Reset row names of cluster_summary dataframe
+  rownames(cluster_summary) <- NULL
+  
+  return(cluster_summary)
+}
+
 
 ####### ANALYZE RNA #######
 
