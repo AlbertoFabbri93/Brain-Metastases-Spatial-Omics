@@ -296,8 +296,6 @@ print_patient_info <- function(patient_data) {
 
 ####### CLUSTER INFO #######
 
-library(Seurat)
-
 # Define function to extract cluster information
 get_cluster_info <- function(seurat_obj, clustering_column) {
   
