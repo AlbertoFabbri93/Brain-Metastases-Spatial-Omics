@@ -750,7 +750,7 @@ known_clusters_colors <- c(
   "T.cell.regulatory" = "#325A9B"
 )
 
-generate_proteins_plot <- function(patient_data) {
+generate_proteins_plots <- function(patient_data) {
   
   print("Generate proteins plots")
   
