@@ -279,28 +279,23 @@ get_patient_cohort <- function(patient_data) {
 get_patient_info <- function(patient_data) {
   
   patient_num <- get_patient_num(patient_data)
-  
   # Initialize list to store the cores, stamps, and fovs associated with the patient
   cores <- list()
-  
   # Get cores for the current patient
   patient_cores <- sort(unique(patient_data@meta.data$core_serial))
   
   for (core in patient_cores) {
     stamps <- list()
-    
     # Get stamps for the current core
     patient_core_stamps <- sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == core]))
     
     for (stamp in patient_core_stamps) {
-      fovs <- table(patient_data@meta.data$fov[patient_data@meta.data$core_serial == core & patient_data@meta.data$stamp == stamp])
-      
+      fovs <- table(patient_data@meta.data$fov
+                    [patient_data@meta.data$core_serial == core & patient_data@meta.data$stamp == stamp])
       stamps[[stamp]] <- as.list(fovs)
     }
-    
     cores[[core]] <- stamps
   }
-  
   patient_info <- list(patient_num = patient_num, cores = cores)
   return(invisible(patient_info))
 }
