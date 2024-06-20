@@ -731,28 +731,44 @@ remove_clusters <- function(patient_data, cluster_col, cluster_vals) {
 
 ####### GENERATE PLOTS #######
 
-generate_plots <- function(patient_data) {
+# Know clusters that should have consistent colors
+known_clusters_colors <- c(
+  "B.cell" = "#5A5156",
+  "Dendritic.cell" = "#E4E1E3",
+  "Endothelial" = "#F6222E",
+  "Fibroblast" = "#FE00FA",
+  "Macrophage" = "#16FF32",
+  "Mast.cell" = "#3283FE",
+  "Monocyte" = "#FEAF16",
+  "Neutrophil" = "#B00068",
+  "NK.cell" = "#1CFFCE",
+  "Plasma" = "#90AD1C",
+  "Plasmablast" = "#2ED9FF",
+  "Plasmacytoid.dendritic.cell" = "#DEA0FD",
+  "T.cell.CD4" = "#AA0DFE",
+  "T.cell.CD8" = "#F8A19F",
+  "T.cell.regulatory" = "#325A9B"
+)
+
+generate_proteins_plot <- function(patient_data) {
+  
+  print("Generate proteins plots")
   
   patient_num <- get_patient_num(patient_data)
   
-  # Know clusters that should have consistent colors
-  known_clusters_colors <- c(
-    "B.cell" = "#5A5156",
-    "Dendritic.cell" = "#E4E1E3",
-    "Endothelial" = "#F6222E",
-    "Fibroblast" = "#FE00FA",
-    "Macrophage" = "#16FF32",
-    "Mast.cell" = "#3283FE",
-    "Monocyte" = "#FEAF16",
-    "Neutrophil" = "#B00068",
-    "NK.cell" = "#1CFFCE",
-    "Plasma" = "#90AD1C",
-    "Plasmablast" = "#2ED9FF",
-    "Plasmacytoid.dendritic.cell" = "#DEA0FD",
-    "T.cell.CD4" = "#AA0DFE",
-    "T.cell.CD8" = "#F8A19F",
-    "T.cell.regulatory" = "#325A9B"
-  )
+  # Show the significance of every principal component of the PCA
+  # It can be used to decide the number of dims of the FindNeighbors function
+  elbow_plot_red = "pca_proteins"
+  elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
+  # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
+  # if (!file.exists(elbow_plot_rds)) {
+  elbow_plot <- ElbowPlot(patient_data, reduction = elbow_plot_red, ndims = 50) +
+    labs(title = paste("Patient", patient_num), subtitle = elbow_plot_red)
+  #   saveRDS(elbow_plot, file = elbow_plot_rds)
+  # } else {
+  #   elbow_plot <- readRDS(elbow_plot_rds)
+  # }
+  plot_list[[elbow_plot_name]] <- elbow_plot
   
   proteins_features_plots <- generate_feature_plot(
     patient_data = patient_data,
@@ -773,9 +789,17 @@ generate_plots <- function(patient_data) {
     color_lookup_table = protein_color_lookup_table)
   plot_list[[protein_cluster_var]] <- protein_cluster
   
+  return(plot_list)
+}
+
+generate_rna_plots <- function(patient_data) {
+  
+  print("Generate RNA plots")
+  
+  patient_num <- get_patient_num(patient_data)
+  
   # Show the significance of every principal component of the PCA
   # It can be used to decide the number of dims of the FindNeighbors function
-  print("Generate Elbow plot")
   elbow_plot_red = "pca_RNA"
   elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
   # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
