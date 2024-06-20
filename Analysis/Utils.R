@@ -196,22 +196,25 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   # Extract patient data from global Seurat object
   patient_data <- subset(x = all_patients_data, subset = Patient.ID == patient_num)
   
-  # Create Seurat object with only the RNA data
-  patient_rna_only <- subset(x = patient_data, features = rownames(patient_data)[1:1000])
+  return(patient_data)
+}
+
+extract_patient_rna_data <- function(patient_data, start_index = 1, end_index = 1000) {
   
-  # Cohort of the patient
-  patient_immunofluorescence <- patient_data@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
-  # "Gaussian_transform = TRUE" maps variables to gaussians in order to place dramatically different variables on the same scale
-  patient_cohort <- fastCohorting(patient_immunofluorescence, gaussian_transform = TRUE, n_cohorts = 5)
-  # check clusters and cohort numbers
-  table(patient_cohort)
+  # Check if the provided indices are within the valid range
+  if (start_index < 1 || end_index > nrow(patient_data) || start_index > end_index) {
+    stop("Invalid range of indices provided.")
+  }
   
-  # Extract the count data from the Seurat object
-  patient_rna_counts <- GetAssayData(
-    patient_rna_only,
-    layer = "counts") %>%
-  as.matrix() %>%
-  t()
+  # Create Seurat object with only the specified range of RNA data
+  features_to_include <- rownames(patient_data)[start_index:end_index]
+  patient_rna_only <- subset(x = patient_data, features = features_to_include)
+  
+  return(patient_rna_only)
+}
+  
+get_avg_neg_probes <- function(patient_data) {
+  
   # Extract the negative probes from the Seurat object
   patient_neg_probes <- GetAssayData(
       subset(
@@ -222,8 +225,35 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   t()
   # Calculate the average negative probes per cell
   patient_avg_neg_probes <- Matrix::rowMeans(patient_neg_probes)
+  # Return a large numeric
+  return(patient_avg_neg_probes)
+}
+
+get_seurat_layer_data <- function(patient_data, assay_name, layer_name) {
   
-  return(list(patient_rna_only, patient_cohort, patient_rna_counts, patient_avg_neg_probes))
+  # Extract the data from the specified assay and layer
+  patient_assay_layer_data <- GetAssayData(
+    patient_data,
+    assay = assay_name,
+    layer = layer_name) %>%
+  as.matrix() %>%
+  t()
+  # Return a matrix of the data
+  return(patient_assay_layer_data)
+}
+
+get_patient_cohort <- function(patient_data) {
+  
+  # Features to be used for the cohorting
+  features <- c("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+  # Cohort of the patient
+  patient_immunofluorescence <- patient_data@meta.data %>% select(all_of(features))
+  # fastCohorting is stochastic, so set the seed for reproducibility
+  set.seed(42);
+  # "Gaussian_transform = TRUE" maps variables to gaussians in order to place dramatically different variables on the same scale
+  patient_cohort <- fastCohorting(patient_immunofluorescence, gaussian_transform = TRUE, n_cohorts = 5)
+  # check clusters and cohort numbers
+  table(patient_cohort)
 }
 
 ####### PATIENT INFO #######
