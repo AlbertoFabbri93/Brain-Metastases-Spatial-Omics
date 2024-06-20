@@ -156,7 +156,25 @@ generate_dyn_text_heatmap <- function(
 
 ####### INSITUTYPE SEMISUPERVISED #######
 
-runInSituTypeSemisupervised <- function(patient_data, ioprofiles, patient_cohort, patient_rna_counts, patient_avg_neg_probes) {
+run_InSituType_semisupervised <- function(
+    patient_data,
+    patient_cohort,
+    patient_rna_counts,
+    patient_avg_neg_probes,
+    io_profiles = NULL) {
+  
+  if (is.null(io_profiles)) {
+    # Get cell reference profile data from NanoString
+    # Use this reference profile as it is the only one available from CosMx data, originally from:
+    # https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
+    io_profiles <- read.csv(
+      file = here("Analysis", "Cell_profile_matrices", "NanoString.CosMx.Human.IO.profiles.csv"),
+      header = T,
+      sep = ",",
+      fill = T)
+    rownames(io_profiles) <- io_profiles[, 1]
+    io_profiles <- io_profiles[, -1] %>% as.matrix()
+  }
   
   # Semi-supervised learning with insitutype and reference profiles
   # InSituType needs integers, if given floating point numbers it fails with misleading errors
@@ -863,17 +881,6 @@ analyze_patient <- function(all_patients_data, patient_num) {
       assay = "Nanostring",
       patient_dims = 1:25,
       patient_res = 0.8)
-    
-    # Get cell reference profile data from NanoString
-    # Use this reference profile as it is the only one available from CosMx data, originally from:
-    # https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
-    ioprofiles <- read.csv(
-      file = here("Analysis", "Cell_profile_matrices", "NanoString.CosMx.Human.IO.profiles.csv"),
-      header = T,
-      sep = ",",
-      fill = T)
-    rownames(ioprofiles) <- ioprofiles[, 1]
-    ioprofiles <- ioprofiles[, -1] %>% as.matrix()
     
     # Run InSituType semisupervised clustering
     patient_semisup <- runInSituTypeSemisupervised(
