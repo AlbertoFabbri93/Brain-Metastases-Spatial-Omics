@@ -873,9 +873,8 @@ analyze_patient <- function(all_patients_data, patient_num) {
       patient_res = 0.8)
     
     # Run InSituType semisupervised clustering
-    patient_semisup <- runInSituTypeSemisupervised(
+    patient_semisup <- run_InSituType_semisupervised(
       patient_rna_only,
-      ioprofiles,
       patient_cohort,
       patient_rna_counts,
       patient_avg_neg_probes)
