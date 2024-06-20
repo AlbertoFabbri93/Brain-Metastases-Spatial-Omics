@@ -545,7 +545,7 @@ analyze_proteins <- function(patient_data) {
   patient_data <- RunPCA(
     patient_data,
     assay = "proteins",
-    features = features_to_scale,
+    features = metadata_proteins_columns,
     npcs = n_pcs,
     reduction.name = "pca_proteins",
     reduction.key = "PCPR_",
