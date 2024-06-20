@@ -532,8 +532,12 @@ analyze_proteins <- function(patient_data) {
   DefaultAssay(patient_data) <- "proteins"
   
   # Scale the raw metadata values
-  features_to_scale <- colnames(proteins_matrix)
-  patient_data <- ScaleData(patient_data, assay = "proteins", features = features_to_scale, do.center = TRUE, do.scale = TRUE)
+  patient_data <- ScaleData(
+    patient_data,
+    assay = "proteins",
+    features = metadata_proteins_columns,
+    do.center = TRUE,
+    do.scale = TRUE)
   
   # Run PCA and specify the number of PCs to compute
   # Only 10 features available, use 10 PCs
