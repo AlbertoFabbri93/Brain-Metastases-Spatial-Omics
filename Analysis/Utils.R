@@ -272,6 +272,8 @@ get_patient_cohort <- function(patient_data) {
   patient_cohort <- fastCohorting(patient_immunofluorescence, gaussian_transform = TRUE, n_cohorts = 5)
   # check clusters and cohort numbers
   table(patient_cohort)
+  
+  return(patient_cohort)
 }
 
 ####### PATIENT INFO #######
