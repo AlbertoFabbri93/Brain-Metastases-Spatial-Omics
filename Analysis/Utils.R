@@ -265,7 +265,7 @@ run_InSituType_semisupervised <- function(
     x = patient_rna_counts,
     neg = patient_avg_neg_probes,
     cohort = patient_cohort,
-    reference_profiles = ioprofiles,
+    reference_profiles = io_profiles,
     
     # Enter your own per-cell background estimates here if you
     # have them; otherwise insitutype will use the negprobes to
