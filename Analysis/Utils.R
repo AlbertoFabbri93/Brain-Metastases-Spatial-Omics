@@ -97,55 +97,35 @@ generate_dyn_text_heatmap <- function(
   
   # Select the cluster as the identity
   Idents(patient_data) <- cluster_var
-
-  # Calculate the size of each cluster
-  cluster_sizes <- table(Idents(patient_data))
-  smallest_cluster_size <- min(cluster_sizes)
-  total_cells <- sum(cluster_sizes)
-  cluster_proportions <- cluster_sizes / total_cells
-  smallest_cluster_proportion <- tail(cluster_proportions, n = 1)
   
-  # Identify clusters above threshold
-  clusters_above_threshold <- names(cluster_proportions[cluster_proportions >= 0.01])
-  # Subset the Seurat object to include only cells from clusters above the threshold
-  data_filtered <- subset(patient_data, idents = clusters_above_threshold)
-  # Find markers (differentially expressed genes) for each of the identity classes in the filtered dataset
-  # If you have more than one assay it is necessary to specify the assay parameter
-  markers.data_filtered <- FindAllMarkers(data_filtered, assay = assay_name, only.pos = TRUE)
-
-  # Calculate the size of each cluster
-  cluster_sizes_filtered <- table(Idents(data_filtered))
-  smallest_cluster_size_filtered <- min(cluster_sizes_filtered)
-  total_cells_filtered <- sum(cluster_sizes_filtered)
-  cluster_proportions_filtered <- cluster_sizes_filtered / total_cells_filtered
-  smallest_cluster_proportion_filtered <- min(cluster_proportions_filtered)
+  most_significant_markers <- find_most_significant_markers(
+    patient_data,
+    cluster_var,
+    assay_name)
   
-  # Filter markers to get the most significant ones per cluster
-  most_significant_markers <- markers.data_filtered %>%
-    group_by(cluster) %>%
-    dplyr::filter(avg_log2FC > 1) %>%
-    slice_head(n = 10) %>%
-    ungroup()
+  # Size of smallest cluster
+  smallest_cluster_proportion <- min(get_clusters_proportions(patient_data))
+  # Size of cluster label
+  cluster_label_size <- calculate_clusters_names_size(smallest_cluster_proportion)
   
   # Calculate the number of features (rows)
   num_features <- length(most_significant_markers$gene)
-  
   # Calculate the label size for the current figure
-  label_size <- calculate_label_size(num_features)
+  features_label_size <- calculate_label_size(num_features)
   
   # Read patient number
   patient_num <- get_patient_num(patient_data)
   
   # Create the heatmap with the scaled text
   diff_expr_genes_heatmap <- DoHeatmap(
-    data_filtered,
+    patient_data,
     features = most_significant_markers$gene,
     assay = assay_name,
     label = TRUE,
-    size = calculate_clusters_names_size(smallest_cluster_proportion_filtered),
+    size = 2,
     group.colors = color_lookup_table,
   ) + theme(
-    axis.text.y = element_text(size = label_size),
+    axis.text.y = element_text(size = features_label_size),
   ) + labs(
     title = paste("Patient", patient_num, cluster_name),
     subtitle = "Top 10 Differentially Expressed Genes per Cluster"
@@ -154,36 +134,19 @@ generate_dyn_text_heatmap <- function(
   return(diff_expr_genes_heatmap)
 }
 
-generate_heatmap <- function(
+find_most_significant_markers <- function(
     patient_data,
     cluster_var,
     assay_name,
-    cluster_name = NULL,
-    color_lookup_table = NULL,
     log2fc_threshold = 1,
-    genes_per_cluster = 10,
-    mp_clust_label_size = 3,
-    label_size = 8) {
-  
-  # If a human friendly name is not given, use the name of the column in the Seurat object
-  if (is.null(cluster_name)) {
-    cluster_name <- cluster_var
-  }
-  
-  # Use a better palette by default
-  if (is.null(color_lookup_table)) {
-    color_lookup_table <- generate_colors_lookup_table(patient_data, cluster_var)
-  }
+    genes_per_cluster = 10) {
   
   # Select the cluster as the identity
   Idents(patient_data) <- cluster_var
   
   # Find markers (differentially expressed genes) for each of the identity classes in the filtered dataset
   # If you have more than one assay it is necessary to specify the assay parameter
-  markers_data <- FindAllMarkers(
-    patient_data,
-    assay = assay_name,
-    only.pos = TRUE)
+  markers_data <- FindAllMarkers(patient_data, assay = assay_name, only.pos = TRUE)
   
   # Filter markers to get the most significant ones per cluster
   most_significant_markers <- markers_data %>%
@@ -192,25 +155,18 @@ generate_heatmap <- function(
     slice_head(n = genes_per_cluster) %>%
     ungroup()
   
-  # Read patient number
-  patient_num <- get_patient_num(patient_data)
+  return(most_significant_markers)
+}
+
+
+get_clusters_proportions <- function(patient_data) {
   
-  # Create the heatmap with the scaled text
-  diff_expr_genes_heatmap <- DoHeatmap(
-    patient_data,
-    features = most_significant_markers$gene,
-    assay = assay_name,
-    label = TRUE,
-    size = mp_clust_label_size,
-    group.colors = color_lookup_table,
-  ) + theme(
-    axis.text.y = element_text(size = label_size),
-  ) + labs(
-    title = paste("Patient", patient_num, cluster_name),
-    subtitle = "Top 10 Differentially Expressed Genes per Cluster"
-  )
+  # Calculate the size of each cluster
+  cluster_sizes <- table(Idents(patient_data))
+  total_cells <- sum(cluster_sizes)
+  cluster_proportions <- cluster_sizes / total_cells
   
-  return(diff_expr_genes_heatmap)
+  return(cluster_proportions)
 }
 
 ####### INSITUTYPE SEMISUPERVISED #######
@@ -798,7 +754,7 @@ generate_clustering_plots <- function(
   
   # Create heatmap of most differentially expressed genes
   if (create_heatmap) {
-    diff_expr_genes_heatmap <- generate_heatmap(
+    diff_expr_genes_heatmap <- generate_dyn_text_heatmap(
       patient_data,
       cluster_var,
       cluster_assay,
