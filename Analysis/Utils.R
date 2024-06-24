@@ -424,7 +424,7 @@ create_cluster_summary <- function(patient_data, clustering_column) {
 
 ####### ANALYZE RNA #######
 
-normalize_cluster_data <- function(patient_data, assay, patient_dims, patient_res) {
+normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, patient_res = 0.8) {
   
   # Set the assay to the one containing the RNA data
   DefaultAssay(patient_data) <- assay
