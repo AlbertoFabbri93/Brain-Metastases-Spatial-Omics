@@ -152,8 +152,23 @@ patients_rna_data <- list()
 ```{r}
 #| label: analyze-patient-1
 
-c(patient_1_rna_data, patient_1_plots) %<-% analyze_patient(breast_cancer_patients, "1")
-patients_rna_data[["1"]] <- patient_1_rna_data
+# Steps with all the data
+patient_1_all_data <- extract_patient_data(breast_cancer_patients, "1")
+patient_1_all_data <- analyze_proteins(patient_1_all_data)
+patient_1_plots <- generate_proteins_plots(patient_1_all_data)
+
+# Red blood cells removed
+patient_1_rbc_removed <- remove_clusters(patient_1_all_data, "protein_clusters", c(5))
+patient_1_rbc_removed <- run_IST_semisup_extract_data(patient_1_rbc_removed, "Nanostring")
+
+# RNA data only
+patient_1_data <- extract_patient_rna_data(patient_1_rbc_removed, "Nanostring")
+patient_1_data <- normalize_cluster_data(patient_1_data, "Nanostring")
+patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data))
+
+# Cleanup and printing
+rm(patient_1_all_data, patient_1_rbc_removed)
+patients_rna_data[[1]] <- patient_1_data
 print(patient_1_plots)
 ```
 
@@ -175,8 +190,23 @@ save_plots(patient_1_plots, get_patient_dir_img("1"), image_ext)
 ```{r}
 #| label: analyze-patient-2
 
-c(patient_2_rna_data, patient_2_plots) %<-% analyze_patient(breast_cancer_patients, "2")
-patients_rna_data[["2"]] <- patient_2_rna_data
+# Steps with all the data
+patient_2_all_data <- extract_patient_data(breast_cancer_patients, "2")
+patient_2_all_data <- analyze_proteins(patient_2_all_data)
+patient_2_plots <- generate_proteins_plots(patient_2_all_data)
+
+# Red blood cells removed
+patient_2_rbc_removed <- remove_clusters(patient_2_all_data, "protein_clusters", c(6))
+patient_2_rbc_removed <- run_IST_semisup_extract_data(patient_2_rbc_removed, "Nanostring")
+
+# RNA data only
+patient_2_data <- extract_patient_rna_data(patient_2_rbc_removed, "Nanostring")
+patient_2_data <- normalize_cluster_data(patient_2_data, "Nanostring")
+patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data))
+
+# Cleanup and printing
+rm(patient_2_all_data, patient_2_rbc_removed)
+patients_rna_data[[2]] <- patient_2_data
 print(patient_2_plots)
 ```
 
@@ -198,8 +228,20 @@ save_plots(patient_2_plots, get_patient_dir_img("2"), image_ext)
 ```{r}
 #| label: analyze-patient-3
 
-c(patient_3_rna_data, patient_3_plots) %<-% analyze_patient(breast_cancer_patients, "3")
-patients_rna_data[["3"]] <- patient_3_rna_data
+# Steps with all the data
+patient_3_all_data <- extract_patient_data(breast_cancer_patients, "3")
+patient_3_all_data <- analyze_proteins(patient_3_all_data)
+patient_3_plots <- generate_proteins_plots(patient_3_all_data)
+patient_3_all_data <- run_IST_semisup_extract_data(patient_3_all_data, "Nanostring")
+
+# RNA data only
+patient_3_data <- extract_patient_rna_data(patient_3_all_data, "Nanostring")
+patient_3_data <- normalize_cluster_data(patient_3_data, "Nanostring")
+patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data))
+
+# Cleanup and printing
+rm(patient_3_all_data)
+patients_rna_data[[3]] <- patient_3_data
 print(patient_3_plots)
 ```
 
@@ -221,8 +263,23 @@ save_plots(patient_3_plots, get_patient_dir_img("3"), image_ext)
 ```{r}
 #| label: analyze-patient-4
 
-c(patient_4_rna_data, patient_4_plots) %<-% analyze_patient(breast_cancer_patients, "4")
-patients_rna_data[["4"]] <- patient_4_rna_data
+# Steps with all the data
+patient_4_all_data <- extract_patient_data(breast_cancer_patients, "4")
+patient_4_all_data <- analyze_proteins(patient_4_all_data)
+patient_4_plots <- generate_proteins_plots(patient_4_all_data)
+
+# Red blood cells removed
+patient_4_rbc_removed <- remove_clusters(patient_4_all_data, "protein_clusters", c(3))
+patient_4_rbc_removed <- run_IST_semisup_extract_data(patient_4_rbc_removed, "Nanostring")
+
+# RNA data only
+patient_4_data <- extract_patient_rna_data(patient_4_rbc_removed, "Nanostring")
+patient_4_data <- normalize_cluster_data(patient_4_data, "Nanostring")
+patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data))
+
+# Cleanup and printing
+rm(patient_4_all_data, patient_4_rbc_removed)
+patients_rna_data[[4]] <- patient_4_data
 print(patient_4_plots)
 ```
 
@@ -244,8 +301,20 @@ save_plots(patient_4_plots, get_patient_dir_img("4"), image_ext)
 ```{r}
 #| label: analyze-patient-5
 
-c(patient_5_rna_data, patient_5_plots) %<-% analyze_patient(breast_cancer_patients, "5")
-patients_rna_data[["5"]] <- patient_5_rna_data
+# Steps with all the data
+patient_5_all_data <- extract_patient_data(breast_cancer_patients, "5")
+patient_5_all_data <- analyze_proteins(patient_5_all_data)
+patient_5_plots <- generate_proteins_plots(patient_5_all_data)
+patient_5_all_data <- run_IST_semisup_extract_data(patient_5_all_data, "Nanostring")
+
+# RNA data only
+patient_5_data <- extract_patient_rna_data(patient_5_all_data, "Nanostring")
+patient_5_data <- normalize_cluster_data(patient_5_data, "Nanostring")
+patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data))
+
+# Cleanup and printing
+rm(patient_5_all_data)
+patients_rna_data[[5]] <- patient_5_data
 print(patient_5_plots)
 ```
 
@@ -267,8 +336,20 @@ save_plots(patient_5_plots, get_patient_dir_img("5"), image_ext)
 ```{r}
 #| label: analyze-patient-6
 
-c(patient_6_rna_data, patient_6_plots) %<-% analyze_patient(breast_cancer_patients, "6")
-patients_rna_data[["6"]] <- patient_6_rna_data
+# Steps with all the data
+patient_6_all_data <- extract_patient_data(breast_cancer_patients, "6")
+patient_6_all_data <- analyze_proteins(patient_6_all_data)
+patient_6_plots <- generate_proteins_plots(patient_6_all_data)
+patient_6_all_data <- run_IST_semisup_extract_data(patient_6_all_data, "Nanostring")
+
+# RNA data only
+patient_6_data <- extract_patient_rna_data(patient_6_all_data, "Nanostring")
+patient_6_data <- normalize_cluster_data(patient_6_data, "Nanostring")
+patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data))
+
+# Cleanup and printing
+rm(patient_6_all_data)
+patients_rna_data[[6]] <- patient_6_data
 print(patient_6_plots)
 ```
 
@@ -290,8 +371,23 @@ save_plots(patient_6_plots, get_patient_dir_img("6"), image_ext)
 ```{r}
 #| label: analyze-patient-7
 
-c(patient_7_rna_data, patient_7_plots) %<-% analyze_patient(breast_cancer_patients, "7")
-patients_rna_data[["7"]] <- patient_7_rna_data
+# Steps with all the data
+patient_7_all_data <- extract_patient_data(breast_cancer_patients, "7")
+patient_7_all_data <- analyze_proteins(patient_7_all_data)
+patient_7_plots <- generate_proteins_plots(patient_7_all_data)
+
+# Red blood cells removed
+patient_7_rbc_removed <- remove_clusters(patient_7_all_data, "protein_clusters", c(7))
+patient_7_rbc_removed <- run_IST_semisup_extract_data(patient_7_rbc_removed, "Nanostring")
+
+# RNA data only
+patient_7_data <- extract_patient_rna_data(patient_7_rbc_removed, "Nanostring")
+patient_7_data <- normalize_cluster_data(patient_7_data, "Nanostring")
+patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data))
+
+# Cleanup and printing
+rm(patient_7_all_data, patient_7_rbc_removed)
+patients_rna_data[[7]] <- patient_7_data
 print(patient_7_plots)
 ```
 
