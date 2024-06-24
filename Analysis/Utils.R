@@ -154,6 +154,65 @@ generate_dyn_text_heatmap <- function(
   return(diff_expr_genes_heatmap)
 }
 
+generate_heatmap <- function(
+    patient_data,
+    cluster_var,
+    assay_name,
+    cluster_name = NULL,
+    color_lookup_table = NULL,
+    log2fc_threshold = 1,
+    genes_per_cluster = 10,
+    mp_clust_label_size = 3,
+    label_size = 8) {
+  
+  # If a human friendly name is not given, use the name of the column in the Seurat object
+  if (is.null(cluster_name)) {
+    cluster_name <- cluster_var
+  }
+  
+  # Use a better palette by default
+  if (is.null(color_lookup_table)) {
+    color_lookup_table <- generate_colors_lookup_table(patient_data, cluster_var)
+  }
+  
+  # Select the cluster as the identity
+  Idents(patient_data) <- cluster_var
+  
+  # Find markers (differentially expressed genes) for each of the identity classes in the filtered dataset
+  # If you have more than one assay it is necessary to specify the assay parameter
+  markers_data <- FindAllMarkers(
+    patient_data,
+    assay = assay_name,
+    only.pos = TRUE)
+  
+  # Filter markers to get the most significant ones per cluster
+  most_significant_markers <- markers_data %>%
+    group_by(cluster) %>%
+    dplyr::filter(avg_log2FC > log2fc_threshold) %>%
+    slice_head(n = genes_per_cluster) %>%
+    ungroup()
+  
+  # Read patient number
+  patient_num <- get_patient_num(patient_data)
+  
+  # Create the heatmap with the scaled text
+  diff_expr_genes_heatmap <- DoHeatmap(
+    patient_data,
+    features = most_significant_markers$gene,
+    assay = assay_name,
+    label = TRUE,
+    size = mp_clust_label_size,
+    group.colors = color_lookup_table,
+  ) + theme(
+    axis.text.y = element_text(size = label_size),
+  ) + labs(
+    title = paste("Patient", patient_num, cluster_name),
+    subtitle = "Top 10 Differentially Expressed Genes per Cluster"
+  )
+  
+  return(diff_expr_genes_heatmap)
+}
+
 ####### INSITUTYPE SEMISUPERVISED #######
 
 run_IST_semisup_extract_data <- function(
@@ -739,7 +798,7 @@ generate_clustering_plots <- function(
   
   # Create heatmap of most differentially expressed genes
   if (create_heatmap) {
-    diff_expr_genes_heatmap <- generate_dyn_text_heatmap(
+    diff_expr_genes_heatmap <- generate_heatmap(
       patient_data,
       cluster_var,
       cluster_assay,
