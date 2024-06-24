@@ -217,7 +217,9 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   return(patient_data)
 }
 
-extract_patient_rna_data <- function(patient_data, start_index = 1, end_index = 1000) {
+extract_patient_rna_data <- function(patient_data, assay, start_index = 1, end_index = 1000) {
+  
+  DefaultAssay(patient_data) <- assay
   
   # Check if the provided indices are within the valid range
   if (start_index < 1 || end_index > nrow(patient_data) || start_index > end_index) {
