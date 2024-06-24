@@ -833,6 +833,9 @@ generate_rna_plots <- function(patient_data) {
   
   print("Generate RNA plots")
   
+  # List with all the plots to be returned
+  plot_list <- list()
+  
   patient_num <- get_patient_num(patient_data)
   
   # Show the significance of every principal component of the PCA
