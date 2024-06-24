@@ -156,6 +156,30 @@ generate_dyn_text_heatmap <- function(
 
 ####### INSITUTYPE SEMISUPERVISED #######
 
+run_IST_semisup_extract_data <- function(
+    patient_data,
+    assay) {
+ 
+  # Get the data necessary to run InSituType
+  patient_rna_data <- extract_patient_rna_data(patient_data, assay)
+  patient_cohort <- get_patient_cohort(patient_data)
+  patient_rna_counts <- get_seurat_layer_data(patient_data, assay, "counts")
+  patient_avg_neg_probes <- get_avg_neg_probes(patient_data, assay)
+  
+  # Call the InSituType semisupervised function
+  patient_semisup <- run_InSituType_semisupervised(
+    patient_data = patient_rna_data,
+    patient_cohort = patient_cohort,
+    patient_rna_counts = patient_rna_counts,
+    patient_avg_neg_probes = patient_avg_neg_probes)
+  
+  # Add cluster to the metadata
+  patient_data$InSituType_semisup_clusters <- patient_semisup$clust
+  
+  # Return the Seurat object with the added clusters
+  return(patient_data)
+}
+
 run_InSituType_semisupervised <- function(
     patient_data,
     patient_cohort,
