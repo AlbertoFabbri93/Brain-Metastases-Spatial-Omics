@@ -865,7 +865,7 @@ generate_rna_plots <- function(patient_data) {
 
 analyze_patient <- function(all_patients_data, patient_num) {
   
-  # List with all the plots to be printed
+  # List with all the plots to be returned
   plot_list <- list()
   
   # Create directories to save patient data if they do not exist
