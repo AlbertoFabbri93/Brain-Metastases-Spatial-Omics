@@ -760,6 +760,9 @@ generate_proteins_plots <- function(patient_data) {
   
   patient_num <- get_patient_num(patient_data)
   
+  # List with all the plots to be returned
+  plot_list <- list()
+  
   # Show the significance of every principal component of the PCA
   # It can be used to decide the number of dims of the FindNeighbors function
   elbow_plot_red = "pca_proteins"
