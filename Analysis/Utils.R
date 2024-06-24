@@ -233,7 +233,9 @@ extract_patient_rna_data <- function(patient_data, assay, start_index = 1, end_i
   return(patient_rna_only)
 }
   
-get_avg_neg_probes <- function(patient_data) {
+get_avg_neg_probes <- function(patient_data, assay) {
+  
+  DefaultAssay(patient_data) <- assay
   
   # Extract the negative probes from the Seurat object
   patient_neg_probes <- GetAssayData(
