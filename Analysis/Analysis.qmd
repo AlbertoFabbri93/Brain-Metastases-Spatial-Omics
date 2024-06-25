@@ -424,7 +424,7 @@ write.csv(patient_7_IST_de_genes, paste0(get_patient_dir_img("7"), "Patient_7_IS
 #| label: compare-patients
 
 # Save plots comparing patients in this subfolder
-compare_patients_subfolder <- paste(image_dir, "Compare_patients/", sep = "")
+compare_patients_subfolder <- here(image_dir, "Compare_patients")
 
 # Create folder for the plots id it does not exist
 if (!dir.exists(compare_patients_subfolder)) {
