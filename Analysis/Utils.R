@@ -36,7 +36,7 @@ save_plots <- function(plots_list, folder_path, image_extension = ".png") {
   for (item_name in names(flat_items)) {
     # Construct the file path
     if (inherits(flat_items[[item_name]], "ggplot") || inherits(flat_items[[item_name]], "trellis")) {
-      file_path <- file.path(folder_path, paste0(item_name, file_extension))
+      file_path <- file.path(folder_path, paste0(item_name, image_extension))
       # Save the plot to the specified file path
       ggsave(filename = file_path, plot = flat_items[[item_name]])
     } else if (is.data.frame(flat_items[[item_name]])) {
