@@ -198,11 +198,8 @@ run_IST_semisup_extract_data <- function(
     patient_rna_counts = patient_rna_counts,
     patient_avg_neg_probes = patient_avg_neg_probes)
   
-  # Add cluster to the metadata
-  patient_data$InSituType_semisup_clusters <- patient_semisup$clust
-  
   # Return the Seurat object with the added clusters
-  return(patient_data)
+  return(patient_semisup)
 }
 
 run_InSituType_semisupervised <- function(
