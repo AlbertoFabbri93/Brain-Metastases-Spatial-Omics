@@ -152,7 +152,11 @@ find_most_significant_markers <- function(
   
   # Find markers (differentially expressed genes) for each of the identity classes in the filtered dataset
   # If you have more than one assay it is necessary to specify the assay parameter
-  markers_data <- FindAllMarkers(patient_data, assay = assay_name, only.pos = TRUE)
+  markers_data <- FindAllMarkers(
+    patient_data,
+    assay = assay_name,
+    only.pos = TRUE,
+    random.seed = 5)
   
   # Filter markers to get the most significant ones per cluster
   most_significant_markers <- markers_data %>%
