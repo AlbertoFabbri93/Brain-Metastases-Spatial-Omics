@@ -181,6 +181,14 @@ get_clusters_proportions <- function(patient_data) {
 
 ####### INSITUTYPE SEMISUPERVISED #######
 
+generate_flightpath <- function(IST_object, cols) {
+  
+  fp <- flightpath_plot(flightpath_result = NULL,
+                        insitutype_result = IST_object,
+                        col = cols[IST_object$clust])
+  return(fp)
+}
+
 run_IST_semisup_extract_data <- function(
     patient_data,
     assay) {
