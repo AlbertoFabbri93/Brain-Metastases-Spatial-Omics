@@ -3,21 +3,23 @@ rds_dir <- Sys.getenv("RDS_DIR")
 image_dir <- Sys.getenv("IMAGE_DIR")
 image_ext <- Sys.getenv("IMAGE_EXT")
 
-####### SAVE PLOTS TO IMAGES #######
+####### SAVE LIST OF ITEMS #######
 
-save_plots <- function(plots_list, folder_path, file_extension = ".png") {
+save_plots <- function(plots_list, folder_path, image_extension = ".png") {
   # Ensure the folder exists, if not, create it
   if (!dir.exists(folder_path)) {
     dir.create(folder_path, recursive = TRUE)
   }
   
-  # Helper function to flatten the list and collect plots
+  # Helper function to flatten the list and collect plots and data frames
   # Images are also lists so simply unflattening the list does not work
   flatten_list <- function(lst) {
     flat_list <- list()
     
     for (name in names(lst)) {
       if (inherits(lst[[name]], "ggplot") || inherits(lst[[name]], "trellis")) {
+        flat_list[[name]] <- lst[[name]]
+      } else if (is.data.frame(lst[[name]])) {
         flat_list[[name]] <- lst[[name]]
       } else if (is.list(lst[[name]])) {
         flat_list <- c(flat_list, flatten_list(lst[[name]]))
@@ -28,16 +30,20 @@ save_plots <- function(plots_list, folder_path, file_extension = ".png") {
   }
   
   # Flatten the plots list
-  flat_plots <- flatten_list(plots_list)
+  flat_items <- flatten_list(plots_list)
   
-  # Iterate over the flattened list of plots and save each plot
-  for (plot_name in names(flat_plots)) {
+  # Iterate over the flattened list of items and save each plot or data frame
+  for (item_name in names(flat_items)) {
     # Construct the file path
-    file_path <- file.path(folder_path, paste0(plot_name, file_extension))
-    
-    # Save the plot to the specified file path
-    # Using png() resulted in low quality images
-    ggsave(filename = file_path, plot = flat_plots[[plot_name]])
+    if (inherits(flat_items[[item_name]], "ggplot") || inherits(flat_items[[item_name]], "trellis")) {
+      file_path <- file.path(folder_path, paste0(item_name, file_extension))
+      # Save the plot to the specified file path
+      ggsave(filename = file_path, plot = flat_items[[item_name]])
+    } else if (is.data.frame(flat_items[[item_name]])) {
+      file_path <- file.path(folder_path, paste0(item_name, ".csv"))
+      # Save the data frame to the specified file path
+      write.csv(flat_items[[item_name]], file_path, row.names = FALSE)
+    }
   }
 }
 
