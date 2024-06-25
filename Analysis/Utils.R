@@ -901,6 +901,18 @@ generate_rna_plots <- function(patient_data) {
     color_lookup_table = RNA_color_lookup_table)
   plot_list[[RNA_cluster_var]] <- RNA_cluster
   
+  return(plot_list)
+}
+ 
+generate_IST_plots <- function(patient_data, IST_object) {
+  
+  print("Generate InSituType plots")
+  
+  # List with all the plots to be returned
+  plot_list <- list()
+  
+  patient_num <- get_patient_num(patient_data)
+ 
   InSituType_cluster_var <- "InSituType_semisup_clusters"
   InSituType_color_lookup_table <- generate_colors_lookup_table(patient_data, InSituType_cluster_var, known_clusters_colors)
   InSituType_cluster <- generate_clustering_plots(
@@ -911,9 +923,23 @@ generate_rna_plots <- function(patient_data) {
     create_heatmap = TRUE,
     cluster_name = "InSituType Semisupervised Clusters",
     color_lookup_table = InSituType_color_lookup_table)
-  plot_list[[InSituType_cluster_var]] <- InSituType_cluster
   
-  print("Generate Comparing Clusters plot")
+  flightpath_plot_name <- paste0("Patient_",  patient_num, "InSituType_semisup_flightpath")
+  InSituType_cluster[[flightpath_plot_name]] <- generate_flightpath(IST_object, InSituType_color_lookup_table)
+  
+  plot_list[[InSituType_cluster_var]] <- InSituType_cluster
+  return(plot_list)
+}
+
+generate_comparison_plots <- function(patient_data) {
+  
+  print("Generate Comparison plots")
+  
+  # List with all the plots to be returned
+  plot_list <- list()
+  
+  patient_num <- get_patient_num(patient_data)
+
   seurat_vs_insitutype_plot_name <- paste0("Patient_",  patient_num, "_heatmap_seurat_vs_insitutype")
   # seurat_vs_insitutype_plot_rds <- paste0(patient_dir_rds_img, seurat_vs_insitutype_plot_name, ".rds")
   # if (!file.exists(seurat_vs_insitutype_plot_rds)) {
