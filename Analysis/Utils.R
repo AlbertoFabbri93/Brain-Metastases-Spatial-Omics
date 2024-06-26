@@ -230,6 +230,13 @@ run_InSituType_semisupervised <- function(
     io_profiles <- io_profiles[, -1] %>% as.matrix()
   }
   
+  set.seed(6)
+  clusts_num <- chooseClusterNumber(
+    counts = patient_rna_counts,
+    neg = patient_avg_neg_probes,
+    fixed_profiles = io_profiles,
+    n_clusts = 1:8)
+  
   # Semi-supervised learning with insitutype and reference profiles
   # InSituType needs integers, if given floating point numbers it fails with misleading errors
   patient_semisup <- insitutype(
@@ -242,9 +249,8 @@ run_InSituType_semisupervised <- function(
     # have them; otherwise insitutype will use the negprobes to
     # estimate background for you.
     bg = NULL,
-    # condensed to save time. n_clusts = 5:15 would be more optimal
     # Group the cells the do not correspond to any type in the reference matrix
-    n_clusts = c(5),
+    n_clusts = clusts_num$best_clust_number,
     # reference_profiles = updatedprofiles$updated_profiles,
     # Update the reference profile based on the current data
     update_reference_profiles = FALSE,
