@@ -874,7 +874,7 @@ generate_rna_plots <- function(patient_data) {
   elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
   # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
   # if (!file.exists(elbow_plot_rds)) {
-  elbow_plot <- ElbowPlot(patient_data, reduction = elbow_plot_red, ndims = 9) +
+  elbow_plot <- ElbowPlot(patient_data, reduction = elbow_plot_red, ndims = 50) +
     labs(title = paste("Patient", patient_num), subtitle = elbow_plot_red)
   #   saveRDS(elbow_plot, file = elbow_plot_rds)
   # } else {
