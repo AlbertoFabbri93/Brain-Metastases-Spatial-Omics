@@ -159,17 +159,20 @@ patient_1_plots <- generate_proteins_plots(patient_1_all_data)
 
 # Red blood cells removed
 patient_1_rbc_removed <- remove_clusters(patient_1_all_data, "protein_clusters", c(5))
-patient_1_rbc_removed <- run_IST_semisup_extract_data(patient_1_rbc_removed, "Nanostring")
+patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_rbc_removed, "Nanostring")
+# Add cluster to the metadata
+patient_1_rbc_removed$InSituType_semisup_clusters <- patient_1_IST_semisup$clust
 
 # RNA data only
 patient_1_data <- extract_patient_rna_data(patient_1_rbc_removed, "Nanostring")
 patient_1_data <- normalize_cluster_data(patient_1_data, "Nanostring")
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data))
+patient_1_plots <- c(patient_1_plots, generate_IST_plots(patient_1_data, patient_1_IST_semisup))
+patient_1_plots <- c(patient_1_plots, generate_comparison_plots(patient_1_data))
 patient_1_plots$patient_1_RNA_de_genes <- find_most_significant_markers(patient_1_data, "RNA_clusters", "Nanostring")
 patient_1_plots$patient_1_IST_de_genes <- find_most_significant_markers(patient_1_data, "InSituType_semisup_clusters", "Nanostring")
 
 # Cleanup and printing
-rm(patient_1_all_data, patient_1_rbc_removed)
 patients_rna_data[[1]] <- patient_1_data
 print(patient_1_plots)
 ```
@@ -199,17 +202,20 @@ patient_2_plots <- generate_proteins_plots(patient_2_all_data)
 
 # Red blood cells removed
 patient_2_rbc_removed <- remove_clusters(patient_2_all_data, "protein_clusters", c(6))
-patient_2_rbc_removed <- run_IST_semisup_extract_data(patient_2_rbc_removed, "Nanostring")
+patient_2_IST_semisup <- run_IST_semisup_extract_data(patient_2_rbc_removed, "Nanostring")
+# Add cluster to the metadata
+patient_2_rbc_removed$InSituType_semisup_clusters <- patient_2_IST_semisup$clust
 
 # RNA data only
 patient_2_data <- extract_patient_rna_data(patient_2_rbc_removed, "Nanostring")
 patient_2_data <- normalize_cluster_data(patient_2_data, "Nanostring")
 patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data))
+patient_2_plots <- c(patient_2_plots, generate_IST_plots(patient_2_data, patient_2_IST_semisup))
+patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
 patient_2_plots$patient_2_RNA_de_genes <- find_most_significant_markers(patient_2_data, "RNA_clusters", "Nanostring")
 patient_2_plots$patient_2_IST_de_genes <- find_most_significant_markers(patient_2_data, "InSituType_semisup_clusters", "Nanostring")
 
 # Cleanup and printing
-rm(patient_2_all_data, patient_2_rbc_removed)
 patients_rna_data[[2]] <- patient_2_data
 print(patient_2_plots)
 ```
@@ -236,17 +242,20 @@ save_plots(patient_2_plots, get_patient_dir_img("2"), image_ext)
 patient_3_all_data <- extract_patient_data(breast_cancer_patients, "3")
 patient_3_all_data <- analyze_proteins(patient_3_all_data)
 patient_3_plots <- generate_proteins_plots(patient_3_all_data)
-patient_3_all_data <- run_IST_semisup_extract_data(patient_3_all_data, "Nanostring")
+patient_3_IST_semisup <- run_IST_semisup_extract_data(patient_3_all_data, "Nanostring")
+# Add cluster to the metadata
+patient_3_all_data$InSituType_semisup_clusters <- patient_3_IST_semisup$clust
 
 # RNA data only
 patient_3_data <- extract_patient_rna_data(patient_3_all_data, "Nanostring")
 patient_3_data <- normalize_cluster_data(patient_3_data, "Nanostring")
 patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data))
+patient_3_plots <- c(patient_3_plots, generate_IST_plots(patient_3_data, patient_3_IST_semisup))
+patient_3_plots <- c(patient_3_plots, generate_comparison_plots(patient_3_data))
 patient_3_plots$patient_3_RNA_de_genes <- find_most_significant_markers(patient_3_data, "RNA_clusters", "Nanostring")
 patient_3_plots$patient_3_IST_de_genes <- find_most_significant_markers(patient_3_data, "InSituType_semisup_clusters", "Nanostring")
 
 # Cleanup and printing
-rm(patient_3_all_data)
 patients_rna_data[[3]] <- patient_3_data
 print(patient_3_plots)
 ```
@@ -276,17 +285,20 @@ patient_4_plots <- generate_proteins_plots(patient_4_all_data)
 
 # Red blood cells removed
 patient_4_rbc_removed <- remove_clusters(patient_4_all_data, "protein_clusters", c(3))
-patient_4_rbc_removed <- run_IST_semisup_extract_data(patient_4_rbc_removed, "Nanostring")
+patient_4_IST_semisup <- run_IST_semisup_extract_data(patient_4_rbc_removed, "Nanostring")
+# Add cluster to the metadata
+patient_4_rbc_removed$InSituType_semisup_clusters <- patient_4_IST_semisup$clust
 
 # RNA data only
 patient_4_data <- extract_patient_rna_data(patient_4_rbc_removed, "Nanostring")
 patient_4_data <- normalize_cluster_data(patient_4_data, "Nanostring")
 patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data))
+patient_4_plots <- c(patient_4_plots, generate_IST_plots(patient_4_data, patient_4_IST_semisup))
+patient_4_plots <- c(patient_4_plots, generate_comparison_plots(patient_4_data))
 patient_4_plots$patient_4_RNA_de_genes <- find_most_significant_markers(patient_4_data, "RNA_clusters", "Nanostring")
 patient_4_plots$patient_4_IST_de_genes <- find_most_significant_markers(patient_4_data, "InSituType_semisup_clusters", "Nanostring")
 
 # Cleanup and printing
-rm(patient_4_all_data, patient_4_rbc_removed)
 patients_rna_data[[4]] <- patient_4_data
 print(patient_4_plots)
 ```
@@ -313,17 +325,20 @@ save_plots(patient_4_plots, get_patient_dir_img("4"), image_ext)
 patient_5_all_data <- extract_patient_data(breast_cancer_patients, "5")
 patient_5_all_data <- analyze_proteins(patient_5_all_data)
 patient_5_plots <- generate_proteins_plots(patient_5_all_data)
-patient_5_all_data <- run_IST_semisup_extract_data(patient_5_all_data, "Nanostring")
+patient_5_IST_semisup <- run_IST_semisup_extract_data(patient_5_all_data, "Nanostring")
+# Add cluster to the metadata
+patient_5_all_data$InSituType_semisup_clusters <- patient_5_IST_semisup$clust
 
 # RNA data only
 patient_5_data <- extract_patient_rna_data(patient_5_all_data, "Nanostring")
 patient_5_data <- normalize_cluster_data(patient_5_data, "Nanostring")
 patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data))
+patient_5_plots <- c(patient_5_plots, generate_IST_plots(patient_5_data, patient_5_IST_semisup))
+patient_5_plots <- c(patient_5_plots, generate_comparison_plots(patient_5_data))
 patient_5_plots$patient_5_RNA_de_genes <- find_most_significant_markers(patient_5_data, "RNA_clusters", "Nanostring")
 patient_5_plots$patient_5_IST_de_genes <- find_most_significant_markers(patient_5_data, "InSituType_semisup_clusters", "Nanostring")
 
 # Cleanup and printing
-rm(patient_5_all_data)
 patients_rna_data[[5]] <- patient_5_data
 print(patient_5_plots)
 ```
@@ -350,17 +365,20 @@ save_plots(patient_5_plots, get_patient_dir_img("5"), image_ext)
 patient_6_all_data <- extract_patient_data(breast_cancer_patients, "6")
 patient_6_all_data <- analyze_proteins(patient_6_all_data)
 patient_6_plots <- generate_proteins_plots(patient_6_all_data)
-patient_6_all_data <- run_IST_semisup_extract_data(patient_6_all_data, "Nanostring")
+patient_6_IST_semisup <- run_IST_semisup_extract_data(patient_6_all_data, "Nanostring")
+# Add cluster to the metadata
+patient_6_all_data$InSituType_semisup_clusters <- patient_6_IST_semisup$clust
 
 # RNA data only
 patient_6_data <- extract_patient_rna_data(patient_6_all_data, "Nanostring")
 patient_6_data <- normalize_cluster_data(patient_6_data, "Nanostring")
 patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data))
+patient_6_plots <- c(patient_6_plots, generate_IST_plots(patient_6_data, patient_6_IST_semisup))
+patient_6_plots <- c(patient_6_plots, generate_comparison_plots(patient_6_data))
 patient_6_plots$patient_6_RNA_de_genes <- find_most_significant_markers(patient_6_data, "RNA_clusters", "Nanostring")
 patient_6_plots$patient_6_IST_de_genes <- find_most_significant_markers(patient_6_data, "InSituType_semisup_clusters", "Nanostring")
 
 # Cleanup and printing
-rm(patient_6_all_data)
 patients_rna_data[[6]] <- patient_6_data
 print(patient_6_plots)
 ```
@@ -390,17 +408,20 @@ patient_7_plots <- generate_proteins_plots(patient_7_all_data)
 
 # Red blood cells removed
 patient_7_rbc_removed <- remove_clusters(patient_7_all_data, "protein_clusters", c(7))
-patient_7_rbc_removed <- run_IST_semisup_extract_data(patient_7_rbc_removed, "Nanostring")
+patient_7_IST_semisup <- run_IST_semisup_extract_data(patient_7_rbc_removed, "Nanostring")
+# Add cluster to the metadata
+patient_7_rbc_removed$InSituType_semisup_clusters <- patient_7_IST_semisup$clust
 
 # RNA data only
 patient_7_data <- extract_patient_rna_data(patient_7_rbc_removed, "Nanostring")
 patient_7_data <- normalize_cluster_data(patient_7_data, "Nanostring")
 patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data))
+patient_7_plots <- c(patient_7_plots, generate_IST_plots(patient_7_data, patient_7_IST_semisup))
+patient_7_plots <- c(patient_7_plots, generate_comparison_plots(patient_7_data))
 patient_7_plots$patient_7_RNA_de_genes <- find_most_significant_markers(patient_7_data, "RNA_clusters", "Nanostring")
 patient_7_plots$patient_7_IST_de_genes <- find_most_significant_markers(patient_7_data, "InSituType_semisup_clusters", "Nanostring")
 
 # Cleanup and printing
-rm(patient_7_all_data, patient_7_rbc_removed)
 patients_rna_data[[7]] <- patient_7_data
 print(patient_7_plots)
 ```
