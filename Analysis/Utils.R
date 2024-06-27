@@ -848,7 +848,7 @@ known_clusters_colors <- c(
   "T.cell.regulatory" = "#325A9B"
 )
 
-generate_proteins_plots <- function(patient_data) {
+generate_proteins_plots <- function(patient_data, assay) {
   
   print("Generate proteins plots")
   
@@ -883,7 +883,7 @@ generate_proteins_plots <- function(patient_data) {
   protein_cluster <- generate_clustering_plots(
     patient_data,
     protein_cluster_var,
-    "proteins", 
+    cluster_assay = assay, 
     cluster_reduction = "umap_proteins",
     create_heatmap = FALSE,
     cluster_name = "Protein Clusters",
@@ -893,7 +893,7 @@ generate_proteins_plots <- function(patient_data) {
   return(plot_list)
 }
 
-generate_rna_plots <- function(patient_data) {
+generate_rna_plots <- function(patient_data, assay) {
   
   print("Generate RNA plots")
   
@@ -928,7 +928,7 @@ generate_rna_plots <- function(patient_data) {
   RNA_cluster <- generate_clustering_plots(
     patient_data,
     RNA_cluster_var,
-    "Nanostring", 
+    cluster_assay = assay, 
     cluster_reduction = "umap_RNA",
     create_heatmap = TRUE,
     cluster_name = "RNA Clusters",
@@ -938,7 +938,7 @@ generate_rna_plots <- function(patient_data) {
   return(plot_list)
 }
  
-generate_IST_plots <- function(patient_data, IST_object) {
+generate_IST_plots <- function(patient_data, assay, IST_object) {
   
   print("Generate InSituType plots")
   
@@ -952,7 +952,7 @@ generate_IST_plots <- function(patient_data, IST_object) {
   InSituType_cluster <- generate_clustering_plots(
     patient_data,
     InSituType_cluster_var,
-    "Nanostring", 
+    cluster_assay = assay, 
     cluster_reduction = "umap_RNA",
     create_heatmap = TRUE,
     cluster_name = "InSituType Semisupervised Clusters",
