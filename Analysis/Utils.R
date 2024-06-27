@@ -506,7 +506,8 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
     patient_data,
     reduction.name = "pca_RNA",
     reduction.key = "PCRNA_",
-    seed.use = 1)
+    seed.use = 1,
+    verbose = FALSE)
   # Computes the k.param nearest neighbors
   patient_data <- Seurat::FindNeighbors(patient_data, dims = patient_dims, reduction = "pca_RNA")
   # Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
@@ -525,7 +526,8 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
     reduction = "pca_RNA",
     reduction.name = "umap_RNA",
     reduction.key = "UMAPRNA_",
-    seed.use = 1)
+    seed.use = 1,
+    verbose = FALSE)
   
   return(patient_data)
 }
