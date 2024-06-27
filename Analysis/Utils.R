@@ -295,13 +295,12 @@ extract_patient_rna_data <- function(patient_data, assay, start_index = 1, end_i
   
 get_avg_neg_probes <- function(patient_data, assay) {
   
-  DefaultAssay(patient_data) <- assay
+  assay_to_subset <- patient_data[[assay]]
   
   # Extract the negative probes from the Seurat object
-  patient_neg_probes <- GetAssayData(
-      subset(
-        patient_data,
-        features = row.names(GetAssayData(patient_data)) %>%
+  patient_neg_probes <- GetAssayData(subset(
+        assay_to_subset,
+        features = row.names(assay_to_subset) %>%
   grep("Negative", ., value = TRUE))) %>%
   as.matrix() %>%
   t()
