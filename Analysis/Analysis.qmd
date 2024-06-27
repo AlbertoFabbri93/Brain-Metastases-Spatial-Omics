@@ -461,10 +461,13 @@ for (i in 2:length(patients_rna_data)) {
   combined_patients <- merge(combined_patients, y = seurat_obj, merge.data = TRUE)
 }
 
+barplot_cluster_var = "InSituType_semisup_clusters"
+barplot_color_lookup_table <- generate_colors_lookup_table(combined_patients, Barplot_cluster_var, known_clusters_colors)
 # Plot a barplot comparing the InSituTypeID clusters of all patients
 dittoBarPlot(combined_patients,
-             var = "InSituType_semisup_clusters",
-             group.by = "Patient.ID") +
+             var = barplot_cluster_var,
+             group.by = "Patient.ID",
+             color.panel = barplot_color_lookup_table) +
     guides(fill = guide_legend(ncol = 2, byrow = TRUE))
 ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot", image_ext))
 ```
