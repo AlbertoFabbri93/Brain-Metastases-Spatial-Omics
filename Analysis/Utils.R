@@ -311,6 +311,32 @@ get_avg_neg_probes <- function(patient_data, assay) {
   return(patient_avg_neg_probes)
 }
 
+move_counts_to_new_assay <- function(patient_data, assay_name, new_assay_name, pattern) {
+  
+  assay_to_subset <- patient_data[[assay_name]]
+  
+  features_to_extract <- row.names(assay_to_subset) %>%
+    grep(pattern, ., value = TRUE)
+  
+  # Extract the data from the specified assay
+  extracted_data <- subset(
+    assay_to_subset,
+    features = features_to_extract)
+  
+  # Change the key of the newly created assay
+  extracted_data@key <- paste0(new_assay_name, "_")
+  
+  # Save the extracted data into a new assay
+  patient_data[[new_assay_name]] <- extracted_data
+  
+  # Remove data from the original assay
+  patient_data[[assay_name]] <- subset(
+    assay_to_subset,
+    features = setdiff(row.names(assay_to_subset), features_to_extract))
+  
+  return(patient_data)
+}
+
 get_seurat_layer_data <- function(patient_data, assay_name, layer_name) {
   
   # Extract the data from the specified assay and layer
