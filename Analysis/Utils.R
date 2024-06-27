@@ -619,7 +619,7 @@ analyze_proteins <- function(patient_data) {
   rownames(proteins_matrix) <- rownames(patient_data@meta.data)
   
   # Create a new assay with the proteins data
-  proteins_assay <- CreateAssayObject(counts = t(proteins_matrix))
+  proteins_assay <- CreateAssay5Object(counts = t(proteins_matrix))
   
   # Add the new assay to the Seurat object with the name "proteins"
   patient_data[["proteins"]] <- proteins_assay
@@ -627,6 +627,7 @@ analyze_proteins <- function(patient_data) {
   
   # Scale the raw metadata values
   patient_data <- ScaleData(
+    layer = "counts",
     patient_data,
     assay = "proteins",
     features = metadata_proteins_columns,
