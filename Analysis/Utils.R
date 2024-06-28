@@ -909,14 +909,9 @@ generate_rna_plots <- function(patient_data, assay) {
   # It can be used to decide the number of dims of the FindNeighbors function
   elbow_plot_red = "pca_RNA"
   elbow_plot_name <- paste("Patient",  patient_num, elbow_plot_red, "elbow_plot", sep = "_")
-  # elbow_plot_rds <- paste0(patient_dir_rds_img, elbow_plot_name, ".rds")
-  # if (!file.exists(elbow_plot_rds)) {
+  # By default the RunPCA function uses 50 dimensions, plot all of them
   elbow_plot <- ElbowPlot(patient_data, reduction = elbow_plot_red, ndims = 50) +
     labs(title = paste("Patient", patient_num), subtitle = elbow_plot_red)
-  #   saveRDS(elbow_plot, file = elbow_plot_rds)
-  # } else {
-  #   elbow_plot <- readRDS(elbow_plot_rds)
-  # }
   plot_list[[elbow_plot_name]] <- elbow_plot
   
   RNA_features_plots <- generate_feature_plot(
