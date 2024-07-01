@@ -462,7 +462,7 @@ for (i in 2:length(patients_rna_data)) {
 }
 
 barplot_cluster_var = "InSituType_semisup_clusters"
-barplot_color_lookup_table <- generate_colors_lookup_table(combined_patients, Barplot_cluster_var, known_clusters_colors)
+barplot_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_cluster_var, known_clusters_colors)
 # Plot a barplot comparing the InSituTypeID clusters of all patients
 dittoBarPlot(combined_patients,
              var = barplot_cluster_var,
