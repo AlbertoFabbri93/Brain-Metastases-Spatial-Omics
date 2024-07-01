@@ -223,9 +223,10 @@ run_InSituType_semisupervised <- function(
     # https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
     io_profiles <- read.csv(
       file = here("Analysis", "Cell_profile_matrices", "NanoString.CosMx.Human.IO.profiles.csv"),
-      header = T,
+      header = TRUE,
       sep = ",",
-      fill = T)
+      fill = TRUE,
+      stringsAsFactors = FALSE)
     rownames(io_profiles) <- io_profiles[, 1]
     io_profiles <- io_profiles[, -1] %>% as.matrix()
   }
