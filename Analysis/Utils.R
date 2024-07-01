@@ -185,7 +185,8 @@ generate_flightpath <- function(IST_object, cols) {
   
   fp <- flightpath_plot(flightpath_result = NULL,
                         insitutype_result = IST_object,
-                        col = cols[IST_object$clust])
+                        col = cols[IST_object$clust],
+                        showclusterconfidence = TRUE)
   return(fp)
 }
 
