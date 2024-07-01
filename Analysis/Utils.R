@@ -953,7 +953,7 @@ generate_IST_plots <- function(patient_data, assay, IST_object) {
     InSituType_cluster_var,
     known_clusters_colors)
   
-  flightpath_plot_name <- paste0("Patient_",  patient_num, "InSituType_semisup_flightpath")
+  flightpath_plot_name <- paste0("Patient_",  patient_num, "_InSituType_semisup_flightpath")
   InSituType_clusters[[flightpath_plot_name]] <- generate_flightpath(IST_object, InSituType_color_lookup_table)
  
   InSituType_clusters <- c(InSituType_clusters, generate_clustering_plots(
