@@ -704,7 +704,7 @@ generate_feature_plot <- function(patient_data, reduction, features, max_cutoff 
       subtitle = reduction,
     )  & NoLegend() & NoAxes()
     
-  features_plot_name <- paste0("Patient_",  patient_num, "_", reduction)
+  features_plot_name <- paste0("Patient_",  patient_num, "_featureplots_", reduction)
   return(setNames(list(features_plots), features_plot_name))
 }
 
