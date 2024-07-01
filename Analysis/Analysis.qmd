@@ -180,8 +180,6 @@ patient_1_data$RNA_clusters_annotated <- case_match(
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
 patient_1_plots <- c(patient_1_plots, generate_IST_plots(patient_1_data, "RNA", patient_1_IST_semisup))
 patient_1_plots <- c(patient_1_plots, generate_comparison_plots(patient_1_data))
-patient_1_plots$patient_1_RNA_de_genes <- find_most_significant_markers(patient_1_data, "RNA_clusters", "RNA")
-patient_1_plots$patient_1_IST_de_genes <- find_most_significant_markers(patient_1_data, "InSituType_semisup_clusters", "RNA")
 
 # Cleanup and printing
 patients_rna_data[[1]] <- patient_1_data
@@ -234,8 +232,6 @@ patient_2_data$RNA_clusters_annotated <- case_match(
 patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA", "RNA_clusters_annotated"))
 patient_2_plots <- c(patient_2_plots, generate_IST_plots(patient_2_data, "RNA", patient_2_IST_semisup))
 patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
-patient_2_plots$patient_2_RNA_de_genes <- find_most_significant_markers(patient_2_data, "RNA_clusters", "RNA")
-patient_2_plots$patient_2_IST_de_genes <- find_most_significant_markers(patient_2_data, "InSituType_semisup_clusters", "RNA")
 
 # Cleanup and printing
 patients_rna_data[[2]] <- patient_2_data
@@ -283,8 +279,6 @@ patient_3_data$RNA_clusters_annotated <- case_match(
 patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA", "RNA_clusters_annotated"))
 patient_3_plots <- c(patient_3_plots, generate_IST_plots(patient_3_data, "RNA", patient_3_IST_semisup))
 patient_3_plots <- c(patient_3_plots, generate_comparison_plots(patient_3_data))
-patient_3_plots$patient_3_RNA_de_genes <- find_most_significant_markers(patient_3_data, "RNA_clusters", "RNA")
-patient_3_plots$patient_3_IST_de_genes <- find_most_significant_markers(patient_3_data, "InSituType_semisup_clusters", "RNA")
 
 # Cleanup and printing
 patients_rna_data[[3]] <- patient_3_data
@@ -336,8 +330,6 @@ patient_4_data$RNA_clusters_annotated <- case_match(
 patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data, "RNA", "RNA_clusters_annotated"))
 patient_4_plots <- c(patient_4_plots, generate_IST_plots(patient_4_data, "RNA", patient_4_IST_semisup))
 patient_4_plots <- c(patient_4_plots, generate_comparison_plots(patient_4_data))
-patient_4_plots$patient_4_RNA_de_genes <- find_most_significant_markers(patient_4_data, "RNA_clusters", "RNA")
-patient_4_plots$patient_4_IST_de_genes <- find_most_significant_markers(patient_4_data, "InSituType_semisup_clusters", "RNA")
 
 # Cleanup and printing
 patients_rna_data[[4]] <- patient_4_data
@@ -389,8 +381,6 @@ patient_5_data$RNA_clusters_annotated <- case_match(
 patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data, "RNA", "RNA_clusters_annotated"))
 patient_5_plots <- c(patient_5_plots, generate_IST_plots(patient_5_data, "RNA", patient_5_IST_semisup))
 patient_5_plots <- c(patient_5_plots, generate_comparison_plots(patient_5_data))
-patient_5_plots$patient_5_RNA_de_genes <- find_most_significant_markers(patient_5_data, "RNA_clusters", "RNA")
-patient_5_plots$patient_5_IST_de_genes <- find_most_significant_markers(patient_5_data, "InSituType_semisup_clusters", "RNA")
 
 # Cleanup and printing
 patients_rna_data[[5]] <- patient_5_data
@@ -438,8 +428,6 @@ patient_6_data$RNA_clusters_annotated <- case_match(
 patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data, "RNA", "RNA_clusters_annotated"))
 patient_6_plots <- c(patient_6_plots, generate_IST_plots(patient_6_data, "RNA", patient_6_IST_semisup))
 patient_6_plots <- c(patient_6_plots, generate_comparison_plots(patient_6_data))
-patient_6_plots$patient_6_RNA_de_genes <- find_most_significant_markers(patient_6_data, "RNA_clusters", "RNA")
-patient_6_plots$patient_6_IST_de_genes <- find_most_significant_markers(patient_6_data, "InSituType_semisup_clusters", "RNA")
 
 # Cleanup and printing
 patients_rna_data[[6]] <- patient_6_data
@@ -493,8 +481,6 @@ patient_7_data$RNA_clusters_annotated <- case_match(
 patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data, "RNA", "RNA_clusters_annotated"))
 patient_7_plots <- c(patient_7_plots, generate_IST_plots(patient_7_data, "RNA", patient_7_IST_semisup))
 patient_7_plots <- c(patient_7_plots, generate_comparison_plots(patient_7_data))
-patient_7_plots$patient_7_RNA_de_genes <- find_most_significant_markers(patient_7_data, "RNA_clusters", "RNA")
-patient_7_plots$patient_7_IST_de_genes <- find_most_significant_markers(patient_7_data, "InSituType_semisup_clusters", "RNA")
 
 # Cleanup and printing
 patients_rna_data[[7]] <- patient_7_data
