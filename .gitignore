@@ -4,7 +4,7 @@
 *.txt
 
 # Ignore image files
-/Images
+Analysis/Images
 *.png
 
 # Ignore source files
@@ -29,5 +29,10 @@ Presentation/Presentation*
 *.html
 *.css
 *.js
+
+# Ignore Microsoft Office files
+*.docx
+*.pptx
+*.xlsx
 
 /.quarto/
