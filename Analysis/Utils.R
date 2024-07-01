@@ -896,7 +896,7 @@ generate_proteins_plots <- function(patient_data, assay) {
   return(plot_list)
 }
 
-generate_rna_plots <- function(patient_data, assay) {
+generate_rna_plots <- function(patient_data, assay, RNA_cluster_var) {
   
   print("Generate RNA plots")
   
@@ -921,7 +921,6 @@ generate_rna_plots <- function(patient_data, assay) {
     max_cutoff = "q100")
   plot_list <- c(plot_list, RNA_features_plots)
   
-  RNA_cluster_var <- "RNA_clusters"
   RNA_color_lookup_table <- generate_colors_lookup_table(patient_data, RNA_cluster_var, known_clusters_colors)
   RNA_cluster <- generate_clustering_plots(
     patient_data,
