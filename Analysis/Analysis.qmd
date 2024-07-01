@@ -166,7 +166,18 @@ patient_1_rbc_removed$InSituType_semisup_clusters <- patient_1_IST_semisup$clust
 # RNA data only
 patient_1_data <- extract_patient_rna_data(patient_1_rbc_removed, "Nanostring")
 patient_1_data <- normalize_cluster_data(patient_1_data, "RNA")
-patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA"))
+
+# Annotations
+patient_1_data$RNA_clusters_annotated <- case_match(
+  patient_1_data$RNA_clusters,
+  c("0", "1", "2", "3") ~ "Tumor",
+  "4" ~ "Fibroblasts",
+  "5" ~ "Macrophage",
+  "6" ~ "T-cells",
+  "7" ~ "Fibroblasts"
+)
+
+patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
 patient_1_plots <- c(patient_1_plots, generate_IST_plots(patient_1_data, "RNA", patient_1_IST_semisup))
 patient_1_plots <- c(patient_1_plots, generate_comparison_plots(patient_1_data))
 patient_1_plots$patient_1_RNA_de_genes <- find_most_significant_markers(patient_1_data, "RNA_clusters", "RNA")
@@ -209,7 +220,18 @@ patient_2_rbc_removed$InSituType_semisup_clusters <- patient_2_IST_semisup$clust
 # RNA data only
 patient_2_data <- extract_patient_rna_data(patient_2_rbc_removed, "Nanostring")
 patient_2_data <- normalize_cluster_data(patient_2_data, "RNA")
-patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA"))
+
+# Annotations
+patient_2_data$RNA_clusters_annotated <- case_match(
+  patient_2_data$RNA_clusters,
+  c("0", "1", "2") ~ "Tumor",
+  "3" ~ "Fibroblasts",
+  "4" ~ "Macrophages",
+  "5" ~ "Endothelial cells",
+  "6" ~ "T-cells"
+)
+
+patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA", "RNA_clusters_annotated"))
 patient_2_plots <- c(patient_2_plots, generate_IST_plots(patient_2_data, "RNA", patient_2_IST_semisup))
 patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
 patient_2_plots$patient_2_RNA_de_genes <- find_most_significant_markers(patient_2_data, "RNA_clusters", "RNA")
@@ -249,7 +271,16 @@ patient_3_all_data$InSituType_semisup_clusters <- patient_3_IST_semisup$clust
 # RNA data only
 patient_3_data <- extract_patient_rna_data(patient_3_all_data, "Nanostring")
 patient_3_data <- normalize_cluster_data(patient_3_data, "RNA")
-patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA"))
+
+# Annotations
+patient_3_data$RNA_clusters_annotated <- case_match(
+  patient_3_data$RNA_clusters,
+  c("0", "2", "3") ~ "Tumor",
+  "1" ~ "Macrophages",
+  c("4", "5", "6", "7") ~ "Fibroblasts",
+)
+
+patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA", "RNA_clusters_annotated"))
 patient_3_plots <- c(patient_3_plots, generate_IST_plots(patient_3_data, "RNA", patient_3_IST_semisup))
 patient_3_plots <- c(patient_3_plots, generate_comparison_plots(patient_3_data))
 patient_3_plots$patient_3_RNA_de_genes <- find_most_significant_markers(patient_3_data, "RNA_clusters", "RNA")
@@ -292,7 +323,17 @@ patient_4_rbc_removed$InSituType_semisup_clusters <- patient_4_IST_semisup$clust
 # RNA data only
 patient_4_data <- extract_patient_rna_data(patient_4_rbc_removed, "Nanostring")
 patient_4_data <- normalize_cluster_data(patient_4_data, "RNA")
-patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data, "RNA"))
+
+# Annotations
+patient_4_data$RNA_clusters_annotated <- case_match(
+  patient_4_data$RNA_clusters,
+  c("0", "1", "2", "3") ~ "Tumor",
+  "4" ~ "Fibroblasts",
+  "5" ~ "Macrophage",
+  "6" ~ "T-cells"
+)
+
+patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data, "RNA", "RNA_clusters_annotated"))
 patient_4_plots <- c(patient_4_plots, generate_IST_plots(patient_4_data, "RNA", patient_4_IST_semisup))
 patient_4_plots <- c(patient_4_plots, generate_comparison_plots(patient_4_data))
 patient_4_plots$patient_4_RNA_de_genes <- find_most_significant_markers(patient_4_data, "RNA_clusters", "RNA")
@@ -332,7 +373,20 @@ patient_5_all_data$InSituType_semisup_clusters <- patient_5_IST_semisup$clust
 # RNA data only
 patient_5_data <- extract_patient_rna_data(patient_5_all_data, "Nanostring")
 patient_5_data <- normalize_cluster_data(patient_5_data, "RNA")
-patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data, "RNA"))
+
+# Annotations
+patient_5_data$RNA_clusters_annotated <- case_match(
+  patient_5_data$RNA_clusters,
+  c("0", "1") ~ "Tumor",
+  c("2", "4", "5") ~ "Dendritic cells",
+  "3" ~ "Fibroblasts",
+  "5" ~ "Macrophage",
+  "6" ~ "Endothelial cells/Fibroblasts",
+  "7" ~ "T-cells/Dendritic cells",
+  "8" ~ "T-cells",
+)
+
+patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data, "RNA", "RNA_clusters_annotated"))
 patient_5_plots <- c(patient_5_plots, generate_IST_plots(patient_5_data, "RNA", patient_5_IST_semisup))
 patient_5_plots <- c(patient_5_plots, generate_comparison_plots(patient_5_data))
 patient_5_plots$patient_5_RNA_de_genes <- find_most_significant_markers(patient_5_data, "RNA_clusters", "RNA")
@@ -372,7 +426,16 @@ patient_6_all_data$InSituType_semisup_clusters <- patient_6_IST_semisup$clust
 # RNA data only
 patient_6_data <- extract_patient_rna_data(patient_6_all_data, "Nanostring")
 patient_6_data <- normalize_cluster_data(patient_6_data, "RNA")
-patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data, "RNA"))
+
+# Annotations
+patient_6_data$RNA_clusters_annotated <- case_match(
+  patient_6_data$RNA_clusters,
+  c("0", "1", "2", "4") ~ "Tumor",
+  "3" ~ "Fibroblasts/Endothelial cells",
+  "5" ~ "Macrophage",
+)
+
+patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data, "RNA", "RNA_clusters_annotated"))
 patient_6_plots <- c(patient_6_plots, generate_IST_plots(patient_6_data, "RNA", patient_6_IST_semisup))
 patient_6_plots <- c(patient_6_plots, generate_comparison_plots(patient_6_data))
 patient_6_plots$patient_6_RNA_de_genes <- find_most_significant_markers(patient_6_data, "RNA_clusters", "RNA")
@@ -415,7 +478,19 @@ patient_7_rbc_removed$InSituType_semisup_clusters <- patient_7_IST_semisup$clust
 # RNA data only
 patient_7_data <- extract_patient_rna_data(patient_7_rbc_removed, "Nanostring")
 patient_7_data <- normalize_cluster_data(patient_7_data, "RNA")
-patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data, "RNA"))
+
+# Annotations
+patient_7_data$RNA_clusters_annotated <- case_match(
+  patient_7_data$RNA_clusters,
+  c("0", "1", "2", "3") ~ "Tumor",
+  "4" ~ "T-cells/Dendritic cells",
+  "5" ~ "Dendritic cells",
+  "6" ~ "Dendritic cells",
+  "7" ~ "Fibroblasts/Endothelial cells",
+  "8" ~ "Fibroblasts"
+)
+
+patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data, "RNA", "RNA_clusters_annotated"))
 patient_7_plots <- c(patient_7_plots, generate_IST_plots(patient_7_data, "RNA", patient_7_IST_semisup))
 patient_7_plots <- c(patient_7_plots, generate_comparison_plots(patient_7_data))
 patient_7_plots$patient_7_RNA_de_genes <- find_most_significant_markers(patient_7_data, "RNA_clusters", "RNA")
