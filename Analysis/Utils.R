@@ -849,7 +849,9 @@ known_clusters_colors <- c(
   "Plasmacytoid.dendritic.cell" = "#DEA0FD",
   "T.cell.CD4" = "#AA0DFE",
   "T.cell.CD8" = "#F8A19F",
-  "T.cell.regulatory" = "#325A9B"
+  "T.cell.regulatory" = "#325A9B",
+  "Tumor" = "#C4451C",
+  "T.cell" = "#1C8356"
 )
 
 generate_proteins_plots <- function(patient_data, assay) {
