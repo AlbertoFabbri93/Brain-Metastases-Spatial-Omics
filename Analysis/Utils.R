@@ -974,13 +974,7 @@ generate_comparison_plots <- function(patient_data) {
   patient_num <- get_patient_num(patient_data)
 
   seurat_vs_insitutype_plot_name <- paste0("Patient_",  patient_num, "_heatmap_seurat_vs_insitutype")
-  # seurat_vs_insitutype_plot_rds <- paste0(patient_dir_rds_img, seurat_vs_insitutype_plot_name, ".rds")
-  # if (!file.exists(seurat_vs_insitutype_plot_rds)) {
   seurat_vs_insitutype_plot <- compare_clustering_methods(patient_data)
-  #   saveRDS(seurat_vs_insitutype_plot, file = seurat_vs_insitutype_plot_rds)
-  # } else {
-  #   seurat_vs_insitutype_plot <- readRDS(seurat_vs_insitutype_plot_rds)
-  # }
   plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
   
   return(plot_list)
