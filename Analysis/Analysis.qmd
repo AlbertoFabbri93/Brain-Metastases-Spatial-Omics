@@ -171,10 +171,10 @@ patient_1_data <- normalize_cluster_data(patient_1_data, "RNA")
 patient_1_data$RNA_clusters_annotated <- case_match(
   patient_1_data$RNA_clusters,
   c("0", "1", "2", "3") ~ "Tumor",
-  "4" ~ "Fibroblasts",
+  "4" ~ "Fibroblast",
   "5" ~ "Macrophage",
-  "6" ~ "T-cells",
-  "7" ~ "Fibroblasts"
+  "6" ~ "T.cell",
+  "7" ~ "Fibroblast"
 )
 
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
@@ -225,10 +225,10 @@ patient_2_data <- normalize_cluster_data(patient_2_data, "RNA")
 patient_2_data$RNA_clusters_annotated <- case_match(
   patient_2_data$RNA_clusters,
   c("0", "1", "2") ~ "Tumor",
-  "3" ~ "Fibroblasts",
-  "4" ~ "Macrophages",
-  "5" ~ "Endothelial cells",
-  "6" ~ "T-cells"
+  "3" ~ "Fibroblast",
+  "4" ~ "Macrophage",
+  "5" ~ "Endothelial",
+  "6" ~ "T-cell"
 )
 
 patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA", "RNA_clusters_annotated"))
@@ -276,8 +276,8 @@ patient_3_data <- normalize_cluster_data(patient_3_data, "RNA")
 patient_3_data$RNA_clusters_annotated <- case_match(
   patient_3_data$RNA_clusters,
   c("0", "2", "3") ~ "Tumor",
-  "1" ~ "Macrophages",
-  c("4", "5", "6", "7") ~ "Fibroblasts",
+  "1" ~ "Macrophage",
+  c("4", "5", "6", "7") ~ "Fibroblast",
 )
 
 patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA", "RNA_clusters_annotated"))
@@ -328,9 +328,9 @@ patient_4_data <- normalize_cluster_data(patient_4_data, "RNA")
 patient_4_data$RNA_clusters_annotated <- case_match(
   patient_4_data$RNA_clusters,
   c("0", "1", "2", "3") ~ "Tumor",
-  "4" ~ "Fibroblasts",
+  "4" ~ "Fibroblast",
   "5" ~ "Macrophage",
-  "6" ~ "T-cells"
+  "6" ~ "T-cell/Endothelial"
 )
 
 patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data, "RNA", "RNA_clusters_annotated"))
@@ -378,12 +378,12 @@ patient_5_data <- normalize_cluster_data(patient_5_data, "RNA")
 patient_5_data$RNA_clusters_annotated <- case_match(
   patient_5_data$RNA_clusters,
   c("0", "1") ~ "Tumor",
-  c("2", "4", "5") ~ "Dendritic cells",
-  "3" ~ "Fibroblasts",
+  c("2", "4", "5") ~ "Dendritic.cell",
+  "3" ~ "Fibroblast",
   "5" ~ "Macrophage",
-  "6" ~ "Endothelial cells/Fibroblasts",
-  "7" ~ "T-cells/Dendritic cells",
-  "8" ~ "T-cells",
+  "6" ~ "Endothelial/Fibroblast",
+  "7" ~ "T-cell/Dendritic.cell",
+  "8" ~ "T-cell",
 )
 
 patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data, "RNA", "RNA_clusters_annotated"))
@@ -431,7 +431,7 @@ patient_6_data <- normalize_cluster_data(patient_6_data, "RNA")
 patient_6_data$RNA_clusters_annotated <- case_match(
   patient_6_data$RNA_clusters,
   c("0", "1", "2", "4") ~ "Tumor",
-  "3" ~ "Fibroblasts/Endothelial cells",
+  "3" ~ "Fibroblasts/Endothelial",
   "5" ~ "Macrophage",
 )
 
@@ -483,11 +483,11 @@ patient_7_data <- normalize_cluster_data(patient_7_data, "RNA")
 patient_7_data$RNA_clusters_annotated <- case_match(
   patient_7_data$RNA_clusters,
   c("0", "1", "2", "3") ~ "Tumor",
-  "4" ~ "T-cells/Dendritic cells",
-  "5" ~ "Dendritic cells",
-  "6" ~ "Dendritic cells",
-  "7" ~ "Fibroblasts/Endothelial cells",
-  "8" ~ "Fibroblasts"
+  "4" ~ "T-cell/Dendritic.cell",
+  "5" ~ "Dendritic.cell",
+  "6" ~ "Dendritic.cell",
+  "7" ~ "Fibroblast/Endothelial",
+  "8" ~ "Fibroblast"
 )
 
 patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data, "RNA", "RNA_clusters_annotated"))
