@@ -137,7 +137,19 @@ generate_dyn_text_heatmap <- function(
     subtitle = "Top 10 Differentially Expressed Genes per Cluster"
   )
   
-  return(diff_expr_genes_heatmap)
+  result_list <- list(
+    diff_expr_genes_heatmap,
+    most_significant_markers
+  )
+  
+  # Dynamically assign the desired names
+  names(result_list) <- c(
+    paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap", sep = "_"),
+    paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap_list", sep = "_")
+  )
+  
+  # Return the named list
+  return(result_list)
 }
 
 find_most_significant_markers <- function(
@@ -815,7 +827,7 @@ generate_clustering_plots <- function(
       color_lookup_table = color_lookup_table,
       cluster_name = cluster_name)
     # Save plot to list
-    clustering_plots[[paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap", sep = "_")]] <- diff_expr_genes_heatmap
+    clustering_plots <- c(clustering_plots, diff_expr_genes_heatmap)
   }
   
   return(clustering_plots)
