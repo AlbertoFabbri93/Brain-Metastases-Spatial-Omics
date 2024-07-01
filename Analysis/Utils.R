@@ -940,26 +940,28 @@ generate_IST_plots <- function(patient_data, assay, IST_object) {
   print("Generate InSituType plots")
   
   # List with all the plots to be returned
-  plot_list <- list()
+  InSituType_clusters <- list()
   
   patient_num <- get_patient_num(patient_data)
- 
   InSituType_cluster_var <- "InSituType_semisup_clusters"
-  InSituType_color_lookup_table <- generate_colors_lookup_table(patient_data, InSituType_cluster_var, known_clusters_colors)
-  InSituType_cluster <- generate_clustering_plots(
+  InSituType_color_lookup_table <- generate_colors_lookup_table(
+    patient_data,
+    InSituType_cluster_var,
+    known_clusters_colors)
+  
+  flightpath_plot_name <- paste0("Patient_",  patient_num, "InSituType_semisup_flightpath")
+  InSituType_clusters[[flightpath_plot_name]] <- generate_flightpath(IST_object, InSituType_color_lookup_table)
+ 
+  InSituType_clusters <- c(InSituType_clusters, generate_clustering_plots(
     patient_data,
     InSituType_cluster_var,
     cluster_assay = assay, 
     cluster_reduction = "umap_RNA",
     create_heatmap = TRUE,
     cluster_name = "InSituType Semisupervised Clusters",
-    color_lookup_table = InSituType_color_lookup_table)
+    color_lookup_table = InSituType_color_lookup_table))
   
-  flightpath_plot_name <- paste0("Patient_",  patient_num, "InSituType_semisup_flightpath")
-  InSituType_cluster[[flightpath_plot_name]] <- generate_flightpath(IST_object, InSituType_color_lookup_table)
-  
-  plot_list[[InSituType_cluster_var]] <- InSituType_cluster
-  return(plot_list)
+  return(InSituType_clusters)
 }
 
 generate_comparison_plots <- function(patient_data) {
