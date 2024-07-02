@@ -193,14 +193,18 @@ get_clusters_proportions <- function(patient_data) {
 
 ####### INSITUTYPE SEMISUPERVISED #######
 
-generate_flightpath <- function(IST_object, cols) {
+generate_flightpath <- function(IST_object, cols, patient_num) {
   
   fp <- flightpath_plot(flightpath_result = NULL,
                         insitutype_result = IST_object,
                         col = cols[IST_object$clust],
-                        showclusterconfidence = TRUE)
-  return(fp)
-}
+                        showclusterconfidence = TRUE) +
+    labs(title = paste("Patient", patient_num),
+         subtitle = "InSituType Semisupervised Clustering")
+  
+  fp_name <- paste("Patient",  patient_num, "InSituType_semisup_clusters_flightpath_plot", sep = "_")
+  return(setNames(list(fp), fp_name))
+  }
 
 run_IST_semisup_extract_data <- function(
     patient_data,
@@ -961,16 +965,17 @@ generate_IST_plots <- function(patient_data, assay, IST_object) {
   
   # List with all the plots to be returned
   InSituType_clusters <- list()
-  
   patient_num <- get_patient_num(patient_data)
+  
   InSituType_cluster_var <- "InSituType_semisup_clusters"
   InSituType_color_lookup_table <- generate_colors_lookup_table(
     patient_data,
     InSituType_cluster_var,
     known_clusters_colors)
   
-  flightpath_plot_name <- paste0("Patient_",  patient_num, "_InSituType_semisup_flightpath")
-  InSituType_clusters[[flightpath_plot_name]] <- generate_flightpath(IST_object, InSituType_color_lookup_table)
+  InSituType_clusters <- c(
+    InSituType_clusters,
+    generate_flightpath(IST_object, InSituType_color_lookup_table, patient_num))
  
   InSituType_clusters <- c(InSituType_clusters, generate_clustering_plots(
     patient_data,
