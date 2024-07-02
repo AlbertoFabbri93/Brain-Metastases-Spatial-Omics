@@ -239,7 +239,7 @@ run_InSituType_semisupervised <- function(
     # Use this reference profile as it is the only one available from CosMx data, originally from:
     # https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
     io_profiles <- read.csv(
-      file = here("Analysis", "Cell_profile_matrices", "NanoString.CosMx.Human.IO.profiles.csv"),
+      file = here("Analysis", "metadata", "NanoString.CosMx.Human.IO.profiles.csv"),
       header = TRUE,
       sep = ",",
       fill = TRUE,
