@@ -238,14 +238,30 @@ run_InSituType_semisupervised <- function(
     # Get cell reference profile data from NanoString
     # Use this reference profile as it is the only one available from CosMx data, originally from:
     # https://raw.githubusercontent.com/Nanostring-Biostats/CosMx-Cell-Profiles/main/Human/IO/IO.profiles.csv
-    io_profiles <- read.csv(
+    # I have added a name to the first column
+    io_profiles <- read_csv(
       file = here("Analysis", "metadata", "NanoString.CosMx.Human.IO.profiles.csv"),
-      header = TRUE,
-      sep = ",",
-      fill = TRUE,
-      stringsAsFactors = FALSE)
-    rownames(io_profiles) <- io_profiles[, 1]
-    io_profiles <- io_profiles[, -1] %>% as.matrix()
+      col_types = cols(
+        `Gene` = col_character(),
+        `B cell` = col_double(),
+        `Dendritic cell` = col_double(),
+        Endothelial = col_double(),
+        Fibroblast = col_double(),
+        Macrophage = col_double(),
+        `Mast cell` = col_double(),
+        Monocyte = col_double(),
+        Neutrophil = col_double(),
+        `NK cell` = col_double(),
+        Plasma = col_double(),
+        Plasmablast = col_double(),
+        `Plasmacytoid dendritic cell` = col_double(),
+        `T cell CD4` = col_double(),
+        `T cell CD8` = col_double(),
+        `T cell regulatory` = col_double()
+      ))
+    row_name = io_profiles$Gene
+    io_profiles %<>% select(-Gene) %>% as.matrix
+    rownames(io_profiles) = row_name
   }
   
   set.seed(6)
@@ -866,23 +882,23 @@ remove_clusters <- function(patient_data, cluster_col, cluster_vals) {
 
 # Know clusters that should have consistent colors
 known_clusters_colors <- c(
-  "B.cell" = "#5A5156",
-  "Dendritic.cell" = "#E4E1E3",
+  "B cell" = "#5A5156",
+  "Dendritic cell" = "#E4E1E3",
   "Endothelial" = "#F6222E",
   "Fibroblast" = "#FE00FA",
   "Macrophage" = "#16FF32",
-  "Mast.cell" = "#3283FE",
+  "Mast cell" = "#3283FE",
   "Monocyte" = "#FEAF16",
   "Neutrophil" = "#B00068",
-  "NK.cell" = "#1CFFCE",
+  "NK cell" = "#1CFFCE",
   "Plasma" = "#90AD1C",
   "Plasmablast" = "#2ED9FF",
-  "Plasmacytoid.dendritic.cell" = "#DEA0FD",
-  "T.cell.CD4" = "#AA0DFE",
-  "T.cell.CD8" = "#F8A19F",
-  "T.cell.regulatory" = "#325A9B",
+  "Plasmacytoid dendritic cell" = "#DEA0FD",
+  "T cell CD4" = "#AA0DFE",
+  "T cell CD8" = "#F8A19F",
+  "T cell regulatory" = "#325A9B",
   "Tumor" = "#C4451C",
-  "T.cell" = "#1C8356"
+  "T cell" = "#1C8356"
 )
 
 generate_proteins_plots <- function(patient_data, assay) {
