@@ -12,10 +12,8 @@ format: html
 #| label: setup
 #| include: false
 
-library("data.table")
-library("tidyverse")
+# Work with single cell and spatial omics data
 library("Seurat")
-library("pheatmap")
 # Replace this future symbols with others because they conflict with the zeallot package
 library (future, exclude = c("%->%", "%<-%"));
 `%<--%` = future::`%<-%` ;
@@ -24,20 +22,30 @@ library (future, exclude = c("%->%", "%<-%"));
 plan("multisession", workers = 6)
 # Unpack multiple values without temporary variables
 library("zeallot")
-library("ggplot2")
+# Sane way to declare file paths
+library("here")
+# Machine learning library from NanoString
 library("InSituType")
-library("openxlsx")
 # Used for the barplots
 library("dittoSeq")
 # Used to visualize the raw images from AtoMx
 library(EBImage)
 # Used to annotate images with multiple plots
 library(patchwork)
-# Sane way to declare file paths
-library("here")
+
+###### TIDYVERSE ######
+# Data manipulation
+library("dplyr")
+# Create nice plots
+library("ggplot2")
+# Open Excel files
+library("readxl")
+# Open CSV files
+library("readr")
 
 # Import utility functions
 source("Utils.R")
+
 # Import environment variables as global variables
 rds_dir <- Sys.getenv("RDS_DIR")
 image_dir <- Sys.getenv("IMAGE_DIR")
