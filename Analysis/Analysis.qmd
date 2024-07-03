@@ -596,6 +596,7 @@ save_plots(patient_7_plots, get_patient_dir_img("7"), image_ext)
 
 # Save plots comparing patients in this subfolder
 compare_patients_subfolder <- here(image_dir, "Compare_patients")
+compare_patients_to_save <- list()
 
 # Create folder for the plots id it does not exist
 if (!dir.exists(compare_patients_subfolder)) {
@@ -611,13 +612,39 @@ for (i in 2:length(patients_rna_data)) {
   combined_patients <- merge(combined_patients, y = seurat_obj, merge.data = TRUE)
 }
 
-barplot_cluster_var = "InSituType_semisup_clusters"
-barplot_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_cluster_var, known_clusters_colors)
+barplot_IST_ss_var = "InSituType_semisup_clusters"
+barplot_IST_ss_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_IST_ss_var, known_clusters_colors)
 # Plot a barplot comparing the InSituTypeID clusters of all patients
-dittoBarPlot(combined_patients,
-             var = barplot_cluster_var,
-             group.by = "Patient.ID",
-             color.panel = barplot_color_lookup_table) +
-    guides(fill = guide_legend(ncol = 2, byrow = TRUE))
-ggsave(paste0(compare_patients_subfolder, "/InSituType_clusters_all_patients_barplot", image_ext))
+IST_ss_clusters_all_patients <- dittoBarPlot(
+    object = combined_patients,
+    var = barplot_IST_ss_var,
+    group.by = "Patient.ID",
+    color.panel = barplot_IST_ss_color_lookup_table) +
+  guides(fill = guide_legend(ncol = 2, byrow = TRUE))
+compare_patients_to_save[["InSituType_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
+
+barplot_RNA_ann_var = "RNA_clusters_annotated"
+barplot_RNA_ann_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_RNA_ann_var, known_clusters_colors)
+RNA_ann_clusters_all_patients <- dittoBarPlot(
+    object = combined_patients,
+    var = barplot_RNA_ann_var,
+    group.by = "Patient.ID",
+    color.panel = barplot_RNA_ann_color_lookup_table) +
+  guides(fill = guide_legend(ncol = 2, byrow = TRUE))
+compare_patients_to_save[["RNA_annotated_clusters_all_patients_barplot"]] <- RNA_ann_clusters_all_patients
+
+print(compare_patients_to_save)
+```
+
+::: {.content-hidden}
+### Save plots
+:::
+
+```{r}
+#| label: save-plots-compare-patients
+#| include: false
+#| echo: false
+#| eval: false
+
+save_plots(compare_patients_to_save, compare_patients_subfolder, image_ext)
 ```
