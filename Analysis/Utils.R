@@ -557,7 +557,10 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
   # Set the assay to the one containing the RNA data
   DefaultAssay(patient_data) <- assay
   # Normalize the count data present in a given assay
-  patient_data <- Seurat::NormalizeData(patient_data)
+  patient_data <- Seurat::NormalizeData(
+    object = patient_data,
+    normalization.method = "LogNormalize",
+    scale.factor = 10000)
   # Scales and centers features in the dataset
   patient_data <- Seurat::ScaleData(patient_data)
   # Detect highly variable genes for the pca
