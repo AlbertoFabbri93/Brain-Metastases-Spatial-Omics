@@ -585,7 +585,8 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
     random.seed = 1)
   # Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
   patient_data <- Seurat::RunUMAP(
-    patient_data,
+    object = patient_data,
+    n.neighbors = 30L,
     dims = patient_dims,
     repulsion.strength = 5,
     reduction = "pca_RNA",
