@@ -560,14 +560,18 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
   patient_data <- Seurat::NormalizeData(
     object = patient_data,
     normalization.method = "LogNormalize",
-    scale.factor = 10000)
+    scale.factor = 10000,
+    verbose = FALSE)
   # Scales and centers features in the dataset
   patient_data <- Seurat::ScaleData(
     object = patient_data,
-    model.use = "linear")
+    model.use = "linear",
+    verbose = FALSE)
   # Detect highly variable genes for the pca
   # Identifies features that are outliers on a 'mean variability plot'
-  patient_data <- Seurat::FindVariableFeatures(patient_data)
+  patient_data <- Seurat::FindVariableFeatures(
+    object = patient_data,
+    verbose = FALSE)
   # Run a PCA dimensionality reduction
   patient_data <- Seurat::RunPCA(
     patient_data,
