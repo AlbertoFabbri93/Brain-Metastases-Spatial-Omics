@@ -574,21 +574,26 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
     verbose = FALSE)
   # Run a PCA dimensionality reduction
   patient_data <- Seurat::RunPCA(
-    patient_data,
+    object = patient_data,
     reduction.name = "pca_RNA",
     reduction.key = "PCRNA_",
     seed.use = 1,
     verbose = FALSE)
   # Computes the k.param nearest neighbors
-  patient_data <- Seurat::FindNeighbors(patient_data, dims = patient_dims, reduction = "pca_RNA")
+  patient_data <- Seurat::FindNeighbors(
+    object = patient_data,
+    dims = patient_dims,
+    reduction = "pca_RNA",
+    verbose = FALSE)
   # Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
   # Use the resolution parameter to fine tune the number of expected clusters
   patient_data <- Seurat::FindClusters(
-    patient_data,
+    object = patient_data,
     resolution = patient_res,
     cluster.name = "RNA_clusters",
     graph.name = paste0(assay, "_snn"),
-    random.seed = 1)
+    random.seed = 1,
+    verbose = FALSE)
   # Uniform Manifold Approximation and Projection (UMAP) dimensional reduction technique
   patient_data <- Seurat::RunUMAP(
     object = patient_data,
