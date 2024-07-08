@@ -983,7 +983,7 @@ generate_rna_plots <- function(patient_data, assay, RNA_cluster_var) {
     cluster_assay = assay, 
     cluster_reduction = "umap_RNA",
     create_heatmap = TRUE,
-    cluster_name = "RNA Clusters",
+    cluster_name = NULL,
     color_lookup_table = RNA_color_lookup_table)
   plot_list[[RNA_cluster_var]] <- RNA_cluster
   
