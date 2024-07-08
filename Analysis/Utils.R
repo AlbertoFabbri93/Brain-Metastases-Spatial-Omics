@@ -784,6 +784,34 @@ generate_colors_lookup_table <- function(data, cluster_column_name, known_cluste
 
 ####### PRINT CLUSTERING PLOTS #######
 
+generate_umap <- function(patient_data, cluster_var, cluster_reduction, cluster_name = NULL, color_lookup_table = NULL) {
+  
+  if (is.null(cluster_name)) {
+    cluster_name <- cluster_var
+  }
+  
+  patient_num <- get_patient_num(patient_data)
+  
+  # Graphs the output of a dimensional reduction technique on a 2D scatter plot
+  # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
+  umap_clusters <- Seurat::DimPlot(
+    object = patient_data,
+    reduction = cluster_reduction,,
+    group.by = cluster_var,
+    label=TRUE,
+    label.box=TRUE,
+    repel=TRUE,
+    cols = color_lookup_table) +
+    labs(
+      title = paste("Patient", patient_num),
+      subtitle = cluster_name) +
+    NoLegend()
+  
+  # Return the plot inside a list with a name
+  umap_clusters_plot_name <- paste("Patient",  patient_num, cluster_var, "umap", sep = "_")
+  return(setNames(list(umap_clusters), umap_clusters_plot_name))
+}
+  
 generate_clustering_plots <- function(
     patient_data,
     cluster_var,
@@ -821,22 +849,12 @@ generate_clustering_plots <- function(
   # Plot the cells using their polygonal boundaries
   DefaultBoundary(patient_data[[patient_image]]) <- "segmentation"
   
-  # Graphs the output of a dimensional reduction technique on a 2D scatter plot
-  # Each point is a cell and it's positioned based on the cell embeddings determined by the reduction technique
-  umap_clusters <- Seurat::DimPlot(
+  clustering_plots <- c(clustering_plots, generate_umap(
     patient_data,
-    reduction = cluster_reduction,,
-    group.by = cluster_var,
-    label=TRUE,
-    label.box=TRUE,
-    repel=TRUE,
-    cols = color_lookup_table) +
-    labs(
-      title = paste("Patient", patient_num),
-      subtitle = cluster_name) +
-    NoLegend()
-  # Save plot to list
-  clustering_plots[[paste("Patient",  patient_num, cluster_var, "umap", sep = "_")]] <- umap_clusters
+    cluster_var, 
+    cluster_reduction,
+    cluster_name,
+    color_lookup_table))
   
   # Plot cells in their spatial context
   stamps_list <- list()
