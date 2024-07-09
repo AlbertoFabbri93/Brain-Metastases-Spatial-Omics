@@ -195,6 +195,7 @@ get_clusters_proportions <- function(patient_data) {
 
 generate_flightpath <- function(IST_object, cols, patient_num) {
   
+  set.seed(6)
   fp <- flightpath_plot(flightpath_result = NULL,
                         insitutype_result = IST_object,
                         col = cols[IST_object$clust],
