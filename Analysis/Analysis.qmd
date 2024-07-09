@@ -267,6 +267,16 @@ patient_1_data$RNA_clusters_annotated <- case_match(
   "6" ~ "T cell",
   "7" ~ "Fibroblast"
 )
+patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "InSituType_semisup_clusters", "umap_RNA"))
+patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "InSituType_semisup_clusters", "RNA"))
+InSituType_color_lookup_table_1 <- generate_colors_lookup_table(
+    patient_1_data,
+    "InSituType_semisup_clusters",
+    known_clusters_colors)
+patient_1_plots <- c(
+    patient_1_plots,
+    generate_flightpath(patient_1_IST_semisup, InSituType_color_lookup_table_1, "1"))
+patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
 patient_1_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_1_data$InSituType_semisup_clusters,
   c("a", "b", "c", "d", "e", "f") ~ "Tumor",
@@ -274,8 +284,13 @@ patient_1_data$InSituType_semisup_clusters_annotated <- case_match(
   .default = unname(patient_1_data$InSituType_semisup_clusters)
 )
 
-patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
-patient_1_plots <- c(patient_1_plots, generate_IST_plots(patient_1_data, "RNA", patient_1_IST_semisup))
+InSituType_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "InSituType_semisup_clusters_annotated", known_clusters_colors)
+patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "InSituType_semisup_clusters_annotated",
+    cluster_assay = "RNA", 
+    cluster_reduction = "umap_RNA",
+    create_heatmap = FALSE,
+    cluster_name = "InSituType Semisupervised Clusters Annotated",
+    color_lookup_table = InSituType_color_lookup_table))
 patient_1_plots <- c(patient_1_plots, generate_comparison_plots(patient_1_data))
 
 # Cleanup and printing
