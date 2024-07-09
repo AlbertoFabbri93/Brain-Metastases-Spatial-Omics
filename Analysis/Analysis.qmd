@@ -267,6 +267,12 @@ patient_1_data$RNA_clusters_annotated <- case_match(
   "6" ~ "T cell",
   "7" ~ "Fibroblast"
 )
+patient_1_data$InSituType_semisup_clusters_annotated <- case_match(
+  patient_1_data$InSituType_semisup_clusters,
+  c("a", "b", "c", "d", "e", "f") ~ "Tumor",
+  "g" ~ "Endothelial",
+  .default = unname(patient_1_data$InSituType_semisup_clusters)
+)
 
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
 patient_1_plots <- c(patient_1_plots, generate_IST_plots(patient_1_data, "RNA", patient_1_IST_semisup))
