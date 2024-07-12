@@ -340,6 +340,13 @@ patient_2_data$RNA_clusters_annotated <- case_match(
   "5" ~ "Endothelial",
   "6" ~ "T cell"
 )
+patient_2_data$InSituType_semisup_clusters_annotated <- case_match(
+  patient_2_data$InSituType_semisup_clusters,
+  c("a", "b") ~ "Tumor",
+  "c" ~ "Dendritic cell",
+  c("d", "e") ~ "Fibroblast",
+  .default = unname(patient_2_data$InSituType_semisup_clusters)
+)
 
 patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA", "RNA_clusters_annotated"))
 patient_2_plots <- c(patient_2_plots, generate_IST_plots(patient_2_data, "RNA", patient_2_IST_semisup))
@@ -388,6 +395,12 @@ patient_3_data$RNA_clusters_annotated <- case_match(
   c("4", "7") ~ "Fibroblast",
   "5" ~ "Fibroblast/Oligodendrocyte",
   "6" ~ "Endothelial"
+)
+patient_3_data$InSituType_semisup_clusters_annotated <- case_match(
+  patient_3_data$InSituType_semisup_clusters,
+  c("a", "c", "d", "e", "g") ~ "Tumor",
+  c("b", "f") ~ "Fibroblast",
+  .default = unname(patient_3_data$InSituType_semisup_clusters)
 )
 
 patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA", "RNA_clusters_annotated"))
@@ -440,7 +453,13 @@ patient_4_data$RNA_clusters_annotated <- case_match(
   "5" ~ "Macrophage",
   "6" ~ "T cell/Endothelial"
 )
-
+patient_4_data$InSituType_semisup_clusters_annotated <- case_match(
+  patient_4_data$InSituType_semisup_clusters,
+  c("a", "c") ~ "Tumor",
+  "b" ~ "Dendritic cell",
+  c("d", "e") ~ "Fibroblast",
+  .default = unname(patient_4_data$InSituType_semisup_clusters)
+)
 patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data, "RNA", "RNA_clusters_annotated"))
 patient_4_plots <- c(patient_4_plots, generate_IST_plots(patient_4_data, "RNA", patient_4_IST_semisup))
 patient_4_plots <- c(patient_4_plots, generate_comparison_plots(patient_4_data))
@@ -491,6 +510,13 @@ patient_5_data$RNA_clusters_annotated <- case_match(
   "7" ~ "T cell/Dendritic cell",
   "8" ~ "T cell",
 )
+patient_5_data$InSituType_semisup_clusters_annotated <- case_match(
+  patient_5_data$InSituType_semisup_clusters,
+  c("a", "c", "d", "g") ~ "Tumor",
+  c("b", "e") ~ "T cell/Dendritic cell",
+  "f" ~ "Fibroblast/Endothelial",
+  .default = unname(patient_5_data$InSituType_semisup_clusters)
+)
 
 patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data, "RNA", "RNA_clusters_annotated"))
 patient_5_plots <- c(patient_5_plots, generate_IST_plots(patient_5_data, "RNA", patient_5_IST_semisup))
@@ -537,6 +563,11 @@ patient_6_data$RNA_clusters_annotated <- case_match(
   c("0", "1", "2", "4") ~ "Tumor",
   "3" ~ "Fibroblasts/Endothelial",
   "5" ~ "Macrophage",
+)
+patient_6_data$InSituType_semisup_clusters_annotated <- case_match(
+  patient_6_data$InSituType_semisup_clusters,
+  c("a", "b", "c", "d") ~ "Tumor",
+  .default = unname(patient_6_data$InSituType_semisup_clusters)
 )
 
 patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data, "RNA", "RNA_clusters_annotated"))
@@ -591,6 +622,12 @@ patient_7_data$RNA_clusters_annotated <- case_match(
   "7" ~ "Fibroblast/Endothelial",
   "8" ~ "Fibroblast"
 )
+patient_7_data$InSituType_semisup_clusters_annotated <- case_match(
+  patient_7_data$InSituType_semisup_clusters,
+  c("a", "b", "c", "d") ~ "Tumor",
+  "e" ~ "T cell/Dendritic cell/Endothelial",
+  .default = unname(patient_7_data$InSituType_semisup_clusters)
+)
 
 patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data, "RNA", "RNA_clusters_annotated"))
 patient_7_plots <- c(patient_7_plots, generate_IST_plots(patient_7_data, "RNA", patient_7_IST_semisup))
@@ -637,7 +674,7 @@ for (i in 2:length(patients_rna_data)) {
   combined_patients <- merge(combined_patients, y = seurat_obj, merge.data = TRUE)
 }
 
-barplot_IST_ss_var = "InSituType_semisup_clusters"
+barplot_IST_ss_var = "InSituType_semisup_clusters_annotated"
 barplot_IST_ss_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_IST_ss_var, known_clusters_colors)
 # Plot a barplot comparing the InSituTypeID clusters of all patients
 IST_ss_clusters_all_patients <- dittoBarPlot(
@@ -646,7 +683,7 @@ IST_ss_clusters_all_patients <- dittoBarPlot(
     group.by = "Patient.ID",
     color.panel = barplot_IST_ss_color_lookup_table) +
   guides(fill = guide_legend(ncol = 2, byrow = TRUE))
-compare_patients_to_save[["InSituType_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
+compare_patients_to_save[["InSituType_annotated_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
 
 barplot_RNA_ann_var = "RNA_clusters_annotated"
 barplot_RNA_ann_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_RNA_ann_var, known_clusters_colors)
