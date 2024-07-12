@@ -165,6 +165,7 @@ find_most_significant_markers <- function(
   # Find markers (differentially expressed genes) for each of the identity classes in the filtered dataset
   # If you have more than one assay it is necessary to specify the assay parameter
   markers_data <- FindAllMarkers(
+    test.use = "wilcox",
     patient_data,
     assay = assay_name,
     only.pos = TRUE,
