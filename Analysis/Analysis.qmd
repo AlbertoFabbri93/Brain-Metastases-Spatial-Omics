@@ -52,6 +52,82 @@ image_dir <- Sys.getenv("IMAGE_DIR")
 image_ext <- Sys.getenv("IMAGE_EXT")
 ```
 
+## Tidy Seurat object
+
+```{r}
+#| label: tidy-seurat-object
+
+# Load the Seurat object
+breast_cancer_patients_mixed_features <- readRDS(here(rds_dir, "breast_cancer_patients.rds"))
+
+tidy_seurat_object_assay <- function(seurat_object_mixed_features, assay_name) {
+
+  assay <- seurat_object_mixed_features[[assay_name]]
+  
+  # Extract features for the "Gene", "Negative Probes" and "System Control" assays
+  system_control_features <- grep("^SystemControl", rownames(assay), value = TRUE)
+  negative_probes_features <- grep("^Negative", rownames(assay), value = TRUE)
+  gene_features <- setdiff(rownames(assay), c(system_control_features, negative_probes_features))
+  
+  # Subset the count data for the various groups of features
+  system_control_counts <- assay$counts[system_control_features, ]
+  negative_probes_counts <- assay$counts[negative_probes_features, ]
+  gene_counts <- assay$counts[gene_features, ]
+  
+  # Create new Assay objects with the respective features
+  system_control_assay <- CreateAssayObject(counts = system_control_counts)
+  negative_probes_assay <- CreateAssayObject(counts = negative_probes_counts)
+  gene_assay <- CreateAssayObject(counts = gene_counts)
+  
+  # Assay names
+  sytem_control_assay_name <- "SystemControl"
+  negative_probes_assay_name <- "NegativeProbes"
+  gene_assay_name <- "RNA"
+  
+  # Set appropriate keys for the new assays
+  system_control_assay@key <- paste0(sytem_control_assay_name, "_")
+  negative_probes_assay@key <- paste0(negative_probes_assay_name, "_")
+  gene_assay@key <- paste0(gene_assay_name, "_")
+  
+  # Create a new Seurat object
+  seurat_object_cleaned_features <- CreateSeuratObject(counts = gene_assay)
+  seurat_object_cleaned_features[["SystemControl"]] <- system_control_assay
+  seurat_object_cleaned_features[["NegativeProbes"]] <- negative_probes_assay
+  
+  original_metadata <- seurat_object_mixed_features@meta.data
+  
+  # Specify the metadata columns to exclude
+  exclude_cols <- c(
+    "orig.ident",
+    "nCount_Nanostring",
+    "nFeature_Nanostring",
+    "nn_b326beb0.2706.4f9e.a165.44afc025b72e_1_cluster_cluster_7a2d0841.7221.45b3.be66.f38ce260c6aa_1",
+    "RNA_nbclust_419c19f2.965d.4b31.822e.6eba63b75b54_1_clusters",
+    "RNA_nbclust_419c19f2.965d.4b31.822e.6eba63b75b54_1_posterior_probability",
+    "cell",
+    "nCount_RNA",
+    "nFeature_RNA",
+    "nCount_negprobes",
+    "nFeature_negprobes",
+    "Panel",
+    "cellSegmentationSetId",
+    "cellSegmentationSetName")
+
+  # Remove the specified columns
+  filtered_metadata <- original_metadata[, !(colnames(original_metadata) %in% exclude_cols)]
+  
+  # Rename one metadata column
+  colnames(filtered_metadata)[which(colnames(filtered_metadata) == "cell_id")] <- "full_cell_ID"
+
+  seurat_object_cleaned_features <- AddMetaData(object = seurat_object_cleaned_features, metadata = filtered_metadata)
+  
+  return(seurat_object_cleaned_features)
+}
+
+breast_cancer_patients_cleaned_features <- tidy_seurat_object_assay(breast_cancer_patients_mixed_features, "Nanostring")
+rm(breast_cancer_patients_mixed_features)
+```
+
 ## General overview of the data
 
 ```{r}
