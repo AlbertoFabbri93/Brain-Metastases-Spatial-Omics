@@ -75,9 +75,9 @@ tidy_seurat_object_assay <- function(seurat_object_mixed_features, assay_name) {
   gene_counts <- assay$counts[gene_features, ]
   
   # Create new Assay objects with the respective features
-  system_control_assay <- CreateAssayObject(counts = system_control_counts)
-  negative_probes_assay <- CreateAssayObject(counts = negative_probes_counts)
-  gene_assay <- CreateAssayObject(counts = gene_counts)
+  system_control_assay <- CreateAssay5Object(counts = system_control_counts)
+  negative_probes_assay <- CreateAssay5Object(counts = negative_probes_counts)
+  gene_assay <- CreateAssay5Object(counts = gene_counts)
   
   # Assay names
   sytem_control_assay_name <- "SystemControl"
