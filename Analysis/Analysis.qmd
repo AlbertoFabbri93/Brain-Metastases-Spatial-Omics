@@ -125,7 +125,7 @@ tidy_seurat_object_assay <- function(seurat_object_mixed_features, assay_name) {
 }
 
 breast_cancer_patients_cleaned_features <- tidy_seurat_object_assay(breast_cancer_patients_mixed_features, "Nanostring")
-rm(breast_cancer_patients_mixed_features)
+# rm(breast_cancer_patients_mixed_features)
 ```
 
 ## General overview of the data
@@ -135,7 +135,7 @@ rm(breast_cancer_patients_mixed_features)
 #| echo: false
 
 # Cohort of all the patients
-breast_cancer_patients <- readRDS(here(rds_dir, "breast_cancer_patients.rds"))
+breast_cancer_patients <- breast_cancer_patients_cleaned_features
 immunofluorescence <- breast_cancer_patients@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
 cohort <- fastCohorting(immunofluorescence,
   gaussian_transform = TRUE, n_cohorts = 5
