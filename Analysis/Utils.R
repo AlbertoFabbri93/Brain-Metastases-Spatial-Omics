@@ -573,6 +573,8 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
   # Identifies features that are outliers on a 'mean variability plot'
   patient_data <- Seurat::FindVariableFeatures(
     object = patient_data,
+    selection.method = "vst",
+    nfeatures = 2000,
     verbose = FALSE)
   # Run a PCA dimensionality reduction
   patient_data <- Seurat::RunPCA(
@@ -592,6 +594,7 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
   patient_data <- Seurat::FindClusters(
     object = patient_data,
     resolution = patient_res,
+    algorithm = 1, # 1 = Louvain algorithm
     cluster.name = "RNA_clusters",
     graph.name = paste0(assay, "_snn"),
     random.seed = 1,
