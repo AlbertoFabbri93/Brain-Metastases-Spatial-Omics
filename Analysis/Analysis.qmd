@@ -42,6 +42,8 @@ library("ggplot2")
 library("readxl")
 # Open CSV files
 library("readr")
+# Pivot tibbles
+library("tidyr")
 
 # Import utility functions
 source("Utils.R")
