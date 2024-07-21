@@ -764,9 +764,9 @@ generate_elbow_plot<- function(patient_data, reduction, dims) {
 
 ####### COLOR CLUSTERS #######
 
-# Assign random colors to unknown clusters
+# Create a vector with a color for every cluster
 generate_colors_lookup_table <- function(data, cluster_column_name, known_clusters_colors = NULL, color_palette = DiscretePalette(36, palette = "polychrome")) {
-  
+
   # Remove the colors that are used by the known clusters
   usable_color_palette <- setdiff(color_palette, known_clusters_colors)
   
@@ -774,15 +774,21 @@ generate_colors_lookup_table <- function(data, cluster_column_name, known_cluste
   # The cluster 0 in Seurat for example is different for every patient
   usable_color_palette <- sample(usable_color_palette)
   
-  unknown_clusters_colors <- c()
-  next_color <- 1
-  # Loop over the unknown clusters and assign each of them a random color
-  for (cluster in setdiff(
-    as.vector(as.character(unique(data[[cluster_column_name]])[[cluster_column_name]])),
-    as.vector(names(known_clusters_colors)))) {
-    unknown_clusters_colors <- c(unknown_clusters_colors, setNames(usable_color_palette[next_color], cluster))
-    next_color <- next_color + 1
+  # "data" must be either a data frame or a tibble
+  # If the object is of type Seurat, extract the meta data
+  if ("Seurat" %in% class(data)) {
+    data <- data@meta.data
   }
+  
+  # Get the unique clusters in the data (works with both base R data frames and tibbles)
+  clusters <- unique(dplyr::pull(data, cluster_column_name))
+  
+  # Remove the known clusters from the list of clusters as they already have a color assigned
+  unknown_clusters <- setdiff(clusters, names(known_clusters_colors))
+  
+  # Assign a random colors to the unknown clusters
+  unknown_clusters_colors <- setNames(usable_color_palette[1:length(unknown_clusters)], unknown_clusters)
+  
   # Return the colors for the known and unknown clusters
   return(c(known_clusters_colors, unknown_clusters_colors))
 }
