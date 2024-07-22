@@ -230,6 +230,81 @@ print(c(TMA_info_to_display, TMA_info_to_save))
 save_plots(TMA_info_to_save, here(image_dir), image_ext)
 ```
 
+### Read Akoya Data
+
+```{r}
+# File path to the Akoya data
+file_path <- here("Analysis", "Akoya_spatial_multiplex_immune_cell_data", "Breast cancer",
+                  "M1 Breast Full Cores Final + Image", "Results_breast_full_cores.xlsx")
+
+# Read the file with the Akoya data
+# The data is in the second sheet, the first row is skipped (the header is on the second row)
+# and the columns with useless data are removed
+data <- read_excel(file_path, sheet = 2, skip = 1,
+                   col_types = c("skip", "skip", "text", "text", "skip", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric"))
+
+# Create an empty tibble to store the filtered data
+# Only the total cell data is kept
+akoya_data <- data %>% slice(0)
+
+# Add only the rows with the total cell count to the tibble
+for (i in seq(3, nrow(data), by = 3)) {
+  row <- data[i, ]
+  akoya_data <- add_row(.data = akoya_data,row)
+}
+
+# Rename columns to align with the nomenclaure used in the rest of the analysis
+akoya_data <- akoya_data %>% rename(
+  "Tumor" = "Pan-CK+/CD4-/CD8-/CD20-/CD68-/FOXP3-",
+  "T cell CD4" = "Pan-CK-/CD4+/FOXP3-",
+  "T cell regulatory" = "Pan-CK-/CD4+/FOXP3+",
+  "T cell CD8" = "Pan-CK-/CD8+",
+  "B cell" = "Pan-CK-/CD20+",
+  "Macrophage" = "Pan-CK-/CD68+"
+)
+
+# Merge the two types of T-cells into a single column
+# processed_data <- processed_data %>% mutate(
+#   "T-cell" = `T-cell CD4` + `T-cell CD8`
+# ) %>% select(-`T-cell CD4`, -`T-cell CD8`)
+
+# Created manually from a schematic of the TMA in METBRA PhenoImager Analysis file
+map_TMA_row_column_to_core <- tibble(
+  `TMA Row` = c("12", "5", "10", "10", "11", "11", "12", "2", "3", "4", "6", "7", "8", "9", "9"),
+  `TMA Column` = c("E", "F", "E", "F", "E", "F", "F", "F", "F", "F", "F", "F", "E", "E", "F"),
+  core = c("M6", "M4", "M7", "M2", "M7", "M1", "M1", "M6", "M5", "M5", "M4", "M3", "M8", "M8", "M2")
+)
+
+# Merge the data data about the cores with the Akoya data and make it the first column
+akoya_data <- akoya_data %>% left_join(map_TMA_row_column_to_core, by = c("TMA Row", "TMA Column")) %>%
+  select(all_of(names(map_TMA_row_column_to_core)), everything())
+
+# Subset the TMA_METBRA_COSMX data frame to only the useful columns
+TMA_METBRA_COSMX_subset <- TMA_METBRA_COSMX[, c("Full Serial Number", "Patient ID")]
+
+# Merge the Patient IDs with the Akoya data and make it the first column
+akoya_data <- akoya_data %>% left_join(TMA_METBRA_COSMX_subset, by = join_by("core" == "Full Serial Number")) %>%
+  select(
+    `Patient ID`, 
+    everything()
+  ) %>%
+  arrange(`core`)
+
+# Remove columns that were only used for merging
+akoya_data <- akoya_data %>%
+  select(-`TMA Column`, -`TMA Row`)
+
+# Sum the data for each patient
+akoya_by_patient <- akoya_data %>%
+  select(-core) %>%
+  group_by(`Patient ID`) %>%
+  summarise(across(where(is.numeric), \(x) sum(x, na.rm = TRUE)))
+
+# Print the tibbles
+print(list(akoya_data, akoya_by_patient))
+```
+
+
 ## Clustering per patient
 
 ```{r}
