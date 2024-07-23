@@ -844,10 +844,9 @@ combined_stacked_barplot <- ggplot(
   combined_data,
   aes(x = `Patient ID`, 
       y = `Cell Quantity Proportion`, 
-      fill = `Cells Type`, 
-      group = Method)) +
+      fill = `Cells Type`)) +
   geom_bar(stat = "identity", position = "stack") +
-  facet_wrap(~ Method, ncol = 1) +  # This will separate the methods into separate rows
+  facet_grid(rows = vars(`Method`), switch = "x") +
   labs(title = "Proportion of cells according to different clustering methods",
        x = patient_id_label,
        y = per_cells_label,
