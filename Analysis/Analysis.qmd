@@ -636,7 +636,7 @@ patient_6_data <- normalize_cluster_data(patient_6_data, "RNA")
 patient_6_data$RNA_clusters_annotated <- case_match(
   patient_6_data$RNA_clusters,
   c("0", "1", "2", "4") ~ "Tumor",
-  "3" ~ "Fibroblasts",
+  "3" ~ "Fibroblast",
   "5" ~ "Macrophage",
 )
 patient_6_data$InSituType_semisup_clusters_annotated <- case_match(
