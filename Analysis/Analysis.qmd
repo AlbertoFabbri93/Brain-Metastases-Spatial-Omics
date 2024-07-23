@@ -865,7 +865,6 @@ combined_grouped_barplot <- ggplot(combined_data,aes(x = `Method`,
                                y = `Cell Quantity Proportion`, 
                                fill = `Cells Type`)) +
   geom_bar(stat = "identity", position = "stack") +
-  facet_wrap(~ Method, ncol = 1) +  # This will separate the methods into separate rows
   labs(title = "Proportion of cells according to different clustering methods",
        x = patient_id_label,
        y = per_cells_label,
