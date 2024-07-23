@@ -840,12 +840,13 @@ combined_data <- IST_ss_clusters_data %>% full_join(RNA_ann_clusters_data) %>% f
 combined_barplot_color_lookup_table <- generate_colors_lookup_table(combined_data, "Cells Type", known_clusters_colors)
 
 # Plot with all clustering methods and all patients stacked by clustering method
-combined_stacked_barplot <- ggplot(combined_data,
-                           aes(x = `Patient ID`, 
-                               y = `Cell Quantity Proportion`, 
-                               fill = `Cells Type`, 
-                               group = Method)) +
-  geom_bar(stat = "identity", position = position_dodge()) +
+combined_stacked_barplot <- ggplot(
+  combined_data,
+  aes(x = `Patient ID`, 
+      y = `Cell Quantity Proportion`, 
+      fill = `Cells Type`, 
+      group = Method)) +
+  geom_bar(stat = "identity", position = "stack") +
   facet_wrap(~ Method, ncol = 1) +  # This will separate the methods into separate rows
   labs(title = "Proportion of cells according to different clustering methods",
        x = patient_id_label,
