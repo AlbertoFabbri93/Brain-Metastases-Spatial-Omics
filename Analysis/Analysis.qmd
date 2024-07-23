@@ -470,7 +470,7 @@ patient_3_data$RNA_clusters_annotated <- case_match(
   c("0", "2", "3") ~ "Tumor",
   "1" ~ "Macrophage",
   c("4", "7") ~ "Fibroblast",
-  "5" ~ "Fibroblast/Oligodendrocyte",
+  "5" ~ "Fibroblast",
   "6" ~ "Endothelial"
 )
 patient_3_data$InSituType_semisup_clusters_annotated <- case_match(
@@ -528,7 +528,7 @@ patient_4_data$RNA_clusters_annotated <- case_match(
   c("0", "1", "2", "3") ~ "Tumor",
   "4" ~ "Fibroblast",
   "5" ~ "Macrophage",
-  "6" ~ "T cell/Endothelial"
+  "6" ~ "T cell"
 )
 patient_4_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_4_data$InSituType_semisup_clusters,
@@ -583,15 +583,15 @@ patient_5_data$RNA_clusters_annotated <- case_match(
   c("2", "5") ~ "Dendritic cell",
   "3" ~ "Fibroblast",
   "4" ~ "Macrophage",
-  "6" ~ "Endothelial/Fibroblast",
-  "7" ~ "T cell/Dendritic cell",
+  "6" ~ "Endothelial",
+  "7" ~ "T cell",
   "8" ~ "T cell",
 )
 patient_5_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_5_data$InSituType_semisup_clusters,
   c("a", "c", "d", "g") ~ "Tumor",
-  c("b", "e") ~ "T cell/Dendritic cell",
-  "f" ~ "Fibroblast/Endothelial",
+  c("b", "e") ~ "T cell",
+  "f" ~ "Fibroblast",
   .default = unname(patient_5_data$InSituType_semisup_clusters)
 )
 
@@ -638,7 +638,7 @@ patient_6_data <- normalize_cluster_data(patient_6_data, "RNA")
 patient_6_data$RNA_clusters_annotated <- case_match(
   patient_6_data$RNA_clusters,
   c("0", "1", "2", "4") ~ "Tumor",
-  "3" ~ "Fibroblasts/Endothelial",
+  "3" ~ "Fibroblasts",
   "5" ~ "Macrophage",
 )
 patient_6_data$InSituType_semisup_clusters_annotated <- case_match(
@@ -694,15 +694,15 @@ patient_7_data$RNA_clusters_annotated <- case_match(
   patient_7_data$RNA_clusters,
   c("0", "1", "2", "3") ~ "Tumor",
   "4" ~ "T cell",
-  "5" ~ "Macrophage/Monocyte",
-  "6" ~ "Macrophage/Monocyte",
-  "7" ~ "Fibroblast/Endothelial",
+  "5" ~ "Macrophage",
+  "6" ~ "Macrophage",
+  "7" ~ "Fibroblast",
   "8" ~ "Fibroblast"
 )
 patient_7_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_7_data$InSituType_semisup_clusters,
   c("a", "b", "c", "d") ~ "Tumor",
-  "e" ~ "T cell/Dendritic cell/Endothelial",
+  "e" ~ "T cell",
   .default = unname(patient_7_data$InSituType_semisup_clusters)
 )
 
