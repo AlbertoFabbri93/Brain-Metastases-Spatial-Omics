@@ -811,6 +811,74 @@ akoya_all_patients <- ggplot(akoya_by_patient_long,
   scale_fill_manual(values = barplot_akoya_color_lookup_table)
 compare_patients_to_save[["Akoya_all_patients_barplot"]] <- akoya_all_patients
 
+# Extract and reshape data for InSituType clustering
+IST_ss_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$InSituType_semisup_clusters_annotated))
+colnames(IST_ss_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
+IST_ss_clusters_data$Method <- "InSituType"
+IST_ss_clusters_data <- IST_ss_clusters_data %>%
+  group_by(`Patient ID`) %>%
+  mutate(`Total Cells` = sum(`Cells Quantity`)) %>%
+  ungroup() %>%
+  mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`)
+
+# Extract and reshape data for Louvain clustering
+RNA_ann_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$RNA_clusters_annotated))
+colnames(RNA_ann_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
+RNA_ann_clusters_data$Method <- "Louvain"
+RNA_ann_clusters_data <- RNA_ann_clusters_data %>%
+  group_by(`Patient ID`) %>%
+  mutate(`Total Cells` = sum(`Cells Quantity`)) %>%
+  ungroup() %>%
+  mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`)
+
+# Add Method column to Akoya data
+akoya_by_patient_long$Method <- "Akoya"
+
+# Combine all data into one data frame
+combined_data <- IST_ss_clusters_data %>% full_join(RNA_ann_clusters_data) %>% full_join(akoya_by_patient_long)
+
+combined_barplot_color_lookup_table <- generate_colors_lookup_table(combined_data, "Cells Type", known_clusters_colors)
+
+# Plot with all clustering methods and all patients stacked by clustering method
+combined_stacked_barplot <- ggplot(combined_data,
+                           aes(x = `Patient ID`, 
+                               y = `Cell Quantity Proportion`, 
+                               fill = `Cells Type`, 
+                               group = Method)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  facet_wrap(~ Method, ncol = 1) +  # This will separate the methods into separate rows
+  labs(title = "Proportion of cells according to different clustering methods",
+       x = patient_id_label,
+       y = per_cells_label,
+       fill = cell_types_label) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_fill_manual(values = combined_barplot_color_lookup_table) +
+  guides(fill = guide_legend(ncol = 2, byrow = TRUE))
+
+# Save to compare_patients_to_save
+compare_patients_to_save[["All_clustering_methods_all_patients_stacked_barplot"]] <- combined_stacked_barplot
+
+# Plot with all clustering methods and all patients grouped by patient
+combined_grouped_barplot <- ggplot(combined_data,aes(x = `Method`, 
+                               y = `Cell Quantity Proportion`, 
+                               fill = `Cells Type`)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_wrap(~ Method, ncol = 1) +  # This will separate the methods into separate rows
+  labs(title = "Proportion of cells according to different clustering methods",
+       x = patient_id_label,
+       y = per_cells_label,
+       fill = cell_types_label) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_fill_manual(values = combined_barplot_color_lookup_table) +
+  guides(fill = guide_legend(ncol = 2, byrow = TRUE)) +
+  facet_grid(~ `Patient ID`) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5))
+
+# Save to compare_patients_to_save
+compare_patients_to_save[["All_clustering_methods_all_patients_grouped_barplot"]] <- combined_grouped_barplot
+
 print(compare_patients_to_save)
 ```
 
