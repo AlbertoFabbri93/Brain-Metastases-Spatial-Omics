@@ -790,6 +790,8 @@ compare_patients_to_save[["RNA_annotated_clusters_all_patients_barplot"]] <- RNA
 
 # Pivot the table to print it with ggplot
 akoya_by_patient_long <- akoya_by_patient %>%
+  mutate(`T cell` = `T cell CD4` + `T cell CD8` + `T cell regulatory`) %>%
+  select(-`T cell CD4`, -`T cell CD8`, -`T cell regulatory`) %>%
   pivot_longer(cols = -c(`Patient ID`, `Total Cells`), 
                names_to = "Cells Type", 
                values_to = "Cells Quantity")
