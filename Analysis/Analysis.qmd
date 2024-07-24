@@ -814,12 +814,23 @@ compare_patients_to_save[["Akoya_all_patients_barplot"]] <- akoya_all_patients
 # Extract and reshape data for InSituType clustering
 IST_ss_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$InSituType_semisup_clusters_annotated))
 colnames(IST_ss_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
-IST_ss_clusters_data$Method <- "InSituType"
+cell_types_to_sum <- c("T cell", "T cell CD4", "T cell CD8", "T cell regulatory")
+
+IST_ss_T_cells_data <- IST_ss_clusters_data %>%
+  group_by(`Patient ID`) %>%
+  summarise(
+    `Cells Quantity` = sum(`Cells Quantity`[`Cells Type` %in% cell_types_to_sum]),
+    `Cells Type` = "T cell"
+  )
+
 IST_ss_clusters_data <- IST_ss_clusters_data %>%
+  filter(!`Cells Type` %in% cell_types_to_sum) %>%
+  bind_rows(IST_ss_T_cells_data) %>%
   group_by(`Patient ID`) %>%
   mutate(`Total Cells` = sum(`Cells Quantity`)) %>%
   ungroup() %>%
-  mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`)
+  mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`) %>%
+  mutate(`Method` = "InSituType")
 
 # Extract and reshape data for Louvain clustering
 RNA_ann_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$RNA_clusters_annotated))
