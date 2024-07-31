@@ -347,9 +347,14 @@ print(list(akoya_data, akoya_by_patient))
 
 ## Clustering per patient
 
+Cluster data for every patient and create a Seurat object for each patient. The functions used to cluster the data are defined in the `Utils.R` file.
+
+The individual script of every patient generates a list with all the images and data frames that can be saved and displayed.
+
 ```{r}
 #| label: merged-data
 
+# Collect all patients' data in a list
 patients_rna_data <- list()
 ```
 
@@ -577,6 +582,8 @@ patient_4_data$InSituType_semisup_clusters_annotated <- case_match(
   c("d", "e") ~ "Fibroblast",
   .default = unname(patient_4_data$InSituType_semisup_clusters)
 )
+
+# Generate plots
 patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data, "RNA", "RNA_clusters_annotated"))
 patient_4_plots <- c(patient_4_plots, generate_IST_plots(patient_4_data, "RNA", patient_4_IST_semisup))
 patient_4_plots <- c(patient_4_plots, generate_comparison_plots(patient_4_data))
@@ -635,6 +642,7 @@ patient_5_data$InSituType_semisup_clusters_annotated <- case_match(
   .default = unname(patient_5_data$InSituType_semisup_clusters)
 )
 
+# Generate plots
 patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data, "RNA", "RNA_clusters_annotated"))
 patient_5_plots <- c(patient_5_plots, generate_IST_plots(patient_5_data, "RNA", patient_5_IST_semisup))
 patient_5_plots <- c(patient_5_plots, generate_comparison_plots(patient_5_data))
@@ -687,6 +695,7 @@ patient_6_data$InSituType_semisup_clusters_annotated <- case_match(
   .default = unname(patient_6_data$InSituType_semisup_clusters)
 )
 
+# Generate plots
 patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data, "RNA", "RNA_clusters_annotated"))
 patient_6_plots <- c(patient_6_plots, generate_IST_plots(patient_6_data, "RNA", patient_6_IST_semisup))
 patient_6_plots <- c(patient_6_plots, generate_comparison_plots(patient_6_data))
@@ -746,6 +755,7 @@ patient_7_data$InSituType_semisup_clusters_annotated <- case_match(
   .default = unname(patient_7_data$InSituType_semisup_clusters)
 )
 
+# Generate plots
 patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data, "RNA", "RNA_clusters_annotated"))
 patient_7_plots <- c(patient_7_plots, generate_IST_plots(patient_7_data, "RNA", patient_7_IST_semisup))
 patient_7_plots <- c(patient_7_plots, generate_comparison_plots(patient_7_data))
@@ -769,6 +779,8 @@ save_plots(patient_7_plots, get_patient_dir_img("7"), image_ext)
 ```
 
 ## Comparing patients
+
+Compare the patients by plotting the proportion of cells according to the InSituType and Louvain clustering. The data from the Akoya platform is also used as a benchmark.
 
 ```{r}
 #| label: compare-patients
