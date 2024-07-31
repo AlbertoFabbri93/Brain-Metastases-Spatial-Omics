@@ -897,14 +897,13 @@ IST_ss_clusters_data <- IST_ss_clusters_data %>%
   mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`) %>%
   mutate(`Method` = "InSituType")
 
+# Extract and reshape data for Louvain clustering
+RNA_ann_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$RNA_clusters_annotated))
+colnames(RNA_ann_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
 # Create a data frame with all Patient IDs and the missing cell type "B cell"
 b_cell_data <- RNA_ann_clusters_data %>%
   distinct(`Patient ID`) %>%
   mutate(`Cells Type` = "B cell", `Cells Quantity` = 0)
-
-# Extract and reshape data for Louvain clustering
-RNA_ann_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$RNA_clusters_annotated))
-colnames(RNA_ann_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
 RNA_ann_clusters_data <- RNA_ann_clusters_data %>%
   bind_rows(b_cell_data) %>%
   complete(`Patient ID`, `Cells Type`, fill = list(`Cells Quantity` = 0)) %>%
