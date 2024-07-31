@@ -47,6 +47,10 @@ library("tibble")
 # Pivot tibbles
 library("tidyr")
 
+# Prefer dplyr in case of conflict
+library("conflicted")
+conflict_prefer_all("dplyr")
+
 # Import utility functions
 source("Utils.R")
 
