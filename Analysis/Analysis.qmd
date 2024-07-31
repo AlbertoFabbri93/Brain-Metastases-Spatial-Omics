@@ -833,6 +833,7 @@ IST_ss_clusters_all_patients <- dittoBarPlot(
   guides(fill = guide_legend(ncol = 2, byrow = TRUE))
 compare_patients_to_save[["InSituType_annotated_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
 
+# Plot a barplot comparing the RNA clusters of all patients
 barplot_RNA_ann_var = "RNA_clusters_annotated"
 barplot_RNA_ann_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_RNA_ann_var, known_clusters_colors)
 RNA_ann_clusters_all_patients <- dittoBarPlot(
@@ -937,7 +938,6 @@ combined_stacked_barplot <- ggplot(
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   scale_fill_manual(values = combined_barplot_color_lookup_table) +
   guides(fill = guide_legend(ncol = 2, byrow = TRUE))
-
 # Save to compare_patients_to_save
 compare_patients_to_save[["All_clustering_methods_all_patients_stacked_barplot"]] <- combined_stacked_barplot
 
