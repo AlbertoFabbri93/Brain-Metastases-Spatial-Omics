@@ -29,9 +29,9 @@ library("InSituType")
 # Used for the barplots
 library("dittoSeq")
 # Used to visualize the raw images from AtoMx
-library(EBImage)
+library("EBImage")
 # Used to annotate images with multiple plots
-library(patchwork)
+library("patchwork")
 
 ###### TIDYVERSE ######
 # Data manipulation
