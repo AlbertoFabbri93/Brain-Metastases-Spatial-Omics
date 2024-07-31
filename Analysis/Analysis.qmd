@@ -42,6 +42,8 @@ library("ggplot2")
 library("readxl")
 # Open CSV files
 library("readr")
+# Better dataframes
+library("tibble")
 # Pivot tibbles
 library("tidyr")
 
