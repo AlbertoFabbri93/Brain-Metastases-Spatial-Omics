@@ -389,24 +389,31 @@ patient_1_data$RNA_clusters_annotated <- case_match(
   "6" ~ "T cell",
   "7" ~ "Fibroblast"
 )
+# Generate the UMAP with the non-annotated clusters
 patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "InSituType_semisup_clusters", "umap_RNA"))
+# Generate the heatmap of the non-annotated clusters
 patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "InSituType_semisup_clusters", "RNA"))
+# Colors for the flighpath plot
 InSituType_color_lookup_table_1 <- generate_colors_lookup_table(
     patient_1_data,
     "InSituType_semisup_clusters",
     known_clusters_colors)
+# Generate the flightpath plot
 patient_1_plots <- c(
     patient_1_plots,
     generate_flightpath(patient_1_IST_semisup, InSituType_color_lookup_table_1, "1"))
+# Generate the Louvain clustering plots
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
+# Annotate the InSituType clusters
 patient_1_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_1_data$InSituType_semisup_clusters,
   c("a", "b", "c", "d", "e", "f") ~ "Tumor",
   "g" ~ "Endothelial",
   .default = unname(patient_1_data$InSituType_semisup_clusters)
 )
-
+# Colors for the InSituType plot
 InSituType_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "InSituType_semisup_clusters_annotated", known_clusters_colors)
+# Generate the annotated Insitutype plots
 patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "InSituType_semisup_clusters_annotated",
     cluster_assay = "RNA", 
     cluster_reduction = "umap_RNA",
@@ -470,6 +477,7 @@ patient_2_data$InSituType_semisup_clusters_annotated <- case_match(
   .default = unname(patient_2_data$InSituType_semisup_clusters)
 )
 
+# Generate plots
 patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA", "RNA_clusters_annotated"))
 patient_2_plots <- c(patient_2_plots, generate_IST_plots(patient_2_data, "RNA", patient_2_IST_semisup))
 patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
@@ -524,7 +532,7 @@ patient_3_data$InSituType_semisup_clusters_annotated <- case_match(
   c("b", "f") ~ "Fibroblast",
   .default = unname(patient_3_data$InSituType_semisup_clusters)
 )
-
+# Generate plots
 patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA", "RNA_clusters_annotated"))
 patient_3_plots <- c(patient_3_plots, generate_IST_plots(patient_3_data, "RNA", patient_3_IST_semisup))
 patient_3_plots <- c(patient_3_plots, generate_comparison_plots(patient_3_data))
