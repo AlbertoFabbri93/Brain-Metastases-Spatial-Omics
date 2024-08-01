@@ -962,18 +962,17 @@ library(cowplot)
 library(PairedData)
 
 # Filter the combined_data_filtered to keep only the four patients
-combined_data_filtered_4p <- combined_data %>%
-  filter(`Patient ID` %in% c("3", "4", "5", "7")) %>%
+combined_data_filtered <- combined_data %>%
   filter(`Cells Type` %in% c("T cell", "Tumor", "Macrophage", "B cell"))
 
 # Create all combinations of two methods
-method_pairs <- combn(unique(combined_data_filtered_4p$Method), 2, simplify = FALSE)
+method_pairs <- combn(unique(combined_data_filtered$Method), 2, simplify = FALSE)
 
 # Get unique cell types
-cell_types <- unique(combined_data_filtered_4p$`Cells Type`)
+cell_types <- unique(combined_data_filtered$`Cells Type`)
 
 # Pre-calculate y-axis limits for each Cell Type
-y_limits <- combined_data_filtered_4p %>%
+y_limits <- combined_data_filtered %>%
   group_by(`Cells Type`) %>%
   summarise(
     ymin = min(`Cell Quantity Proportion`, na.rm = TRUE),
@@ -991,8 +990,20 @@ plot_list <- list()
 for (cell_type in cell_types) {
   # Extract the y-axis limits for this cell type
   y_lim <- y_limits[[cell_type]]
+  
   for (pair in method_pairs) {
-    data_filtered <- combined_data_filtered_4p %>%
+  
+  # Determine if the pair is not Insitutype vs Louvain
+    if (!all(pair %in% c("InSituType", "Louvain"))) {
+      # Use all seven patients for Insitutype vs Louvain
+      data_filtered <- combined_data_filtered %>%
+        filter(`Patient ID` %in% c("3", "4", "5", "7"))
+    } else {
+      # Use all patients for the other pairs
+      data_filtered <- combined_data_filtered
+    }
+
+    data_filtered <- data_filtered %>%
       filter(Method %in% pair, `Cells Type` == cell_type) %>%
       mutate(Method = factor(Method, levels = pair))
     
