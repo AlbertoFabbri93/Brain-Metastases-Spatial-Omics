@@ -1061,11 +1061,10 @@ m2_data <- data_filtered %>%
 }
 
 # Combine plots using cowplot's plot_grid
-combined_plots <- plot_grid(plotlist = plot_list, ncol = 3, align = 'hv') + plot_layout(
+Compare_clustering_methods_wilcoxon <- plot_grid(plotlist = plot_list, ncol = 3, align = 'hv') + plot_layout(
   heights = unit(c(18,-1),c("cm","null"))  # Increase the height factor
 )
-compare_patients_to_save[["Wilcoxon_all_patients_scatterplot"]] <- combined_plots
-ggsave("Wil.png", path = here())
+compare_patients_to_save[["Compare_clustering_methods_wilcoxon"]] <- Compare_clustering_methods_wilcoxon
 
 print(compare_patients_to_save)
 ```
