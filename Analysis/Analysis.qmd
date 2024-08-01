@@ -956,9 +956,163 @@ combined_grouped_barplot <- ggplot(combined_data,aes(x = `Method`,
   guides(fill = guide_legend(ncol = 2, byrow = TRUE)) +
   facet_grid(~ `Patient ID`) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5))
-
-# Save to compare_patients_to_save
 compare_patients_to_save[["All_clustering_methods_all_patients_grouped_barplot"]] <- combined_grouped_barplot
+
+library(cowplot)
+library(PairedData)
+
+# Filter the combined_data_filtered to keep only the four patients
+combined_data_filtered_4p <- combined_data %>%
+  filter(`Patient ID` %in% c("3", "4", "5", "7")) %>%
+  filter(`Cells Type` %in% c("T cell", "Tumor", "Macrophage", "B cell"))
+
+# Create all combinations of two methods
+method_pairs <- combn(unique(combined_data_filtered_4p$Method), 2, simplify = FALSE)
+
+# Get unique cell types
+cell_types <- unique(combined_data_filtered_4p$`Cells Type`)
+
+# Pre-calculate y-axis limits for each Cell Type
+y_limits <- combined_data_filtered_4p %>%
+  group_by(`Cells Type`) %>%
+  summarise(
+    ymin = min(`Cell Quantity Proportion`, na.rm = TRUE),
+    ymax = max(`Cell Quantity Proportion`, na.rm = TRUE)
+  ) %>%
+  # Create a named list where the key is the `Cells Type` and the value is c(ymin, ymax)
+  rowwise() %>%
+  mutate(limits = list(c(ymin, ymax))) %>%
+  select(`Cells Type`, limits) %>%
+  deframe()
+
+# Create the scatterplot for each combination of cell type and method pair
+plot_list <- list()
+
+for (cell_type in cell_types) {
+  # Extract the y-axis limits for this cell type
+  y_lim <- y_limits[[cell_type]]
+  for (pair in method_pairs) {
+    data_filtered <- combined_data_filtered_4p %>%
+      filter(Method %in% pair, `Cells Type` == cell_type) %>%
+      mutate(Method = factor(Method, levels = pair))
+    
+    m1_data <- data_filtered %>%
+    filter(Method == pair[1]) %>%
+    arrange(`Patient ID`) %>%  # Sort by Patient ID
+    pull(`Cell Quantity Proportion`)
+
+m2_data <- data_filtered %>%
+    filter(Method == pair[2]) %>%
+    arrange(`Patient ID`) %>%  # Sort by Patient ID
+    pull(`Cell Quantity Proportion`)
+
+      
+      # Perform Wilcoxon rank-sum test
+      wilcox_test <- wilcox.test(m1_data, m2_data, paired = TRUE, alternative = "two.sided")
+    
+    # Extract the p-value
+    p_value <- wilcox_test$p.value
+      
+    # Create the plot
+    p <- data_filtered %>%
+      ggplot(aes(x = Method, y = `Cell Quantity Proportion`, group = `Patient ID`)) +
+      geom_point() +
+      geom_line() +
+      labs(
+        title = paste0(cell_type, ": ", pair[1], " vs ", pair[2]),
+                subtitle = paste0("Wilcoxon p-value: ", signif(p_value, digits = 3)), # Add p-value to plot
+        x = "Method",
+        y = "Cell Proportion"
+      ) +
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = 9),   # Adjust title size
+        plot.subtitle = element_text(size = 9),   # Adjust title size
+        axis.title.y = element_text(size = 8),  # Adjust y-axis label size
+        axis.title.x = element_text(size = 8),  # Adjust x-axis label size
+        axis.text.x = element_text(size = 7),   # Adjust x-axis text size
+        axis.text.y = element_text(size = 7),   # Adjust y-axis text size
+        #plot.margin = margin(10, 10, 10, 10)        # Add margin around plots
+      )  +
+      ylim(y_lim[1], y_lim[2]) # Apply the same y-axis limit for the cell type
+    
+    # Add the plot to the list
+    plot_list[[paste(cell_type, pair[1], pair[2], sep = "_")]] <- p
+  }
+}
+
+# Combine plots using cowplot's plot_grid
+combined_plots <- plot_grid(plotlist = plot_list, ncol = 3, align = 'hv') + plot_layout(
+  heights = unit(c(18,-1),c("cm","null"))  # Increase the height factor
+)
+compare_patients_to_save[["Wilcoxon_all_patients_scatterplot"]] <- combined_plots
+ggsave("Wil.png", path = here())
+
+# Create the scatterplot for each combination of cell type and method pair
+plot_list2 <- list()
+
+for (cell_type in cell_types) {
+  # Extract the y-axis limits for this cell type
+  y_lim <- y_limits[[cell_type]]
+  
+  for (pair in method_pairs) {
+    data_filtered <- combined_data_filtered_4p %>%
+      filter(Method %in% pair, `Cells Type` == cell_type)
+    
+    m1_data <- data_filtered %>%
+      filter(Method == pair[1]) %>%
+      arrange(`Patient ID`) %>%  # Sort by Patient ID
+      pull(`Cell Quantity Proportion`)
+
+    m2_data <- data_filtered %>%
+      filter(Method == pair[2]) %>%
+      arrange(`Patient ID`) %>%  # Sort by Patient ID
+      pull(`Cell Quantity Proportion`)
+    
+    # Create the paired data object
+    pd <- paired(m1_data, m2_data)
+    
+    # Rename the columns of the paired data object
+names(pd) <- pair
+    
+    # Perform Wilcoxon signed-rank test
+    wilcox_test <- wilcox.test(m1_data, m2_data, paired = TRUE, alternative = "two.sided")
+    
+    # Extract the p-value
+    p_value <- wilcox_test$p.value
+    
+    # Create the profile plot using PairedData's plot function
+    p <- plot(pd, type = "profile") + 
+      theme_bw() +
+      labs(
+        title = paste0(cell_type, ": ", pair[1], " vs ", pair[2]),
+        subtitle = paste0("Wilcoxon p-value: ", signif(p_value, digits = 3)), # Add p-value to plot
+        x = "Patient ID",
+        y = "Cell Proportion"
+      ) +
+      theme(
+        plot.title = element_text(size = 9),   # Adjust title size
+        plot.subtitle = element_text(size = 9),   # Adjust subtitle size
+        axis.title.y = element_text(size = 8),  # Adjust y-axis label size
+        axis.title.x = element_text(size = 8),  # Adjust x-axis label size
+        axis.text.x = element_text(size = 7),   # Adjust x-axis text size
+        axis.text.y = element_text(size = 7),   # Adjust y-axis text size
+        plot.margin = margin(10, 10, 10, 10)  # Add margin around plots
+      ) +
+      ylim(y_lim[1], y_lim[2]) # Apply the same y-axis limit for the cell type
+    
+    # Add the plot to the list
+    plot_list2[[paste(cell_type, pair[1], pair[2], sep = "_")]] <- p
+  }
+}
+
+
+# Combine plots using cowplot's plot_grid
+combined_plots2 <- plot_grid(plotlist = plot_list2, ncol = 3, align = 'hv') + plot_layout(
+  heights = unit(c(18,-1),c("cm","null"))  # Increase the height factor
+)
+compare_patients_to_save[["Wilcoxon_all_patients_profileplot"]] <- combined_plots2
+ggsave("Wil2.png", path = here())
 
 print(compare_patients_to_save)
 ```
