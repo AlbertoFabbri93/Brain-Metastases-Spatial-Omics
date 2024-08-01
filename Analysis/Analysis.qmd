@@ -966,8 +966,8 @@ combined_grouped_barplot <- ggplot(combined_data,aes(x = `Method`,
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5))
 compare_patients_to_save[["All_clustering_methods_all_patients_grouped_barplot"]] <- combined_grouped_barplot
 
-library(cowplot)
-library(PairedData)
+library("ggpubr")
+library("PairedData")
 
 # Filter the combined_data_filtered to keep only the four patients
 combined_data_filtered <- combined_data %>%
@@ -993,6 +993,13 @@ y_limits <- combined_data_filtered %>%
   deframe()
 
 # Create the scatterplot for each combination of cell type and method pair
+# Define a fixed set of shapes (adjust as needed)
+fixed_shapes <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)  # Up to 10 unique shapes
+
+# Create a mapping from Patient ID to shape
+patient_shape_mapping <- setNames(fixed_shapes[1:length(unique(combined_data_filtered$`Patient ID`))], 
+                                  unique(combined_data_filtered$`Patient ID`))
+
 plot_list <- list()
 
 for (cell_type in cell_types) {
@@ -1001,7 +1008,7 @@ for (cell_type in cell_types) {
   
   for (pair in method_pairs) {
   
-  # Determine if the pair is not Insitutype vs Louvain
+    # Determine if the pair is not Insitutype vs Louvain
     if (!all(pair %in% c("InSituType", "Louvain"))) {
       # Use all seven patients for Insitutype vs Louvain
       data_filtered <- combined_data_filtered %>%
