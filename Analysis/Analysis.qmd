@@ -1020,33 +1020,33 @@ for (cell_type in cell_types) {
 
     data_filtered <- data_filtered %>%
       filter(Method %in% pair, `Cells Type` == cell_type) %>%
-      mutate(Method = factor(Method, levels = pair))
+      mutate(Method = factor(Method, levels = pair),
+             `Patient ID` = factor(`Patient ID`, levels = names(patient_shape_mapping)))
     
     m1_data <- data_filtered %>%
-    filter(Method == pair[1]) %>%
-    arrange(`Patient ID`) %>%  # Sort by Patient ID
-    pull(`Cell Quantity Proportion`)
+      filter(Method == pair[1]) %>%
+      arrange(`Patient ID`) %>%  # Sort by Patient ID
+      pull(`Cell Quantity Proportion`)
 
-m2_data <- data_filtered %>%
-    filter(Method == pair[2]) %>%
-    arrange(`Patient ID`) %>%  # Sort by Patient ID
-    pull(`Cell Quantity Proportion`)
+    m2_data <- data_filtered %>%
+      filter(Method == pair[2]) %>%
+      arrange(`Patient ID`) %>%  # Sort by Patient ID
+      pull(`Cell Quantity Proportion`)
 
-      
-      # Perform Wilcoxon rank-sum test
-      wilcox_test <- wilcox.test(m1_data, m2_data, paired = TRUE, alternative = "two.sided")
+    # Perform Wilcoxon rank-sum test
+    wilcox_test <- wilcox.test(m1_data, m2_data, paired = TRUE, alternative = "two.sided")
     
     # Extract the p-value
     p_value <- wilcox_test$p.value
       
     # Create the plot
     p <- data_filtered %>%
-      ggplot(aes(x = Method, y = `Cell Quantity Proportion`, group = `Patient ID`)) +
+      ggplot(aes(x = Method, y = `Cell Quantity Proportion`, shape = `Patient ID`, group = `Patient ID`)) +
       geom_point() +
       geom_line() +
       labs(
         title = paste0(cell_type, ": ", pair[1], " vs ", pair[2]),
-                subtitle = paste0("Wilcoxon p-value: ", signif(p_value, digits = 3)), # Add p-value to plot
+        subtitle = paste0("Wilcoxon p-value: ", signif(p_value, digits = 3)), # Add p-value to plot
         x = "Method",
         y = "Cell Proportion"
       ) +
@@ -1057,20 +1057,20 @@ m2_data <- data_filtered %>%
         axis.title.y = element_text(size = 8),  # Adjust y-axis label size
         axis.title.x = element_text(size = 8),  # Adjust x-axis label size
         axis.text.x = element_text(size = 7),   # Adjust x-axis text size
-        axis.text.y = element_text(size = 7),   # Adjust y-axis text size
+        axis.text.y = element_text(size = 7)    # Adjust y-axis text size
         #plot.margin = margin(10, 10, 10, 10)        # Add margin around plots
-      )  +
+      ) +
+      guides(shape = guide_legend(nrow = 1)) +
+      scale_shape_manual(values = patient_shape_mapping) + # Use fixed shape mapping
       ylim(y_lim[1], y_lim[2]) # Apply the same y-axis limit for the cell type
     
     # Add the plot to the list
     plot_list[[paste(cell_type, pair[1], pair[2], sep = "_")]] <- p
   }
 }
-
 # Combine plots using cowplot's plot_grid
-Compare_clustering_methods_wilcoxon <- plot_grid(plotlist = plot_list, ncol = 3, align = 'hv') + plot_layout(
-  heights = unit(c(18,-1),c("cm","null"))  # Increase the height factor
-)
+Compare_clustering_methods_wilcoxon <- ggarrange(plotlist = plot_list, ncol = 3, nrow = 4, align = 'hv', common.legend = TRUE, legend="bottom")
+
 compare_patients_to_save[["Compare_clustering_methods_wilcoxon"]] <- Compare_clustering_methods_wilcoxon
 
 print(compare_patients_to_save)
