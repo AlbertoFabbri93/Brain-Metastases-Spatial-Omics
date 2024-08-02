@@ -5,6 +5,7 @@
 
 library("tidyverse")
 library(EBImage)
+source("Utils.R")
 ```
 
 
@@ -26,6 +27,39 @@ library(EBImage)
 ## OPEN ATOMX IMAGES
 
 ```{r}
+image_fovs_num = names(get_patient_info(patient_1_rna_data)$"M2"[[1]])
+
+image_dir = "./morphology_2D/LU001FFP03/"
+image_prefix = "20240307_005220_S2_C902_P99_N99_F"
+
+layers <- list(PanCK = 1, CD68 = 2, Membrane = 3, CD45 = 4, DAPI = 5)
+
+
+  
+fov_images <- list()
+for (fov in image_fovs_num) {
+  image_path = paste0(image_dir, image_prefix, fov, ".tif")
+  fov_images = append(fov_images, readImage(image_path))
+}
+
+layer_images <- list()
+for (layer in layers) {
+  layer_combined_image <- EBImage::combine(fov_images[,,layer])
+  layer_images = list(layer_images, layer_combined_image)
+}
+
+# layer_images <- list()
+# for (layer in layers) {
+#   images_layer <- list()
+#   for(image in fov_images) {
+#     images_layer <- list(images_layer, image[,,layer])
+#   }
+#   layer_combined_image <- EBImage::combine(layer_images)
+#   layer_images = list(layer_images, layer_combined_image)
+# }
+
+display(rgbImage(red=stamp_images$CD68*10, blue=stamp_images$CD45*10, green=stamp_images$DAPI))
+
 path1 <- "./morphology_2D/LU001FFP03/20240307_005220_S2_C902_P99_N99_F213.tif"
 path2 <- "./morphology_2D/LU001FFP03/20240307_005220_S2_C902_P99_N99_F214.tif"
 path3 <- "./morphology_2D/LU001FFP03/20240307_005220_S2_C902_P99_N99_F215.tif"
@@ -36,27 +70,330 @@ image2 <- readImage(path2)
 image3 <- readImage(path3)
 image4 <- readImage(path4)
 
-# 2 -> PanCK
-# 5 -> DNA (DAPI)
-
-# ? -> CD68
-# ? -> CD45
-# ? -> membrane
 
 for (layer in 1:5) {
   stamp <- EBImage::combine(image1[,,layer], image2[,,layer], image3[,,layer], image4[,,layer])%>%normalize()
   display(stamp, method = "raster", nx = 2, all = TRUE)
 }
 
-display(rgbImage(red=image1[,,1], blue=image1[,,3], green=image1[,,5]))
+full_stamp_dapi=EBImage::combine(image1[,,5], image2[,,5], image3[,,5], image4[,,5])%>%normalize()
+full_stamp_cd45=EBImage::combine(image1[,,4], image2[,,4], image3[,,4], image4[,,4])%>%normalize()
+full_stamp_cd68=EBImage::combine(image1[,,2], image2[,,2], image3[,,2], image4[,,2])%>%normalize()
 
-display(image1)
-
-
+full_stamp=rgbImage(red=full_stamp_cd68*10, blue=full_stamp_cd45*10, green=full_stamp_dapi)
+display(full_stamp)
+  display(full_stamp, method = "raster", nx = 2, all = TRUE)
+display(image1[,,1])#panCK
+display(image1[,,2]*10)#CD68
+display(image1[,,3],method="raster")#membrane
+display(image1[,,4]*40,method="raster")#CD45
+display(normalize(image1[,,5]),method="raster")#DAPI
 
 image2=readImage(path1)%>%normalize()%>%flip()%>%resize(0.5)
 
 images=combine(image, image2)
 
 display(images, nx=2)#, ny=1)
+```
+
+# Code for colors
+
+```{r}
+clusters_colors <- list()
+    next_color <- 1
+    for (cluster in as.list(as.character(unique(patient_rna_only[[cell_cluster$var]])$RNA_clusters))) {
+      clusters_colors[[cluster]] <- color_palette[next_color]
+      # Sort the colors by the cluster names so they work with DoHeatmap
+      clusters_colors <- clusters_colors[order(names(clusters_colors))]
+      next_color <- next_color + 1
+    }
+```
+
+# ANOVA plots
+
+```{r}
+# Perform ANOVA
+anova_results <- aov(`Cell Quantity Proportion` ~ `Cells Type` * `Method`, data = combined_data_filtered_4p)
+
+# Display ANOVA table
+summary(anova_results)
+
+# Extract the residuals
+combined_data_filtered_4p$residuals <- resid(anova_results)
+
+# Create the plot using residuals
+plot <- ggplot(combined_data_filtered_4p, aes(x = residuals)) +
+  geom_histogram(binwidth = 0.2, color = "black", fill = "white") +
+  labs(
+    title = "Histogram of Residuals",
+    x = "Residuals",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
+
+# Create a base plot with ggplot2
+plot <- ggplot(combined_data_filtered, aes(x = `Cells Type`, y = `Cell Quantity Proportion`, color = `Method`)) +
+  geom_point(position = position_jitter(width = 0.2, height = 0)) +
+  stat_summary(fun = mean, geom = "point", shape = 18, size = 3, color = "black") +
+  labs(
+    title = "Cell Quantity Proportion by Cells Type and Method",
+    x = "Cells Type",
+    y = "Cell Quantity Proportion"
+  ) +
+  theme_minimal()
+
+# Remove spaces from column names
+combined_data_filtered_no_spaces <- combined_data_filtered %>%
+  rename_with(~ gsub(" ", "_", .x))
+
+library("CGPfunctions")
+Plot2WayANOVA(Cell_Quantity_Proportion ~ Cells_Type * Method,
+  combined_data_filtered_no_spaces,
+  plottype = "line",
+  overlay.type = "box",
+  mean.label = TRUE,
+  palette = c('gray0','gray40', 'gray80')
+)
+
+# Keep only the four patients
+cdfns_4p <- combined_data_filtered_no_spaces %>%
+  filter(`Patient_ID` %in% c("3", "4", "5", "7"))
+
+Plot2WayANOVA(Cell_Quantity_Proportion ~ Cells_Type * Method,
+  cdfns_4p,
+  plottype = "line",
+  overlay.type = "box",
+  mean.label = TRUE,
+  palette = c('gray0','gray40', 'gray80')
+)
+
+combined_data_filtered_4p %>%
+  ggplot(aes(x = Method, y = `Cell Quantity Proportion`, group = `Patient ID`)) +
+  geom_point() +
+  geom_line() +
+  facet_wrap(~ `Cells Type`, scales = "free") +
+  labs(
+    title = "Comparison of Cell Quantity Proportion Across Methods",
+    x = "Method",
+    y = "Cell Quantity Proportion"
+  ) +
+  theme_minimal()
+
+# Create all combinations of two methods
+method_pairs <- combn(unique(combined_data_filtered_4p$Method), 2, simplify = FALSE)
+
+# Create the scatterplot for each cell type and method combination
+plot_list <- lapply(method_pairs, function(pair) {
+  combined_data_filtered_4p %>%
+    filter(Method %in% pair) %>%
+    ggplot(aes(x = Method, y = `Cell Quantity Proportion`, group = `Patient ID`)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~ `Cells Type`, scales = "free") +
+    labs(
+      title = paste("Comparison of", pair[1], "vs", pair[2]),
+      x = "Method",
+      y = "Cell Quantity Proportion"
+    ) +
+    theme_minimal()
+})
+
+# Display all plots in a patchwork-like layout
+library(patchwork)
+wrap_plots(plot_list)
+
+print(plot_list)
+```
+
+# Barplot cell types
+
+```{r}
+
+# Define new labels for the x-axis
+cell_labels <- c("T cell" = "T cells", 
+                 "B cell" = "B cells", 
+                 "Tumor" = "Tumor Cells", 
+                 "Macrophage" = "Macrophages")
+
+patients_final = list()
+
+methods_colors <- c('gray0','gray40', 'gray80')
+# Define common y-axis limits
+y_limits <- c(0, 0.9)
+# Define breaks at the limits
+y_breaks <- seq(from = y_limits[1], to = y_limits[2], by = 0.1)  # Adjust by parameter as needed
+# Define scale break
+y_scale_break = c(0.2, 0.7)
+library("ggbreak")
+
+combined_data_filtered <- combined_data %>%
+  filter(`Cells Type` %in% c("T cell", "Tumor", "Macrophage"))
+
+patient_3 <- combined_data_filtered %>%
+  filter(`Patient ID` == "3") %>%
+  ggplot(aes(fill=`Method`, y=`Cell Quantity Proportion`, x=`Cells Type`)) +
+    geom_bar(position=position_dodge2(preserve = "single"), stat='identity') +
+    ggtitle('Patient 3') +
+    xlab('Cell type') +
+    ylab('Quantity') +
+    scale_fill_manual('Product', values = methods_colors) +
+    scale_x_discrete(labels = cell_labels) +
+    # scale_y_break(y_scale_break, scales = "0.5") +
+    scale_y_continuous(limits = y_limits, breaks = y_breaks) +
+    theme_minimal() +
+  theme(axis.text.x.top = element_blank(),
+        axis.ticks.x.top = element_blank(),
+        axis.line.x.top = element_blank())
+patients_final[["patient_3"]] <- patient_3
+
+patient_4 <- combined_data_filtered %>%
+  filter(`Patient ID` == "4") %>%
+  ggplot(aes(fill=`Method`, y=`Cell Quantity Proportion`, x=`Cells Type`)) +
+    geom_bar(position=position_dodge2(preserve = "single"), stat='identity') +
+    ggtitle('Patient 4') +
+    xlab('Cell type') +
+    ylab('Quantity') +
+    scale_fill_manual('Product', values=methods_colors) +
+    scale_x_discrete(labels = cell_labels) +
+    # scale_y_break(y_scale_break, scales = "0.5") +
+    scale_y_continuous(limits = y_limits, breaks = y_breaks) +
+    theme_minimal() +
+  theme(axis.text.x.top = element_blank(),
+        axis.ticks.x.top = element_blank(),
+        axis.line.x.top = element_blank())
+
+patients_final[["patient_4"]] <- patient_4
+
+patient_5 <- combined_data_filtered %>%
+  filter(`Patient ID` == "5") %>%
+  ggplot(aes(fill=`Method`, y=`Cell Quantity Proportion`, x=`Cells Type`)) +
+    geom_bar(position=position_dodge2(preserve = "single"), stat='identity') +
+    ggtitle('Patient 5') +
+    xlab('Cell type') +
+    ylab('Quantity') +
+    scale_fill_manual('Product', values=methods_colors) +
+    scale_x_discrete(labels = cell_labels) +
+  # scale_y_break(y_scale_break, scales = "0.5") +
+    scale_y_continuous(limits = y_limits, breaks = y_breaks) +
+    theme_minimal() +
+  theme(axis.text.x.top = element_blank(),
+        axis.ticks.x.top = element_blank(),
+        axis.line.x.top = element_blank())
+patients_final[["patient_5"]] <- patient_5
+
+patient_7 <- combined_data_filtered %>%
+  filter(`Patient ID` == "7") %>%
+  ggplot(aes(fill=`Method`, y=`Cell Quantity Proportion`, x=`Cells Type`)) +
+    geom_bar(position=position_dodge2(preserve = "single"), stat='identity') +
+    ggtitle('Patient 7') +
+    xlab('Cell type') +
+    ylab('Quantity') +
+    scale_fill_manual('Product', values=methods_colors) +
+    scale_x_discrete(labels = cell_labels) +
+  # scale_y_break(y_scale_break, scales = "0.5") +
+    scale_y_continuous(limits = y_limits, breaks = y_breaks) +
+    theme_minimal() +
+  theme(axis.text.x.top = element_blank(),
+        axis.ticks.x.top = element_blank(),
+        axis.line.x.top = element_blank())
+patients_final[["patient_7"]] <- patient_7
+
+combined_plot_title = "Proportion of Cells Types (Patients 3, 4, 5 & 7)"
+
+patients_3457_barplot <- combined_data_filtered %>%
+  filter(`Patient ID` %in% c("3", "4", "5", "7")) %>%
+  ggplot(aes(fill=`Method`, y=`Cell Quantity Proportion`, x=`Cells Type`)) +
+    geom_bar(position=position_dodge2(preserve = "single"), stat='identity') +
+    ggtitle(combined_plot_title) +
+    xlab('Cell type') +
+    ylab('Quantity') +
+    scale_fill_manual('Product', values=methods_colors) +
+    scale_x_discrete(labels = cell_labels) +
+    #scale_y_break(c(0.5, 0.7), scales = "1") +
+    scale_y_continuous(limits = y_limits, breaks = y_breaks) +
+    theme_minimal()
+patients_final[["patients_3457_barplot"]] <- patients_3457_barplot
+
+
+patients_3457_scatterplot <-combined_data_filtered %>%
+  filter(`Patient ID` %in% c("3", "4", "5", "7")) %>%
+  ggplot(aes(x = `Cells Type`, y = `Cell Quantity Proportion`, color = `Method`, size = "Patient")) +
+  # geom_point(position = position_jitter(width = 0.2), alpha = 0.6) +  # Jitter to avoid overlap
+  geom_point(position = position_dodge(width = 0.5), alpha = 0.6) +
+  stat_summary(
+    fun.data = mean_sdl,
+    geom = "pointrange",
+    aes(color = `Method`, size = "Mean"),
+    position = position_dodge(width = 0.5)
+  ) +
+  scale_color_manual(
+    'Method',
+    values = methods_colors
+  ) +
+  scale_size_manual(
+    "Size",
+    values = c("Patient" = 2, "Mean" = 1)
+  ) +
+  scale_x_discrete(labels = cell_labels) +
+  scale_y_continuous(breaks = y_breaks) +
+  ggtitle(combined_plot_title) +
+  xlab('Cell Type') +
+  ylab('Cell Quantity Proportion') +
+  theme_minimal() +
+  theme(
+    legend.position = "right",  # Adjust legend position if needed
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8)
+  )
+patients_final[["patients_3457_scatterplot"]] <- patients_3457_scatterplot
+
+patients_3457_scatterplot_simplified <- combined_data_filtered %>%
+  filter(`Patient ID` %in% c("3", "4", "5", "7")) %>%
+  ggplot(aes(x = `Cells Type`, y = `Cell Quantity Proportion`, size = "Patient")) +
+  geom_point(aes(size = "Patient"), alpha = 0.6) +
+  stat_summary(
+    fun.data = mean_sdl,
+    geom = "pointrange",
+    aes(size = "Mean"),
+    alpha = 0.6,
+  ) +
+  scale_size_manual(
+    "Size",
+    values = c("Patient" = 2, "Mean" = 1)
+  ) +
+  scale_x_discrete(labels = cell_labels) +
+  scale_y_continuous(breaks = y_breaks) +
+  ggtitle(combined_plot_title) +
+  xlab('Cell Type') +
+  ylab('Cell Quantity Proportion') +
+  theme_minimal() +
+  theme(
+    legend.position = "right",  # Adjust legend position if needed
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8)
+  )
+patients_final[["patients_3457_scatterplot_simplified"]] <- patients_3457_scatterplot_simplified
+
+# Calculate mean and standard deviation for each cell type
+summary_stats <- combined_data_filtered %>%
+  filter(`Patient ID` %in% c("3", "4", "5", "7")) %>%
+  group_by(`Cells Type`) %>%
+  summarise(
+    mean = mean(`Cell Quantity Proportion`, na.rm = TRUE),
+    sd = sd(`Cell Quantity Proportion`, na.rm = TRUE)
+  )
+
+summary_histograms <- combined_data_filtered %>%
+  filter(`Patient ID` %in% c("3", "4", "5", "7")) %>%
+ggplot(aes(x = `Cell Quantity Proportion`)) +
+  geom_histogram(binwidth = 0.1, color = "black", fill = "white") +
+  facet_grid(`Cells Type` ~ `Method`) +
+  labs(
+    title = "Histogram of Cell Quantity Proportion",
+    x = "Cell Quantity Proportion",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+
 ```
