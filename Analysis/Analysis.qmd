@@ -4,8 +4,28 @@ author: "Alberto Fabbri"
 format: html
 ---
 
+## Set up the environment
+
+### Packages
+
+This analysis uses `renv` to manage the dependencies. `renv` is a normal R package that can be installed with:
+
+`install.packages("renv")`
+
+Once `renv` is installed it can be used to install the necessary packages by running the following code:
+
+`renv::restore()`
+
+`renv` will then proceed to install all the packages specified in the `renv.lock` file.
+
+### Quarto
+
+To run this file it is necessary to have `quarto` installed. `quarto` is a software used to create reproducible documents that embed code. It can be installed by downloading it from the official website:
+
+[https://quarto.org]
+
 ::: {.content-hidden}
-### Install the necessary packages
+### Load the necessary packages
 :::
 
 ```{r}
@@ -32,6 +52,8 @@ library("dittoSeq")
 library("EBImage")
 # Used to annotate images with multiple plots
 library("patchwork")
+# Used to arrange plots in a common grid
+library("ggpubr")
 
 ###### TIDYVERSE ######
 # Data manipulation
@@ -966,7 +988,6 @@ combined_grouped_barplot <- ggplot(combined_data,aes(x = `Method`,
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5))
 compare_patients_to_save[["All_clustering_methods_all_patients_grouped_barplot"]] <- combined_grouped_barplot
 
-library("ggpubr")
 library("PairedData")
 
 # Filter the combined_data_filtered to keep only the four patients
