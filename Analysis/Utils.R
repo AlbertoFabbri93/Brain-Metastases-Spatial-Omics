@@ -942,8 +942,8 @@ known_clusters_colors <- c(
   "T cell CD8" = "#F8A19F",
   "T cell regulatory" = "#325A9B",
   "Tumor" = "#C4451C",
-  "T cell" = "#1C8356"
-  "Unknown" = "#f5ee59"
+  "T cell" = "#1C8356",
+  "Unknown" = "#f5ee59",
 )
 
 generate_proteins_plots <- function(patient_data, assay) {
