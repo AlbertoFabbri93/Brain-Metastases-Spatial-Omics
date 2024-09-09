@@ -311,25 +311,6 @@ extract_patient_data <- function(all_patients_data, patient_num) {
   
   return(patient_data)
 }
-
-extract_patient_rna_data <- function(patient_data, assay, start_index = 1, end_index = 1000) {
-  
-  assay_to_subset <- patient_data[[assay]]
-  
-  # Check if the provided indices are within the valid range
-  if (start_index < 1 || end_index > nrow(assay_to_subset) || start_index > end_index) {
-    stop("Invalid range of indices provided.")
-  }
-  
-  # Create Seurat object with only the specified range of RNA data
-  features_to_include <- rownames(assay_to_subset)[start_index:end_index]
-  rna_only_assay <- subset(x = assay_to_subset, features = features_to_include)
-  patient_rna_only <- patient_data
-  patient_rna_only[[assay]] <- NULL
-  patient_rna_only[["RNA"]] <- rna_only_assay
-  
-  return(patient_rna_only)
-}
   
 get_avg_neg_probes <- function(patient_data) {
   
