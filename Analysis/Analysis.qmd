@@ -498,6 +498,16 @@ patient_2_data$InSituType_semisup_clusters_annotated <- case_match(
   c("d", "e") ~ "Fibroblast",
   .default = unname(patient_2_data$InSituType_semisup_clusters)
 )
+# Colors for the InSituType plot
+InSituType_color_lookup_table <- generate_colors_lookup_table(patient_2_data, "InSituType_semisup_clusters_annotated", known_clusters_colors)
+# Generate the annotated Insitutype plots
+patient_2_plots <- c(patient_2_plots, generate_clustering_plots(patient_2_data, "InSituType_semisup_clusters_annotated",
+    cluster_assay = "RNA", 
+    cluster_reduction = "umap_RNA",
+    create_heatmap = FALSE,
+    cluster_name = "InSituType Semisupervised Clusters Annotated",
+    color_lookup_table = InSituType_color_lookup_table))
+patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
 
 # Generate plots
 patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA", "RNA_clusters_annotated"))
