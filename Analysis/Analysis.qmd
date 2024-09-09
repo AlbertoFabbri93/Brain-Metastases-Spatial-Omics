@@ -1049,16 +1049,19 @@ for (cell_type in cell_types) {
       data_filtered <- combined_data_filtered
     }
 
+    # Filter the data for the current pair and cell type
     data_filtered <- data_filtered %>%
       filter(Method %in% pair, `Cells Type` == cell_type) %>%
       mutate(Method = factor(Method, levels = pair),
              `Patient ID` = factor(`Patient ID`, levels = names(patient_shape_mapping)))
     
+    # Extract the data for the first method
     m1_data <- data_filtered %>%
       filter(Method == pair[1]) %>%
       arrange(`Patient ID`) %>%  # Sort by Patient ID
       pull(`Cell Quantity Proportion`)
 
+    # Extract the data for the first method
     m2_data <- data_filtered %>%
       filter(Method == pair[2]) %>%
       arrange(`Patient ID`) %>%  # Sort by Patient ID
@@ -1099,11 +1102,12 @@ for (cell_type in cell_types) {
     plot_list[[paste(cell_type, pair[1], pair[2], sep = "_")]] <- p
   }
 }
-# Combine plots using cowplot's plot_grid
+# Combine plots using ggpubr
 Compare_clustering_methods_wilcoxon <- ggarrange(plotlist = plot_list, ncol = 3, nrow = 4, align = 'hv', common.legend = TRUE, legend="bottom")
 
 compare_patients_to_save[["Compare_clustering_methods_wilcoxon"]] <- Compare_clustering_methods_wilcoxon
 
+# Print all the plots
 print(compare_patients_to_save)
 ```
 
