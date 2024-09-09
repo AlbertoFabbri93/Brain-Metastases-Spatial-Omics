@@ -151,6 +151,8 @@ tidy_seurat_object_assay <- function(seurat_object_mixed_features, assay_name) {
 
   seurat_object_cleaned_features <- AddMetaData(object = seurat_object_cleaned_features, metadata = filtered_metadata)
   
+  seurat_object_cleaned_features@images <- seurat_object_mixed_features@images
+  
   return(seurat_object_cleaned_features)
 }
 
@@ -474,7 +476,7 @@ patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_rbc_removed, "Na
 patient_1_rbc_removed$InSituType_semisup_clusters <- patient_1_IST_semisup$clust
 
 # RNA data only
-patient_1_data <- extract_patient_rna_data(patient_1_rbc_removed, "Nanostring")
+patient_1_data <- patient_1_rbc_removed
 patient_1_data <- normalize_cluster_data(patient_1_data, "RNA")
 patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "RNA_clusters", "umap_RNA"))
 patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "RNA_clusters", "RNA"))

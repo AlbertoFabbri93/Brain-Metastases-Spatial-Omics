@@ -213,10 +213,10 @@ run_IST_semisup_extract_data <- function(
     assay) {
  
   # Get the data necessary to run InSituType
-  patient_rna_data <- extract_patient_rna_data(patient_data, assay)
+  patient_rna_data <- patient_data[["RNA"]]
   patient_cohort <- get_patient_cohort(patient_data)
-  patient_rna_counts <- get_seurat_layer_data(patient_data, assay, "counts")
-  patient_avg_neg_probes <- get_avg_neg_probes(patient_data, assay)
+  patient_rna_counts <- get_seurat_layer_data(patient_data, "RNA", "counts")
+  patient_avg_neg_probes <- get_avg_neg_probes(patient_data[["NegativeProbes"]])
   
   # Call the InSituType semisupervised function
   patient_semisup <- run_InSituType_semisupervised(
@@ -332,20 +332,14 @@ extract_patient_rna_data <- function(patient_data, assay, start_index = 1, end_i
   return(patient_rna_only)
 }
   
-get_avg_neg_probes <- function(patient_data, assay) {
+get_avg_neg_probes <- function(patient_data) {
   
-  assay_to_subset <- patient_data[[assay]]
-  
-  # Extract the negative probes from the Seurat object
-  patient_neg_probes <- GetAssayData(subset(
-        assay_to_subset,
-        features = row.names(assay_to_subset) %>%
-  grep("Negative", ., value = TRUE))) %>%
-  as.matrix() %>%
-  t()
   # Calculate the average negative probes per cell
-  patient_avg_neg_probes <- Matrix::rowMeans(patient_neg_probes)
-  # Return a large numeric
+  patient_avg_neg_probes <- LayerData(patient_data, layer = "counts") %>%
+  as.matrix() %>%
+  t() %>%
+  Matrix::rowMeans(patient_neg_probes)
+
   return(patient_avg_neg_probes)
 }
 
