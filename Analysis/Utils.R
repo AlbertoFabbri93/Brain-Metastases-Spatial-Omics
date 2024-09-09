@@ -573,6 +573,8 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
   # Identifies features that are outliers on a 'mean variability plot'
   patient_data <- Seurat::FindVariableFeatures(
     object = patient_data,
+    selection.method = "vst",
+    nfeatures = 2000,
     verbose = FALSE)
   # Run a PCA dimensionality reduction
   patient_data <- Seurat::RunPCA(
@@ -592,6 +594,7 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
   patient_data <- Seurat::FindClusters(
     object = patient_data,
     resolution = patient_res,
+    algorithm = 1, # 1 = Louvain algorithm
     cluster.name = "RNA_clusters",
     graph.name = paste0(assay, "_snn"),
     random.seed = 1,
@@ -761,9 +764,9 @@ generate_elbow_plot<- function(patient_data, reduction, dims) {
 
 ####### COLOR CLUSTERS #######
 
-# Assign random colors to unknown clusters
+# Create a vector with a color for every cluster
 generate_colors_lookup_table <- function(data, cluster_column_name, known_clusters_colors = NULL, color_palette = DiscretePalette(36, palette = "polychrome")) {
-  
+
   # Remove the colors that are used by the known clusters
   usable_color_palette <- setdiff(color_palette, known_clusters_colors)
   
@@ -771,15 +774,21 @@ generate_colors_lookup_table <- function(data, cluster_column_name, known_cluste
   # The cluster 0 in Seurat for example is different for every patient
   usable_color_palette <- sample(usable_color_palette)
   
-  unknown_clusters_colors <- c()
-  next_color <- 1
-  # Loop over the unknown clusters and assign each of them a random color
-  for (cluster in setdiff(
-    as.vector(as.character(unique(data[[cluster_column_name]])[[cluster_column_name]])),
-    as.vector(names(known_clusters_colors)))) {
-    unknown_clusters_colors <- c(unknown_clusters_colors, setNames(usable_color_palette[next_color], cluster))
-    next_color <- next_color + 1
+  # "data" must be either a data frame or a tibble
+  # If the object is of type Seurat, extract the meta data
+  if ("Seurat" %in% class(data)) {
+    data <- data@meta.data
   }
+  
+  # Get the unique clusters in the data (works with both base R data frames and tibbles)
+  clusters <- unique(dplyr::pull(data, cluster_column_name))
+  
+  # Remove the known clusters from the list of clusters as they already have a color assigned
+  unknown_clusters <- setdiff(clusters, names(known_clusters_colors))
+  
+  # Assign a random colors to the unknown clusters
+  unknown_clusters_colors <- setNames(usable_color_palette[1:length(unknown_clusters)], unknown_clusters)
+  
   # Return the colors for the known and unknown clusters
   return(c(known_clusters_colors, unknown_clusters_colors))
 }
@@ -933,7 +942,8 @@ known_clusters_colors <- c(
   "T cell CD8" = "#F8A19F",
   "T cell regulatory" = "#325A9B",
   "Tumor" = "#C4451C",
-  "T cell" = "#1C8356"
+  "T cell" = "#1C8356",
+  "Unknown" = "#f5ee59"
 )
 
 generate_proteins_plots <- function(patient_data, assay) {

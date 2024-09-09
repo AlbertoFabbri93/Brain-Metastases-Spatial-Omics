@@ -4,8 +4,28 @@ author: "Alberto Fabbri"
 format: html
 ---
 
+## Set up the environment
+
+### Packages
+
+This analysis uses `renv` to manage the dependencies. `renv` is a normal R package that can be installed with:
+
+`install.packages("renv")`
+
+Once `renv` is installed it can be used to install the necessary packages by running the following code:
+
+`renv::restore()`
+
+`renv` will then proceed to install all the packages specified in the `renv.lock` file.
+
+### Quarto
+
+To run this file it is necessary to have `quarto` installed. `quarto` is a software used to create reproducible documents that embed code. It can be installed by downloading it from the official website:
+
+[https://quarto.org]
+
 ::: {.content-hidden}
-### Install the necessary packages
+### Load the necessary packages
 :::
 
 ```{r}
@@ -29,9 +49,11 @@ library("InSituType")
 # Used for the barplots
 library("dittoSeq")
 # Used to visualize the raw images from AtoMx
-library(EBImage)
+library("EBImage")
 # Used to annotate images with multiple plots
-library(patchwork)
+library("patchwork")
+# Used to arrange plots in a common grid
+library("ggpubr")
 
 ###### TIDYVERSE ######
 # Data manipulation
@@ -42,6 +64,14 @@ library("ggplot2")
 library("readxl")
 # Open CSV files
 library("readr")
+# Better dataframes
+library("tibble")
+# Pivot tibbles
+library("tidyr")
+
+# Prefer dplyr in case of conflict
+library("conflicted")
+conflict_prefer_all("dplyr")
 
 # Import utility functions
 source("Utils.R")
@@ -130,13 +160,17 @@ breast_cancer_patients_cleaned_features <- tidy_seurat_object_assay(breast_cance
 
 ## General overview of the data
 
+Create a table with an entry for every FOV in the Seurat object analyzed in this study. The table will contain the patient ID, the serial core, the stamp, and the FOV.
+
 ```{r}
 #| label: data-overview
 #| echo: false
 
 # Cohort of all the patients
 breast_cancer_patients <- breast_cancer_patients_cleaned_features
-immunofluorescence <- breast_cancer_patients@meta.data %>% select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+immunofluorescence <- breast_cancer_patients@meta.data %>% 
+                      dplyr::select("Mean.PanCK", "Mean.CD45", "Mean.CD68")
+
 cohort <- fastCohorting(immunofluorescence,
   gaussian_transform = TRUE, n_cohorts = 5
 )
@@ -200,10 +234,14 @@ sort(unique(unlist(breast_cancer_patients$Patient.ID)))
 breast_cancer_fovs <- sort(unique(unlist(breast_cancer_patients$fov)))
 
 # Print the number of stamps
-length(unique(paste(breast_cancer_patients@meta.data$core_serial, breast_cancer_patients@meta.data$stamp)))
+length(unique(paste(
+  breast_cancer_patients@meta.data$core_serial,
+  breast_cancer_patients@meta.data$stamp)))
 ```
 
 ### Tissue micro array
+
+Print the patients' information and create two representation of the TMA: one with the primary diagnosis highlighted and one with the quality of the FOVs with a primary diagnosis of breast cancer highlighted.
 
 ```{r}
 #| label: TMA-info
@@ -275,7 +313,8 @@ LU001FFP03_TMA_primary_diag_name <- paste0("TMA_LU001FFP03_primary_diagnosis_hig
 TMA_info_to_save[[LU001FFP03_TMA_primary_diag_name]] <- LU001FFP03_TMA_primary_diag
 
 # TMA plot with FOVs positions and quality of those with primary diagnosis of breast cancer
-LU001FFP03_TMA_breast_cancers_stamps_quality <- ggplot(FOVs_prim_diag_pos_qual, aes(x = X_mm, y = Y_mm)) +
+LU001FFP03_TMA_breast_cancers_stamps_quality <- ggplot(
+  FOVs_prim_diag_pos_qual, aes(x = X_mm, y = Y_mm)) +
   geom_point(aes(color = `Quality`), shape = 15, size = square_size) +
   geom_text(aes(label = FOV), size = square_text_size) +
   coord_equal() +
@@ -285,8 +324,10 @@ LU001FFP03_TMA_breast_cancers_stamps_quality <- ggplot(FOVs_prim_diag_pos_qual, 
                      na.translate = TRUE, 
                      na.value = "grey50",
                      breaks = c("good", "bad"))
-LU001FFP03_TMA_breast_cancer_stamps_highlighted_name <- paste0("TMA_LU001FFP03_breast_cancer_stamps_quality")
-TMA_info_to_save[[LU001FFP03_TMA_breast_cancer_stamps_highlighted_name]] <- LU001FFP03_TMA_breast_cancers_stamps_quality
+LU001FFP03_TMA_breast_cancer_stamps_highlighted_name <- 
+  paste0("TMA_LU001FFP03_breast_cancer_stamps_quality")
+TMA_info_to_save[[LU001FFP03_TMA_breast_cancer_stamps_highlighted_name]] <- 
+  LU001FFP03_TMA_breast_cancers_stamps_quality
 
 print(c(TMA_info_to_display, TMA_info_to_save))
 ```
@@ -304,11 +345,115 @@ print(c(TMA_info_to_display, TMA_info_to_save))
 save_plots(TMA_info_to_save, here(image_dir), image_ext)
 ```
 
+### Read Akoya Data
+
+The Akoya data is available in an Excel file, extract the data for the full cores and rename the columns with the name of the cell types.
+
+```{r}
+# File path to the Akoya data
+file_path <- here(
+  "Analysis",
+  "Akoya_spatial_multiplex_immune_cell_data",
+  "Breast cancer",
+  "M1 Breast Full Cores Final + Image",
+  "Results_breast_full_cores.xlsx"
+)
+
+# Read the file with the Akoya data
+# The data is in the second sheet, the first row is skipped (the header is on the second row)
+# and the columns with useless data are removed
+data <- read_excel(
+  file_path,
+  sheet = 2,
+  skip = 1,
+  col_types = c(
+    "skip",
+    "skip",
+    "text",
+    "text",
+    "skip",
+    "numeric",
+    "numeric",
+    "numeric",
+    "numeric",
+    "numeric",
+    "numeric",
+    "numeric"
+  )
+)
+
+# Create an empty tibble to store the filtered data
+# Only the total cell data is kept
+akoya_data <- data %>% slice(0)
+
+# Add only the rows with the total cell count to the tibble
+for (i in seq(3, nrow(data), by = 3)) {
+  row <- data[i, ]
+  akoya_data <- add_row(.data = akoya_data,row)
+}
+
+# Rename columns to align with the nomenclaure used in the rest of the analysis
+akoya_data <- akoya_data %>% rename(
+  "Tumor" = "Pan-CK+/CD4-/CD8-/CD20-/CD68-/FOXP3-",
+  "T cell CD4" = "Pan-CK-/CD4+/FOXP3-",
+  "T cell regulatory" = "Pan-CK-/CD4+/FOXP3+",
+  "T cell CD8" = "Pan-CK-/CD8+",
+  "B cell" = "Pan-CK-/CD20+",
+  "Macrophage" = "Pan-CK-/CD68+"
+)
+
+# Merge the two types of T-cells into a single column
+# processed_data <- processed_data %>% mutate(
+#   "T-cell" = `T-cell CD4` + `T-cell CD8`
+# ) %>% select(-`T-cell CD4`, -`T-cell CD8`)
+
+# Created manually from a schematic of the TMA in METBRA PhenoImager Analysis file
+map_TMA_row_column_to_core <- tibble(
+  `TMA Row` = c("12", "5", "10", "10", "11", "11", "12", "2", "3", "4", "6", "7", "8", "9", "9"),
+  `TMA Column` = c("E", "F", "E", "F", "E", "F", "F", "F", "F", "F", "F", "F", "E", "E", "F"),
+  core = c("M6", "M4", "M7", "M2", "M7", "M1", "M1", "M6", "M5", "M5", "M4", "M3", "M8", "M8", "M2")
+)
+
+# Merge the data data about the cores with the Akoya data and make it the first column
+akoya_data <- akoya_data %>%
+  left_join(map_TMA_row_column_to_core, by = c("TMA Row", "TMA Column")) %>%
+  select(all_of(names(map_TMA_row_column_to_core)), everything())
+
+# Subset the TMA_METBRA_COSMX data frame to only the useful columns
+TMA_METBRA_COSMX_subset <- TMA_METBRA_COSMX[, c("Full Serial Number", "Patient ID")]
+
+# Merge the Patient IDs with the Akoya data and make it the first column
+akoya_data <- akoya_data %>%
+  left_join(TMA_METBRA_COSMX_subset, by = join_by("core" == "Full Serial Number")) %>%
+  mutate(`Patient ID` = as.factor(`Patient ID`)) %>%
+  select(`Patient ID`, everything()) %>%
+  arrange(`core`)
+
+# Remove columns that were only used for merging
+akoya_data <- akoya_data %>%
+  select(-`TMA Column`, -`TMA Row`)
+
+# Sum the data for each patient
+akoya_by_patient <- akoya_data %>%
+  select(-core) %>%
+  group_by(`Patient ID`) %>%
+  summarise(across(where(is.numeric), \(x) sum(x, na.rm = TRUE)))
+
+# Print the tibbles
+print(list(akoya_data, akoya_by_patient))
+```
+
+
 ## Clustering per patient
+
+Cluster data for every patient and create a Seurat object for each patient. The functions used to cluster the data are defined in the `Utils.R` file.
+
+The individual script of every patient generates a list with all the images and data frames that can be saved and displayed.
 
 ```{r}
 #| label: merged-data
 
+# Collect all patients' data in a list
 patients_rna_data <- list()
 ```
 
@@ -343,24 +488,31 @@ patient_1_data$RNA_clusters_annotated <- case_match(
   "6" ~ "T cell",
   "7" ~ "Fibroblast"
 )
+# Generate the UMAP with the non-annotated clusters
 patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "InSituType_semisup_clusters", "umap_RNA"))
+# Generate the heatmap of the non-annotated clusters
 patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "InSituType_semisup_clusters", "RNA"))
+# Colors for the flighpath plot
 InSituType_color_lookup_table_1 <- generate_colors_lookup_table(
     patient_1_data,
     "InSituType_semisup_clusters",
     known_clusters_colors)
+# Generate the flightpath plot
 patient_1_plots <- c(
     patient_1_plots,
     generate_flightpath(patient_1_IST_semisup, InSituType_color_lookup_table_1, "1"))
+# Generate the Louvain clustering plots
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
+# Annotate the InSituType clusters
 patient_1_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_1_data$InSituType_semisup_clusters,
   c("a", "b", "c", "d", "e", "f") ~ "Tumor",
   "g" ~ "Endothelial",
   .default = unname(patient_1_data$InSituType_semisup_clusters)
 )
-
+# Colors for the InSituType plot
 InSituType_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "InSituType_semisup_clusters_annotated", known_clusters_colors)
+# Generate the annotated Insitutype plots
 patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "InSituType_semisup_clusters_annotated",
     cluster_assay = "RNA", 
     cluster_reduction = "umap_RNA",
@@ -423,7 +575,18 @@ patient_2_data$InSituType_semisup_clusters_annotated <- case_match(
   c("d", "e") ~ "Fibroblast",
   .default = unname(patient_2_data$InSituType_semisup_clusters)
 )
+# Colors for the InSituType plot
+InSituType_color_lookup_table <- generate_colors_lookup_table(patient_2_data, "InSituType_semisup_clusters_annotated", known_clusters_colors)
+# Generate the annotated Insitutype plots
+patient_2_plots <- c(patient_2_plots, generate_clustering_plots(patient_2_data, "InSituType_semisup_clusters_annotated",
+    cluster_assay = "RNA", 
+    cluster_reduction = "umap_RNA",
+    create_heatmap = FALSE,
+    cluster_name = "InSituType Semisupervised Clusters Annotated",
+    color_lookup_table = InSituType_color_lookup_table))
+patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
 
+# Generate plots
 patient_2_plots <- c(patient_2_plots, generate_rna_plots(patient_2_data, "RNA", "RNA_clusters_annotated"))
 patient_2_plots <- c(patient_2_plots, generate_IST_plots(patient_2_data, "RNA", patient_2_IST_semisup))
 patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
@@ -469,7 +632,7 @@ patient_3_data$RNA_clusters_annotated <- case_match(
   c("0", "2", "3") ~ "Tumor",
   "1" ~ "Macrophage",
   c("4", "7") ~ "Fibroblast",
-  "5" ~ "Fibroblast/Oligodendrocyte",
+  "5" ~ "Fibroblast",
   "6" ~ "Endothelial"
 )
 patient_3_data$InSituType_semisup_clusters_annotated <- case_match(
@@ -478,7 +641,7 @@ patient_3_data$InSituType_semisup_clusters_annotated <- case_match(
   c("b", "f") ~ "Fibroblast",
   .default = unname(patient_3_data$InSituType_semisup_clusters)
 )
-
+# Generate plots
 patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA", "RNA_clusters_annotated"))
 patient_3_plots <- c(patient_3_plots, generate_IST_plots(patient_3_data, "RNA", patient_3_IST_semisup))
 patient_3_plots <- c(patient_3_plots, generate_comparison_plots(patient_3_data))
@@ -527,7 +690,7 @@ patient_4_data$RNA_clusters_annotated <- case_match(
   c("0", "1", "2", "3") ~ "Tumor",
   "4" ~ "Fibroblast",
   "5" ~ "Macrophage",
-  "6" ~ "T cell/Endothelial"
+  "6" ~ "T cell"
 )
 patient_4_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_4_data$InSituType_semisup_clusters,
@@ -536,6 +699,8 @@ patient_4_data$InSituType_semisup_clusters_annotated <- case_match(
   c("d", "e") ~ "Fibroblast",
   .default = unname(patient_4_data$InSituType_semisup_clusters)
 )
+
+# Generate plots
 patient_4_plots <- c(patient_4_plots, generate_rna_plots(patient_4_data, "RNA", "RNA_clusters_annotated"))
 patient_4_plots <- c(patient_4_plots, generate_IST_plots(patient_4_data, "RNA", patient_4_IST_semisup))
 patient_4_plots <- c(patient_4_plots, generate_comparison_plots(patient_4_data))
@@ -582,18 +747,19 @@ patient_5_data$RNA_clusters_annotated <- case_match(
   c("2", "5") ~ "Dendritic cell",
   "3" ~ "Fibroblast",
   "4" ~ "Macrophage",
-  "6" ~ "Endothelial/Fibroblast",
-  "7" ~ "T cell/Dendritic cell",
+  "6" ~ "Endothelial",
+  "7" ~ "T cell",
   "8" ~ "T cell",
 )
 patient_5_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_5_data$InSituType_semisup_clusters,
   c("a", "c", "d", "g") ~ "Tumor",
-  c("b", "e") ~ "T cell/Dendritic cell",
-  "f" ~ "Fibroblast/Endothelial",
+  c("b", "e") ~ "T cell",
+  "f" ~ "Fibroblast",
   .default = unname(patient_5_data$InSituType_semisup_clusters)
 )
 
+# Generate plots
 patient_5_plots <- c(patient_5_plots, generate_rna_plots(patient_5_data, "RNA", "RNA_clusters_annotated"))
 patient_5_plots <- c(patient_5_plots, generate_IST_plots(patient_5_data, "RNA", patient_5_IST_semisup))
 patient_5_plots <- c(patient_5_plots, generate_comparison_plots(patient_5_data))
@@ -637,7 +803,7 @@ patient_6_data <- normalize_cluster_data(patient_6_data, "RNA")
 patient_6_data$RNA_clusters_annotated <- case_match(
   patient_6_data$RNA_clusters,
   c("0", "1", "2", "4") ~ "Tumor",
-  "3" ~ "Fibroblasts/Endothelial",
+  "3" ~ "Fibroblast",
   "5" ~ "Macrophage",
 )
 patient_6_data$InSituType_semisup_clusters_annotated <- case_match(
@@ -646,6 +812,7 @@ patient_6_data$InSituType_semisup_clusters_annotated <- case_match(
   .default = unname(patient_6_data$InSituType_semisup_clusters)
 )
 
+# Generate plots
 patient_6_plots <- c(patient_6_plots, generate_rna_plots(patient_6_data, "RNA", "RNA_clusters_annotated"))
 patient_6_plots <- c(patient_6_plots, generate_IST_plots(patient_6_data, "RNA", patient_6_IST_semisup))
 patient_6_plots <- c(patient_6_plots, generate_comparison_plots(patient_6_data))
@@ -693,18 +860,19 @@ patient_7_data$RNA_clusters_annotated <- case_match(
   patient_7_data$RNA_clusters,
   c("0", "1", "2", "3") ~ "Tumor",
   "4" ~ "T cell",
-  "5" ~ "Macrophage/Monocyte",
-  "6" ~ "Macrophage/Monocyte",
-  "7" ~ "Fibroblast/Endothelial",
+  "5" ~ "Macrophage",
+  "6" ~ "Macrophage",
+  "7" ~ "Fibroblast",
   "8" ~ "Fibroblast"
 )
 patient_7_data$InSituType_semisup_clusters_annotated <- case_match(
   patient_7_data$InSituType_semisup_clusters,
   c("a", "b", "c", "d") ~ "Tumor",
-  "e" ~ "T cell/Dendritic cell/Endothelial",
+  "e" ~ "T cell",
   .default = unname(patient_7_data$InSituType_semisup_clusters)
 )
 
+# Generate plots
 patient_7_plots <- c(patient_7_plots, generate_rna_plots(patient_7_data, "RNA", "RNA_clusters_annotated"))
 patient_7_plots <- c(patient_7_plots, generate_IST_plots(patient_7_data, "RNA", patient_7_IST_semisup))
 patient_7_plots <- c(patient_7_plots, generate_comparison_plots(patient_7_data))
@@ -729,6 +897,8 @@ save_plots(patient_7_plots, get_patient_dir_img("7"), image_ext)
 
 ## Comparing patients
 
+Compare the patients by plotting the proportion of cells according to the InSituType and Louvain clustering. The data from the Akoya platform is also used as a benchmark.
+
 ```{r}
 #| label: compare-patients
 
@@ -750,6 +920,10 @@ for (i in 2:length(patients_rna_data)) {
   combined_patients <- merge(combined_patients, y = seurat_obj, merge.data = TRUE)
 }
 
+patient_id_label <- "Patient ID"
+per_cells_label <- "Percent of cells"
+cell_types_label <- "Cell Types"
+
 barplot_IST_ss_var = "InSituType_semisup_clusters_annotated"
 barplot_IST_ss_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_IST_ss_var, known_clusters_colors)
 # Plot a barplot comparing the InSituTypeID clusters of all patients
@@ -757,10 +931,18 @@ IST_ss_clusters_all_patients <- dittoBarPlot(
     object = combined_patients,
     var = barplot_IST_ss_var,
     group.by = "Patient.ID",
-    color.panel = barplot_IST_ss_color_lookup_table) +
+    color.panel = barplot_IST_ss_color_lookup_table) + 
+  labs(title = "Proportion of cells according to InSituType clustering",
+       x = patient_id_label,
+       y = per_cells_label,
+       fill = cell_types_label) +
+  scale_fill_manual(values = barplot_IST_ss_color_lookup_table) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   guides(fill = guide_legend(ncol = 2, byrow = TRUE))
 compare_patients_to_save[["InSituType_annotated_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
 
+# Plot a barplot comparing the RNA clusters of all patients
 barplot_RNA_ann_var = "RNA_clusters_annotated"
 barplot_RNA_ann_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_RNA_ann_var, known_clusters_colors)
 RNA_ann_clusters_all_patients <- dittoBarPlot(
@@ -768,9 +950,241 @@ RNA_ann_clusters_all_patients <- dittoBarPlot(
     var = barplot_RNA_ann_var,
     group.by = "Patient.ID",
     color.panel = barplot_RNA_ann_color_lookup_table) +
-  guides(fill = guide_legend(ncol = 2, byrow = TRUE))
+  labs(title = "Proportion of cells according to Louvain clustering",
+       x = patient_id_label,
+       y = per_cells_label,
+       fill = cell_types_label) +
+  scale_fill_manual(values = barplot_RNA_ann_color_lookup_table) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  guides(fill = guide_legend(byrow = TRUE))
 compare_patients_to_save[["RNA_annotated_clusters_all_patients_barplot"]] <- RNA_ann_clusters_all_patients
 
+# Pivot the table to print it with ggplot
+akoya_by_patient_long <- akoya_by_patient %>%
+  mutate(`T cell` = `T cell CD4` + `T cell CD8` + `T cell regulatory`) %>%
+  select(-`T cell CD4`, -`T cell CD8`, -`T cell regulatory`) %>%
+  mutate(`Unknown` = `Total Cells` - rowSums(select(., -`Patient ID`, -`Total Cells`))) %>%
+  pivot_longer(cols = -c(`Patient ID`, `Total Cells`), 
+               names_to = "Cells Type", 
+               values_to = "Cells Quantity")
+
+# Calculate the proportion of each value relative to "Total cells"
+akoya_by_patient_long <- akoya_by_patient_long %>%
+  mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`)
+
+barplot_akoya_color_lookup_table <- generate_colors_lookup_table(akoya_by_patient_long, "Cells Type", known_clusters_colors)
+akoya_all_patients <- ggplot(akoya_by_patient_long,
+                             aes(x = `Patient ID`, y = `Cell Quantity Proportion`, fill = `Cells Type`)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Proportion of cells according to Akoya data",
+       x = patient_id_label,
+       y = per_cells_label,
+       fill = cell_types_label) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_fill_manual(values = barplot_akoya_color_lookup_table)
+compare_patients_to_save[["Akoya_all_patients_barplot"]] <- akoya_all_patients
+
+# Extract and reshape data for InSituType clustering
+IST_ss_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$InSituType_semisup_clusters_annotated))
+colnames(IST_ss_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
+cell_types_to_sum <- c("T cell", "T cell CD4", "T cell CD8", "T cell regulatory")
+
+IST_ss_T_cells_data <- IST_ss_clusters_data %>%
+  group_by(`Patient ID`) %>%
+  summarise(
+    `Cells Quantity` = sum(`Cells Quantity`[`Cells Type` %in% cell_types_to_sum]),
+    `Cells Type` = "T cell"
+  )
+
+IST_ss_clusters_data <- IST_ss_clusters_data %>%
+  filter(!`Cells Type` %in% cell_types_to_sum) %>%
+  bind_rows(IST_ss_T_cells_data) %>%
+  complete(`Patient ID`, `Cells Type`, fill = list(`Cells Quantity` = 0)) %>%
+  group_by(`Patient ID`) %>%
+  mutate(`Total Cells` = sum(`Cells Quantity`)) %>%
+  ungroup() %>%
+  mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`) %>%
+  mutate(`Method` = "InSituType")
+
+# Extract and reshape data for Louvain clustering
+RNA_ann_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$RNA_clusters_annotated))
+colnames(RNA_ann_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
+# Create a data frame with all Patient IDs and the missing cell type "B cell"
+b_cell_data <- RNA_ann_clusters_data %>%
+  distinct(`Patient ID`) %>%
+  mutate(`Cells Type` = "B cell", `Cells Quantity` = 0)
+RNA_ann_clusters_data <- RNA_ann_clusters_data %>%
+  bind_rows(b_cell_data) %>%
+  complete(`Patient ID`, `Cells Type`, fill = list(`Cells Quantity` = 0)) %>%
+  group_by(`Patient ID`) %>%
+  mutate(`Total Cells` = sum(`Cells Quantity`)) %>%
+  ungroup() %>%
+  mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`) %>%
+  mutate(`Method` = "Louvain")
+
+# Add Method column to Akoya data
+akoya_by_patient_long$Method <- "Akoya"
+
+# Combine all data into one data frame
+combined_data <- IST_ss_clusters_data %>% full_join(RNA_ann_clusters_data) %>% full_join(akoya_by_patient_long)
+
+combined_barplot_color_lookup_table <- generate_colors_lookup_table(combined_data, "Cells Type", known_clusters_colors)
+
+# Define the order of cell types
+cell_type_order <- c("Unknown", "Mast cell", "Plasma", "Plasmablast", "Neutrophil", "NK cell", "Monocyte", "Plasmacytoid dendritic cell", "Dendritic cell", "Endothelial", "Fibroblast", "B cell", "Macrophage", "T cell", "Tumor")
+  # Replace with actual cell types in desired order
+
+# Reorder the factor levels in the combined_data dataframe
+combined_data$`Cells Type` <- factor(combined_data$`Cells Type`, levels = cell_type_order)
+
+# Plot with all clustering methods and all patients stacked by clustering method
+combined_stacked_barplot <- ggplot(
+  combined_data,
+  aes(x = `Patient ID`, 
+      y = `Cell Quantity Proportion`, 
+      fill = `Cells Type`)) +
+  geom_bar(stat = "identity", position = "stack") +
+  facet_grid(rows = vars(`Method`), switch = "x") +
+  labs(title = "Proportion of cells according to different clustering methods",
+       x = patient_id_label,
+       y = per_cells_label,
+       fill = cell_types_label) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_fill_manual(values = combined_barplot_color_lookup_table) +
+  guides(fill = guide_legend(ncol = 2, byrow = TRUE))
+# Save to compare_patients_to_save
+compare_patients_to_save[["All_clustering_methods_all_patients_stacked_barplot"]] <- combined_stacked_barplot
+
+# Plot with all clustering methods and all patients grouped by patient
+combined_grouped_barplot <- ggplot(combined_data,aes(x = `Method`, 
+                               y = `Cell Quantity Proportion`, 
+                               fill = `Cells Type`)) +
+  geom_bar(stat = "identity", position = "stack") +
+  labs(title = "Proportion of cells according to different clustering methods",
+       x = patient_id_label,
+       y = per_cells_label,
+       fill = cell_types_label) +
+  theme_minimal() +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
+  scale_fill_manual(values = combined_barplot_color_lookup_table) +
+  guides(fill = guide_legend(ncol = 2, byrow = TRUE)) +
+  facet_grid(~ `Patient ID`) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 5))
+compare_patients_to_save[["All_clustering_methods_all_patients_grouped_barplot"]] <- combined_grouped_barplot
+
+library("PairedData")
+
+# Filter the combined_data_filtered to keep only the four patients
+combined_data_filtered <- combined_data %>%
+  filter(`Cells Type` %in% c("T cell", "Tumor", "Macrophage", "B cell"))
+
+# Create all combinations of two methods
+method_pairs <- combn(unique(combined_data_filtered$Method), 2, simplify = FALSE)
+
+# Get unique cell types
+cell_types <- unique(combined_data_filtered$`Cells Type`)
+
+# Pre-calculate y-axis limits for each Cell Type
+y_limits <- combined_data_filtered %>%
+  group_by(`Cells Type`) %>%
+  summarise(
+    ymin = min(`Cell Quantity Proportion`, na.rm = TRUE),
+    ymax = max(`Cell Quantity Proportion`, na.rm = TRUE)
+  ) %>%
+  # Create a named list where the key is the `Cells Type` and the value is c(ymin, ymax)
+  rowwise() %>%
+  mutate(limits = list(c(ymin, ymax))) %>%
+  select(`Cells Type`, limits) %>%
+  deframe()
+
+# Create the scatterplot for each combination of cell type and method pair
+# Define a fixed set of shapes (adjust as needed)
+fixed_shapes <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)  # Up to 10 unique shapes
+
+# Create a mapping from Patient ID to shape
+patient_shape_mapping <- setNames(fixed_shapes[1:length(unique(combined_data_filtered$`Patient ID`))], 
+                                  unique(combined_data_filtered$`Patient ID`))
+
+plot_list <- list()
+
+for (cell_type in cell_types) {
+  # Extract the y-axis limits for this cell type
+  y_lim <- y_limits[[cell_type]]
+  
+  for (pair in method_pairs) {
+  
+    # Determine if the pair is not Insitutype vs Louvain
+    if (!all(pair %in% c("InSituType", "Louvain"))) {
+      # Use all seven patients for Insitutype vs Louvain
+      data_filtered <- combined_data_filtered %>%
+        filter(`Patient ID` %in% c("3", "4", "5", "7"))
+    } else {
+      # Use all patients for the other pairs
+      data_filtered <- combined_data_filtered
+    }
+
+    # Filter the data for the current pair and cell type
+    data_filtered <- data_filtered %>%
+      filter(Method %in% pair, `Cells Type` == cell_type) %>%
+      mutate(Method = factor(Method, levels = pair),
+             `Patient ID` = factor(`Patient ID`, levels = names(patient_shape_mapping)))
+    
+    # Extract the data for the first method
+    m1_data <- data_filtered %>%
+      filter(Method == pair[1]) %>%
+      arrange(`Patient ID`) %>%  # Sort by Patient ID
+      pull(`Cell Quantity Proportion`)
+
+    # Extract the data for the first method
+    m2_data <- data_filtered %>%
+      filter(Method == pair[2]) %>%
+      arrange(`Patient ID`) %>%  # Sort by Patient ID
+      pull(`Cell Quantity Proportion`)
+
+    # Perform Wilcoxon rank-sum test
+    wilcox_test <- wilcox.test(m1_data, m2_data, paired = TRUE, alternative = "two.sided")
+    
+    # Extract the p-value
+    p_value <- wilcox_test$p.value
+      
+    # Create the plot
+    p <- data_filtered %>%
+      ggplot(aes(x = Method, y = `Cell Quantity Proportion`, shape = `Patient ID`, group = `Patient ID`)) +
+      geom_point() +
+      geom_line() +
+      labs(
+        title = paste0(cell_type, ": ", pair[1], " vs ", pair[2]),
+        subtitle = paste0("Wilcoxon p-value: ", signif(p_value, digits = 3)), # Add p-value to plot
+        x = "Method",
+        y = "Cell Proportion"
+      ) +
+      theme_minimal() +
+      theme(
+        plot.title = element_text(size = 9),   # Adjust title size
+        plot.subtitle = element_text(size = 9),   # Adjust title size
+        axis.title.y = element_text(size = 8),  # Adjust y-axis label size
+        axis.title.x = element_text(size = 8),  # Adjust x-axis label size
+        axis.text.x = element_text(size = 7),   # Adjust x-axis text size
+        axis.text.y = element_text(size = 7)    # Adjust y-axis text size
+        #plot.margin = margin(10, 10, 10, 10)        # Add margin around plots
+      ) +
+      guides(shape = guide_legend(nrow = 1)) +
+      scale_shape_manual(values = patient_shape_mapping) + # Use fixed shape mapping
+      ylim(y_lim[1], y_lim[2]) # Apply the same y-axis limit for the cell type
+    
+    # Add the plot to the list
+    plot_list[[paste(cell_type, pair[1], pair[2], sep = "_")]] <- p
+  }
+}
+# Combine plots using ggpubr
+Compare_clustering_methods_wilcoxon <- ggarrange(plotlist = plot_list, ncol = 3, nrow = 4, align = 'hv', common.legend = TRUE, legend="bottom")
+
+compare_patients_to_save[["Compare_clustering_methods_wilcoxon"]] <- Compare_clustering_methods_wilcoxon
+
+# Print all the plots
 print(compare_patients_to_save)
 ```
 
