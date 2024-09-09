@@ -471,7 +471,7 @@ patient_1_plots <- generate_proteins_plots(patient_1_all_data, "proteins")
 
 # Red blood cells removed
 patient_1_rbc_removed <- remove_clusters(patient_1_all_data, "protein_clusters", c(5))
-patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_rbc_removed, "Nanostring")
+patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_rbc_removed)
 # Add cluster to the metadata
 patient_1_rbc_removed$InSituType_semisup_clusters <- patient_1_IST_semisup$clust
 

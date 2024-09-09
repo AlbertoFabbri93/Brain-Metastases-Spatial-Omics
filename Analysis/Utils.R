@@ -209,8 +209,7 @@ generate_flightpath <- function(IST_object, cols, patient_num) {
   }
 
 run_IST_semisup_extract_data <- function(
-    patient_data,
-    assay) {
+    patient_data) {
  
   # Get the data necessary to run InSituType
   patient_rna_data <- patient_data[["RNA"]]
