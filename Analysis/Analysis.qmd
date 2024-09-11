@@ -465,18 +465,17 @@ patients_rna_data <- list()
 #| label: analyze-patient-1
 
 # Steps with all the data
-patient_1_all_data <- extract_patient_data(breast_cancer_patients, "1")
-patient_1_all_data <- analyze_proteins(patient_1_all_data)
-patient_1_plots <- generate_proteins_plots(patient_1_all_data, "proteins")
+patient_1_data <- extract_patient_data(breast_cancer_patients, "1")
+patient_1_data <- analyze_proteins(patient_1_data)
+patient_1_plots <- generate_proteins_plots(patient_1_data, "proteins")
 
 # Red blood cells removed
-patient_1_rbc_removed <- remove_clusters(patient_1_all_data, "protein_clusters", c(5))
-patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_rbc_removed)
+patient_1_data <- remove_clusters(patient_1_data, "protein_clusters", c(5))
+patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_data)
 # Add cluster to the metadata
-patient_1_rbc_removed$InSituType_semisup_clusters <- patient_1_IST_semisup$clust
+patient_1_data$Insitutype_semisup_clusters <- patient_1_IST_semisup$clust
 
-# RNA data only
-patient_1_data <- patient_1_rbc_removed
+# Analyze RNA data
 patient_1_data <- normalize_cluster_data(patient_1_data, "RNA")
 patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "RNA_clusters", "umap_RNA"))
 patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "RNA_clusters", "RNA"))
@@ -491,36 +490,36 @@ patient_1_data$RNA_clusters_annotated <- case_match(
   "7" ~ "Fibroblast"
 )
 # Generate the UMAP with the non-annotated clusters
-patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "InSituType_semisup_clusters", "umap_RNA"))
+patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "Insitutype_semisup_clusters", "umap_RNA"))
 # Generate the heatmap of the non-annotated clusters
-patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "InSituType_semisup_clusters", "RNA"))
+patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "Insitutype_semisup_clusters", "RNA"))
 # Colors for the flighpath plot
-InSituType_color_lookup_table_1 <- generate_colors_lookup_table(
+Insitutype_color_lookup_table_1 <- generate_colors_lookup_table(
     patient_1_data,
-    "InSituType_semisup_clusters",
+    "Insitutype_semisup_clusters",
     known_clusters_colors)
 # Generate the flightpath plot
 patient_1_plots <- c(
     patient_1_plots,
-    generate_flightpath(patient_1_IST_semisup, InSituType_color_lookup_table_1, "1"))
+    generate_flightpath(patient_1_IST_semisup, Insitutype_color_lookup_table_1, "1"))
 # Generate the Louvain clustering plots
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
-# Annotate the InSituType clusters
-patient_1_data$InSituType_semisup_clusters_annotated <- case_match(
-  patient_1_data$InSituType_semisup_clusters,
+# Annotate the Insitutype clusters
+patient_1_data$Insitutype_semisup_clusters_annotated <- case_match(
+  patient_1_data$Insitutype_semisup_clusters,
   c("a", "b", "c", "d", "e", "f") ~ "Tumor",
   "g" ~ "Endothelial",
-  .default = unname(patient_1_data$InSituType_semisup_clusters)
+  .default = unname(patient_1_data$Insitutype_semisup_clusters)
 )
-# Colors for the InSituType plot
-InSituType_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "InSituType_semisup_clusters_annotated", known_clusters_colors)
+# Colors for the Insitutype plot
+Insitutype_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "Insitutype_semisup_clusters_annotated", known_clusters_colors)
 # Generate the annotated Insitutype plots
-patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "InSituType_semisup_clusters_annotated",
+patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "Insitutype_semisup_clusters_annotated",
     cluster_assay = "RNA", 
     cluster_reduction = "umap_RNA",
     create_heatmap = FALSE,
-    cluster_name = "InSituType Semisupervised Clusters Annotated",
-    color_lookup_table = InSituType_color_lookup_table))
+    cluster_name = "Insitutype Semisupervised Clusters Annotated",
+    color_lookup_table = Insitutype_color_lookup_table))
 patient_1_plots <- c(patient_1_plots, generate_comparison_plots(patient_1_data))
 
 # Cleanup and printing
@@ -555,7 +554,7 @@ patient_2_plots <- generate_proteins_plots(patient_2_all_data, "proteins")
 patient_2_rbc_removed <- remove_clusters(patient_2_all_data, "protein_clusters", c(6))
 patient_2_IST_semisup <- run_IST_semisup_extract_data(patient_2_rbc_removed, "Nanostring")
 # Add cluster to the metadata
-patient_2_rbc_removed$InSituType_semisup_clusters <- patient_2_IST_semisup$clust
+patient_2_rbc_removed$Insitutype_semisup_clusters <- patient_2_IST_semisup$clust
 
 # RNA data only
 patient_2_data <- extract_patient_rna_data(patient_2_rbc_removed, "Nanostring")
@@ -570,22 +569,22 @@ patient_2_data$RNA_clusters_annotated <- case_match(
   "5" ~ "Endothelial",
   "6" ~ "T cell"
 )
-patient_2_data$InSituType_semisup_clusters_annotated <- case_match(
-  patient_2_data$InSituType_semisup_clusters,
+patient_2_data$Insitutype_semisup_clusters_annotated <- case_match(
+  patient_2_data$Insitutype_semisup_clusters,
   c("a", "b") ~ "Tumor",
   "c" ~ "Dendritic cell",
   c("d", "e") ~ "Fibroblast",
-  .default = unname(patient_2_data$InSituType_semisup_clusters)
+  .default = unname(patient_2_data$Insitutype_semisup_clusters)
 )
-# Colors for the InSituType plot
-InSituType_color_lookup_table <- generate_colors_lookup_table(patient_2_data, "InSituType_semisup_clusters_annotated", known_clusters_colors)
+# Colors for the Insitutype plot
+Insitutype_color_lookup_table <- generate_colors_lookup_table(patient_2_data, "Insitutype_semisup_clusters_annotated", known_clusters_colors)
 # Generate the annotated Insitutype plots
-patient_2_plots <- c(patient_2_plots, generate_clustering_plots(patient_2_data, "InSituType_semisup_clusters_annotated",
+patient_2_plots <- c(patient_2_plots, generate_clustering_plots(patient_2_data, "Insitutype_semisup_clusters_annotated",
     cluster_assay = "RNA", 
     cluster_reduction = "umap_RNA",
     create_heatmap = FALSE,
-    cluster_name = "InSituType Semisupervised Clusters Annotated",
-    color_lookup_table = InSituType_color_lookup_table))
+    cluster_name = "Insitutype Semisupervised Clusters Annotated",
+    color_lookup_table = Insitutype_color_lookup_table))
 patient_2_plots <- c(patient_2_plots, generate_comparison_plots(patient_2_data))
 
 # Generate plots
@@ -622,7 +621,7 @@ patient_3_all_data <- analyze_proteins(patient_3_all_data)
 patient_3_plots <- generate_proteins_plots(patient_3_all_data, "proteins")
 patient_3_IST_semisup <- run_IST_semisup_extract_data(patient_3_all_data, "Nanostring")
 # Add cluster to the metadata
-patient_3_all_data$InSituType_semisup_clusters <- patient_3_IST_semisup$clust
+patient_3_all_data$Insitutype_semisup_clusters <- patient_3_IST_semisup$clust
 
 # RNA data only
 patient_3_data <- extract_patient_rna_data(patient_3_all_data, "Nanostring")
@@ -637,11 +636,11 @@ patient_3_data$RNA_clusters_annotated <- case_match(
   "5" ~ "Fibroblast",
   "6" ~ "Endothelial"
 )
-patient_3_data$InSituType_semisup_clusters_annotated <- case_match(
-  patient_3_data$InSituType_semisup_clusters,
+patient_3_data$Insitutype_semisup_clusters_annotated <- case_match(
+  patient_3_data$Insitutype_semisup_clusters,
   c("a", "c", "d", "e", "g") ~ "Tumor",
   c("b", "f") ~ "Fibroblast",
-  .default = unname(patient_3_data$InSituType_semisup_clusters)
+  .default = unname(patient_3_data$Insitutype_semisup_clusters)
 )
 # Generate plots
 patient_3_plots <- c(patient_3_plots, generate_rna_plots(patient_3_data, "RNA", "RNA_clusters_annotated"))
@@ -680,7 +679,7 @@ patient_4_plots <- generate_proteins_plots(patient_4_all_data, "proteins")
 patient_4_rbc_removed <- remove_clusters(patient_4_all_data, "protein_clusters", c(3))
 patient_4_IST_semisup <- run_IST_semisup_extract_data(patient_4_rbc_removed, "Nanostring")
 # Add cluster to the metadata
-patient_4_rbc_removed$InSituType_semisup_clusters <- patient_4_IST_semisup$clust
+patient_4_rbc_removed$Insitutype_semisup_clusters <- patient_4_IST_semisup$clust
 
 # RNA data only
 patient_4_data <- extract_patient_rna_data(patient_4_rbc_removed, "Nanostring")
@@ -694,12 +693,12 @@ patient_4_data$RNA_clusters_annotated <- case_match(
   "5" ~ "Macrophage",
   "6" ~ "T cell"
 )
-patient_4_data$InSituType_semisup_clusters_annotated <- case_match(
-  patient_4_data$InSituType_semisup_clusters,
+patient_4_data$Insitutype_semisup_clusters_annotated <- case_match(
+  patient_4_data$Insitutype_semisup_clusters,
   c("a", "c") ~ "Tumor",
   "b" ~ "Dendritic cell",
   c("d", "e") ~ "Fibroblast",
-  .default = unname(patient_4_data$InSituType_semisup_clusters)
+  .default = unname(patient_4_data$Insitutype_semisup_clusters)
 )
 
 # Generate plots
@@ -736,7 +735,7 @@ patient_5_all_data <- analyze_proteins(patient_5_all_data)
 patient_5_plots <- generate_proteins_plots(patient_5_all_data, "proteins")
 patient_5_IST_semisup <- run_IST_semisup_extract_data(patient_5_all_data, "Nanostring")
 # Add cluster to the metadata
-patient_5_all_data$InSituType_semisup_clusters <- patient_5_IST_semisup$clust
+patient_5_all_data$Insitutype_semisup_clusters <- patient_5_IST_semisup$clust
 
 # RNA data only
 patient_5_data <- extract_patient_rna_data(patient_5_all_data, "Nanostring")
@@ -753,12 +752,12 @@ patient_5_data$RNA_clusters_annotated <- case_match(
   "7" ~ "T cell",
   "8" ~ "T cell",
 )
-patient_5_data$InSituType_semisup_clusters_annotated <- case_match(
-  patient_5_data$InSituType_semisup_clusters,
+patient_5_data$Insitutype_semisup_clusters_annotated <- case_match(
+  patient_5_data$Insitutype_semisup_clusters,
   c("a", "c", "d", "g") ~ "Tumor",
   c("b", "e") ~ "T cell",
   "f" ~ "Fibroblast",
-  .default = unname(patient_5_data$InSituType_semisup_clusters)
+  .default = unname(patient_5_data$Insitutype_semisup_clusters)
 )
 
 # Generate plots
@@ -795,7 +794,7 @@ patient_6_all_data <- analyze_proteins(patient_6_all_data)
 patient_6_plots <- generate_proteins_plots(patient_6_all_data, "proteins")
 patient_6_IST_semisup <- run_IST_semisup_extract_data(patient_6_all_data, "Nanostring")
 # Add cluster to the metadata
-patient_6_all_data$InSituType_semisup_clusters <- patient_6_IST_semisup$clust
+patient_6_all_data$Insitutype_semisup_clusters <- patient_6_IST_semisup$clust
 
 # RNA data only
 patient_6_data <- extract_patient_rna_data(patient_6_all_data, "Nanostring")
@@ -808,10 +807,10 @@ patient_6_data$RNA_clusters_annotated <- case_match(
   "3" ~ "Fibroblast",
   "5" ~ "Macrophage",
 )
-patient_6_data$InSituType_semisup_clusters_annotated <- case_match(
-  patient_6_data$InSituType_semisup_clusters,
+patient_6_data$Insitutype_semisup_clusters_annotated <- case_match(
+  patient_6_data$Insitutype_semisup_clusters,
   c("a", "b", "c", "d") ~ "Tumor",
-  .default = unname(patient_6_data$InSituType_semisup_clusters)
+  .default = unname(patient_6_data$Insitutype_semisup_clusters)
 )
 
 # Generate plots
@@ -851,7 +850,7 @@ patient_7_plots <- generate_proteins_plots(patient_7_all_data, "proteins")
 patient_7_rbc_removed <- remove_clusters(patient_7_all_data, "protein_clusters", c(7))
 patient_7_IST_semisup <- run_IST_semisup_extract_data(patient_7_rbc_removed, "Nanostring")
 # Add cluster to the metadata
-patient_7_rbc_removed$InSituType_semisup_clusters <- patient_7_IST_semisup$clust
+patient_7_rbc_removed$Insitutype_semisup_clusters <- patient_7_IST_semisup$clust
 
 # RNA data only
 patient_7_data <- extract_patient_rna_data(patient_7_rbc_removed, "Nanostring")
@@ -867,11 +866,11 @@ patient_7_data$RNA_clusters_annotated <- case_match(
   "7" ~ "Fibroblast",
   "8" ~ "Fibroblast"
 )
-patient_7_data$InSituType_semisup_clusters_annotated <- case_match(
-  patient_7_data$InSituType_semisup_clusters,
+patient_7_data$Insitutype_semisup_clusters_annotated <- case_match(
+  patient_7_data$Insitutype_semisup_clusters,
   c("a", "b", "c", "d") ~ "Tumor",
   "e" ~ "T cell",
-  .default = unname(patient_7_data$InSituType_semisup_clusters)
+  .default = unname(patient_7_data$Insitutype_semisup_clusters)
 )
 
 # Generate plots
@@ -899,7 +898,7 @@ save_plots(patient_7_plots, get_patient_dir_img("7"), image_ext)
 
 ## Comparing patients
 
-Compare the patients by plotting the proportion of cells according to the InSituType and Louvain clustering. The data from the Akoya platform is also used as a benchmark.
+Compare the patients by plotting the proportion of cells according to the Insitutype and Louvain clustering. The data from the Akoya platform is also used as a benchmark.
 
 ```{r}
 #| label: compare-patients
@@ -926,15 +925,15 @@ patient_id_label <- "Patient ID"
 per_cells_label <- "Percent of cells"
 cell_types_label <- "Cell Types"
 
-barplot_IST_ss_var = "InSituType_semisup_clusters_annotated"
+barplot_IST_ss_var = "Insitutype_semisup_clusters_annotated"
 barplot_IST_ss_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_IST_ss_var, known_clusters_colors)
-# Plot a barplot comparing the InSituTypeID clusters of all patients
+# Plot a barplot comparing the InsitutypeID clusters of all patients
 IST_ss_clusters_all_patients <- dittoBarPlot(
     object = combined_patients,
     var = barplot_IST_ss_var,
     group.by = "Patient.ID",
     color.panel = barplot_IST_ss_color_lookup_table) + 
-  labs(title = "Proportion of cells according to InSituType clustering",
+  labs(title = "Proportion of cells according to Insitutype clustering",
        x = patient_id_label,
        y = per_cells_label,
        fill = cell_types_label) +
@@ -942,7 +941,7 @@ IST_ss_clusters_all_patients <- dittoBarPlot(
   theme_minimal() +
   scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
   guides(fill = guide_legend(ncol = 2, byrow = TRUE))
-compare_patients_to_save[["InSituType_annotated_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
+compare_patients_to_save[["Insitutype_annotated_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
 
 # Plot a barplot comparing the RNA clusters of all patients
 barplot_RNA_ann_var = "RNA_clusters_annotated"
@@ -988,8 +987,8 @@ akoya_all_patients <- ggplot(akoya_by_patient_long,
   scale_fill_manual(values = barplot_akoya_color_lookup_table)
 compare_patients_to_save[["Akoya_all_patients_barplot"]] <- akoya_all_patients
 
-# Extract and reshape data for InSituType clustering
-IST_ss_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$InSituType_semisup_clusters_annotated))
+# Extract and reshape data for Insitutype clustering
+IST_ss_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$Insitutype_semisup_clusters_annotated))
 colnames(IST_ss_clusters_data) <- c("Patient ID", "Cells Type", "Cells Quantity")
 cell_types_to_sum <- c("T cell", "T cell CD4", "T cell CD8", "T cell regulatory")
 
@@ -1008,7 +1007,7 @@ IST_ss_clusters_data <- IST_ss_clusters_data %>%
   mutate(`Total Cells` = sum(`Cells Quantity`)) %>%
   ungroup() %>%
   mutate(`Cell Quantity Proportion` = `Cells Quantity` / `Total Cells`) %>%
-  mutate(`Method` = "InSituType")
+  mutate(`Method` = "Insitutype")
 
 # Extract and reshape data for Louvain clustering
 RNA_ann_clusters_data <- as.data.frame(table(combined_patients$Patient.ID, combined_patients$RNA_clusters_annotated))
@@ -1119,7 +1118,7 @@ for (cell_type in cell_types) {
   for (pair in method_pairs) {
   
     # Determine if the pair is not Insitutype vs Louvain
-    if (!all(pair %in% c("InSituType", "Louvain"))) {
+    if (!all(pair %in% c("Insitutype", "Louvain"))) {
       # Use all seven patients for Insitutype vs Louvain
       data_filtered <- combined_data_filtered %>%
         filter(`Patient ID` %in% c("3", "4", "5", "7"))

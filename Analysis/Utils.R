@@ -202,23 +202,23 @@ generate_flightpath <- function(IST_object, cols, patient_num) {
                         col = cols[IST_object$clust],
                         showclusterconfidence = TRUE) +
     labs(title = paste("Patient", patient_num),
-         subtitle = "InSituType Semisupervised Clustering")
+         subtitle = "Insitutype Semisupervised Clustering")
   
-  fp_name <- paste("Patient",  patient_num, "InSituType_semisup_clusters_flightpath_plot", sep = "_")
+  fp_name <- paste("Patient",  patient_num, "Insitutype_semisup_clusters_flightpath_plot", sep = "_")
   return(setNames(list(fp), fp_name))
   }
 
 run_IST_semisup_extract_data <- function(
     patient_data) {
  
-  # Get the data necessary to run InSituType
+  # Get the data necessary to run Insitutype
   patient_rna_data <- patient_data[["RNA"]]
   patient_cohort <- get_patient_cohort(patient_data)
   patient_rna_counts <- get_seurat_layer_data(patient_data, "RNA", "counts")
   patient_avg_neg_probes <- get_avg_neg_probes(patient_data[["NegativeProbes"]])
   
-  # Call the InSituType semisupervised function
-  patient_semisup <- run_InSituType_semisupervised(
+  # Call the Insitutype semisupervised function
+  patient_semisup <- run_Insitutype_semisupervised(
     patient_data = patient_rna_data,
     patient_cohort = patient_cohort,
     patient_rna_counts = patient_rna_counts,
@@ -228,7 +228,7 @@ run_IST_semisup_extract_data <- function(
   return(patient_semisup)
 }
 
-run_InSituType_semisupervised <- function(
+run_Insitutype_semisupervised <- function(
     patient_data,
     patient_cohort,
     patient_rna_counts,
@@ -273,7 +273,7 @@ run_InSituType_semisupervised <- function(
     n_clusts = 1:8)
   
   # Semi-supervised learning with insitutype and reference profiles
-  # InSituType needs integers, if given floating point numbers it fails with misleading errors
+  # Insitutype needs integers, if given floating point numbers it fails with misleading errors
   patient_semisup <- insitutype(
     x = patient_rna_counts,
     neg = patient_avg_neg_probes,
@@ -571,16 +571,16 @@ compare_clustering_methods <- function(patient_rna_data) {
   
   # Create the contingency table (table used to study the correlation between the two variables)
   contingency_tab_clusters <- table(
-    patient_rna_data$InSituType_semisup_clusters,
+    patient_rna_data$Insitutype_semisup_clusters,
     patient_rna_data$RNA_clusters,
-    dnn = c("InSituType", "Seurat"))
+    dnn = c("Insitutype", "Seurat"))
   
   # Convert the table to a data frame for ggplot2
   df_compare_clusters <- as.data.frame(as.table(contingency_tab_clusters))
   df_compare_clusters$Freq <- log10(df_compare_clusters$Freq + 10)
   
   # Plot using ggplot2 with geom_tile
-  heatmap_seurat_vs_insitutype <- ggplot(df_compare_clusters, aes(InSituType, Seurat, fill = Freq)) +
+  heatmap_seurat_vs_insitutype <- ggplot(df_compare_clusters, aes(Insitutype, Seurat, fill = Freq)) +
     geom_tile(color = "white") +
     scale_fill_viridis_c() +
     labs(fill = "Correlation") +
@@ -588,7 +588,7 @@ compare_clustering_methods <- function(patient_rna_data) {
     theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
     labs(
       title = paste("Patient", patient_num),
-      subtitle = "Seurat vs InSituType clusters"
+      subtitle = "Seurat vs Insitutype clusters"
     )
   
   return(heatmap_seurat_vs_insitutype)
@@ -970,32 +970,32 @@ generate_rna_plots <- function(patient_data, assay, RNA_cluster_var) {
  
 generate_IST_plots <- function(patient_data, assay, IST_object) {
   
-  print("Generate InSituType plots")
+  print("Generate Insitutype plots")
   
   # List with all the plots to be returned
-  InSituType_clusters <- list()
+  Insitutype_clusters <- list()
   patient_num <- get_patient_num(patient_data)
   
-  InSituType_cluster_var <- "InSituType_semisup_clusters"
-  InSituType_color_lookup_table <- generate_colors_lookup_table(
+  Insitutype_cluster_var <- "Insitutype_semisup_clusters"
+  Insitutype_color_lookup_table <- generate_colors_lookup_table(
     patient_data,
-    InSituType_cluster_var,
+    Insitutype_cluster_var,
     known_clusters_colors)
   
-  InSituType_clusters <- c(
-    InSituType_clusters,
-    generate_flightpath(IST_object, InSituType_color_lookup_table, patient_num))
+  Insitutype_clusters <- c(
+    Insitutype_clusters,
+    generate_flightpath(IST_object, Insitutype_color_lookup_table, patient_num))
  
-  InSituType_clusters <- c(InSituType_clusters, generate_clustering_plots(
+  Insitutype_clusters <- c(Insitutype_clusters, generate_clustering_plots(
     patient_data,
-    InSituType_cluster_var,
+    Insitutype_cluster_var,
     cluster_assay = assay, 
     cluster_reduction = "umap_RNA",
     create_heatmap = TRUE,
-    cluster_name = "InSituType Semisupervised Clusters",
-    color_lookup_table = InSituType_color_lookup_table))
+    cluster_name = "Insitutype Semisupervised Clusters",
+    color_lookup_table = Insitutype_color_lookup_table))
   
-  return(InSituType_clusters)
+  return(Insitutype_clusters)
 }
 
 generate_comparison_plots <- function(patient_data) {
@@ -1053,14 +1053,14 @@ analyze_patient <- function(all_patients_data, patient_num) {
       patient_dims = 1:25,
       patient_res = 0.8)
     
-    # Run InSituType semisupervised clustering
-    patient_semisup <- run_InSituType_semisupervised(
+    # Run Insitutype semisupervised clustering
+    patient_semisup <- run_Insitutype_semisupervised(
       patient_rna_only,
       patient_cohort,
       patient_rna_counts,
       patient_avg_neg_probes)
     # add phenotypes to the metadata for plotting
-    patient_rna_only$InSituType_semisup_clusters <- patient_semisup$clust
+    patient_rna_only$Insitutype_semisup_clusters <- patient_semisup$clust
     
     # Analyze protein data
     patient_rna_only <- analyze_proteins(patient_rna_only)
