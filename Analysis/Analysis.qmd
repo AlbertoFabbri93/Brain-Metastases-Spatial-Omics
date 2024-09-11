@@ -469,18 +469,23 @@ patient_1_data <- extract_patient_data(breast_cancer_patients, "1")
 patient_1_data <- analyze_proteins(patient_1_data)
 patient_1_plots <- generate_proteins_plots(patient_1_data, "proteins")
 
-# Red blood cells removed
+# Remove red blood cells
 patient_1_data <- remove_clusters(patient_1_data, "protein_clusters", c(5))
-patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_data)
-# Add cluster to the metadata
-patient_1_data$Insitutype_semisup_clusters <- patient_1_IST_semisup$clust
 
 # Analyze RNA data
-patient_1_data <- normalize_cluster_data(patient_1_data, "RNA")
+patient_1_data <- normalize_cluster_data(patient_1_data)
 patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "RNA_clusters", "umap_RNA"))
 patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "RNA_clusters", "RNA"))
 
-# Annotations
+# Execute insitutype
+patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_data)
+patient_1_data$Insitutype_semisup_clusters <- patient_1_IST_semisup$clust
+# Generate the UMAP with the non-annotated clusters
+patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "Insitutype_semisup_clusters", "umap_RNA"))
+# Generate the heatmap of the non-annotated clusters
+patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "Insitutype_semisup_clusters", "RNA"))
+
+# Luovain clusters annotations
 patient_1_data$RNA_clusters_annotated <- case_match(
   patient_1_data$RNA_clusters,
   c("0", "1", "2", "3") ~ "Tumor",
@@ -489,10 +494,7 @@ patient_1_data$RNA_clusters_annotated <- case_match(
   "6" ~ "T cell",
   "7" ~ "Fibroblast"
 )
-# Generate the UMAP with the non-annotated clusters
-patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "Insitutype_semisup_clusters", "umap_RNA"))
-# Generate the heatmap of the non-annotated clusters
-patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "Insitutype_semisup_clusters", "RNA"))
+
 # Colors for the flighpath plot
 Insitutype_color_lookup_table_1 <- generate_colors_lookup_table(
     patient_1_data,

@@ -194,12 +194,14 @@ get_clusters_proportions <- function(patient_data) {
 
 ####### INSITUTYPE SEMISUPERVISED #######
 
-generate_flightpath <- function(IST_object, cols, patient_num) {
+# The flightpath plot places cells according to their posterior probabilities of belonging to each cell type.
+# It conveys the tendency of different cell types to be confused with each other.
+generate_flightpath <- function(IST_object, colors, patient_num) {
   
   set.seed(6)
   fp <- flightpath_plot(flightpath_result = NULL,
                         insitutype_result = IST_object,
-                        col = cols[IST_object$clust],
+                        col = colors[IST_object$clust],
                         showclusterconfidence = TRUE) +
     labs(title = paste("Patient", patient_num),
          subtitle = "Insitutype Semisupervised Clustering")
@@ -502,7 +504,13 @@ create_cluster_summary <- function(patient_data, clustering_column) {
 
 ####### ANALYZE RNA #######
 
-normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, patient_res = 0.8) {
+normalize_cluster_data <- function(
+    patient_data,
+    assay = "RNA",
+    clust_col_name = "RNA_clusters",
+    umap_name = "umap_RNA",
+    patient_dims = 1:25,
+    patient_res = 0.8) {
   
   # Set the assay to the one containing the RNA data
   DefaultAssay(patient_data) <- assay
@@ -543,7 +551,7 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
     object = patient_data,
     resolution = patient_res,
     algorithm = 1, # 1 = Louvain algorithm
-    cluster.name = "RNA_clusters",
+    cluster.name = clust_col_name,
     graph.name = paste0(assay, "_snn"),
     random.seed = 1,
     verbose = FALSE)
@@ -554,7 +562,7 @@ normalize_cluster_data <- function(patient_data, assay, patient_dims = 1:25, pat
     dims = patient_dims,
     repulsion.strength = 5,
     reduction = "pca_RNA",
-    reduction.name = "umap_RNA",
+    reduction.name = umap_name,
     reduction.key = "UMAPRNA_",
     seed.use = 1,
     verbose = FALSE)
