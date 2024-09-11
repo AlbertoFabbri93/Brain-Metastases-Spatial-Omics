@@ -474,20 +474,24 @@ patient_1_data <- remove_clusters(patient_1_data, "protein_clusters", c(5))
 
 # Analyze RNA data
 patient_1_data <- normalize_cluster_data(patient_1_data)
-patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "RNA_clusters", "umap_RNA"))
-patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "RNA_clusters", "RNA"))
+patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "rna_louvain_clusters", "umap_rna"))
+patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "rna_louvain_clusters", "RNA"))
 
 # Execute insitutype
-patient_1_IST_semisup <- run_IST_semisup_extract_data(patient_1_data)
-patient_1_data$Insitutype_semisup_clusters <- patient_1_IST_semisup$clust
-# Generate the UMAP with the non-annotated clusters
-patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "Insitutype_semisup_clusters", "umap_RNA"))
+patient_1_ist_semisup <- run_ist_semisup_extract_data(patient_1_data)
+patient_1_data$ist_semisup_clusters <- patient_1_ist_semisup$clust
+# Colors for the ist plots
+ist_color_table <- generate_colors_lookup_table(patient_1_data, "ist_semisup_clusters", known_clusters_colors)
+# Generate the umap with the unannotated clusters
+patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "ist_semisup_clusters", "umap_rna", color_table = ist_color_table))
+# Generate the flightpath plot
+patient_1_plots <- c(patient_1_plots, generate_flightpath(patient_1_ist_semisup, "1", colors = ist_color_table))
 # Generate the heatmap of the non-annotated clusters
-patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "Insitutype_semisup_clusters", "RNA"))
+patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "ist_semisup_clusters", "RNA"))
 
 # Luovain clusters annotations
-patient_1_data$RNA_clusters_annotated <- case_match(
-  patient_1_data$RNA_clusters,
+patient_1_data$rna_louvain_clusters_ann <- case_match(
+  patient_1_data$rna_louvain_clusters,
   c("0", "1", "2", "3") ~ "Tumor",
   "4" ~ "Fibroblast",
   "5" ~ "Macrophage",
@@ -495,30 +499,21 @@ patient_1_data$RNA_clusters_annotated <- case_match(
   "7" ~ "Fibroblast"
 )
 
-# Colors for the flighpath plot
-Insitutype_color_lookup_table_1 <- generate_colors_lookup_table(
-    patient_1_data,
-    "Insitutype_semisup_clusters",
-    known_clusters_colors)
-# Generate the flightpath plot
-patient_1_plots <- c(
-    patient_1_plots,
-    generate_flightpath(patient_1_IST_semisup, Insitutype_color_lookup_table_1, "1"))
-# Generate the Louvain clustering plots
-patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "RNA_clusters_annotated"))
-# Annotate the Insitutype clusters
-patient_1_data$Insitutype_semisup_clusters_annotated <- case_match(
-  patient_1_data$Insitutype_semisup_clusters,
+# Generate the louvain clustering plots
+patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "rna_louvain_clusters_ann"))
+# Annotate the insitutype clusters
+patient_1_data$ist_semisup_clusters_ann <- case_match(
+  patient_1_data$ist_semisup_clusters,
   c("a", "b", "c", "d", "e", "f") ~ "Tumor",
   "g" ~ "Endothelial",
-  .default = unname(patient_1_data$Insitutype_semisup_clusters)
+  .default = unname(patient_1_data$ist_semisup_clusters)
 )
-# Colors for the Insitutype plot
-Insitutype_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "Insitutype_semisup_clusters_annotated", known_clusters_colors)
+# Colors for the insitutype plot
+Insitutype_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "ist_semisup_clusters_ann", known_clusters_colors)
 # Generate the annotated Insitutype plots
-patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "Insitutype_semisup_clusters_annotated",
+patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "ist_semisup_clusters_ann",
     cluster_assay = "RNA", 
-    cluster_reduction = "umap_RNA",
+    cluster_reduction = "umap_rna",
     create_heatmap = FALSE,
     cluster_name = "Insitutype Semisupervised Clusters Annotated",
     color_lookup_table = Insitutype_color_lookup_table))
