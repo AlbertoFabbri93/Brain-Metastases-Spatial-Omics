@@ -675,8 +675,6 @@ remove_clusters <- function(patient_data, cluster_col, cluster_vals) {
 
 ####### GENERATE PLOTS #######
 
-
-
 generate_proteins_plots <- function(patient_data, assay) {
   
   print("Generate proteins plots")
