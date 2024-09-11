@@ -498,9 +498,9 @@ patient_1_data$rna_louvain_clusters_ann <- case_match(
   "6" ~ "T cell",
   "7" ~ "Fibroblast"
 )
-
 # Generate the louvain clustering plots
 patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "rna_louvain_clusters_ann"))
+
 # Annotate the insitutype clusters
 patient_1_data$ist_semisup_clusters_ann <- case_match(
   patient_1_data$ist_semisup_clusters,
@@ -508,15 +508,13 @@ patient_1_data$ist_semisup_clusters_ann <- case_match(
   "g" ~ "Endothelial",
   .default = unname(patient_1_data$ist_semisup_clusters)
 )
-# Colors for the insitutype plot
-Insitutype_color_lookup_table <- generate_colors_lookup_table(patient_1_data, "ist_semisup_clusters_ann", known_clusters_colors)
-# Generate the annotated Insitutype plots
+# Generate the annotated insitutype plots
 patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, "ist_semisup_clusters_ann",
     cluster_assay = "RNA", 
     cluster_reduction = "umap_rna",
     create_heatmap = FALSE,
     cluster_name = "Insitutype Semisupervised Clusters Annotated",
-    color_lookup_table = Insitutype_color_lookup_table))
+    color_lookup_table = known_clusters_colors))
 patient_1_plots <- c(patient_1_plots, generate_comparison_plots(patient_1_data))
 
 # Cleanup and printing
