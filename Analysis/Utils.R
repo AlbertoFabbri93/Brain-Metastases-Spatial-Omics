@@ -67,90 +67,7 @@ get_patient_dir_rds <- function(patient_num) {
   return(patient_dir_rds)
 }
 
-####### GENERATE HEATMAP #######
-
-# Heatmap plot, define a function to dynamically calculate label size based on the number of features
-calculate_label_size <- function(num_features) {
-  base_size <- 400
-  scaled_size <- base_size / (num_features)
-  return(scaled_size)
-}
-
-# Define the size parameter (size of the cluster names on top) of the heatmap
-# proportionally to the size of the smallest cluster
-calculate_clusters_names_size <- function(smallest_cluster_proportion) {
-  base_size <- 9  # Base size for the heatmap
-  # scaling_factor <- 0.1
-  return(base_size * exp(log(smallest_cluster_proportion)/3))
-}
-
-generate_dyn_text_heatmap <- function(
-    patient_data,
-    cluster_var,
-    assay_name,
-    cluster_name = NULL,
-    color_lookup_table = NULL) {
-  
-  # If a human friendly name is not given, use the name of the column in the Seurat object
-  if (is.null(cluster_name)) {
-    cluster_name <- cluster_var
-  }
-  
-  # Use a better palette by default
-  if (is.null(color_lookup_table)) {
-    color_lookup_table <- generate_colors_lookup_table(patient_data, cluster_var)
-  }
-  
-  # Select the cluster as the identity
-  Idents(patient_data) <- cluster_var
-  
-  most_significant_markers <- find_most_significant_markers(
-    patient_data,
-    cluster_var,
-    assay_name)
-  
-  # Size of smallest cluster
-  smallest_cluster_proportion <- min(get_clusters_proportions(patient_data))
-  # Size of cluster label
-  cluster_label_size <- calculate_clusters_names_size(smallest_cluster_proportion)
-  
-  # Calculate the number of features (rows)
-  num_features <- length(most_significant_markers$gene)
-  # Calculate the label size for the current figure
-  features_label_size <- calculate_label_size(num_features)
-  
-  # Read patient number
-  patient_num <- get_patient_num(patient_data)
-  
-  # Create the heatmap with the scaled text
-  diff_expr_genes_heatmap <- DoHeatmap(
-    patient_data,
-    features = most_significant_markers$gene,
-    assay = assay_name,
-    label = TRUE,
-    size = 2,
-    group.colors = color_lookup_table,
-  ) + theme(
-    axis.text.y = element_text(size = features_label_size),
-  ) + labs(
-    title = paste("Patient", patient_num, cluster_name),
-    subtitle = "Top 10 Differentially Expressed Genes per Cluster"
-  )
-  
-  result_list <- list(
-    diff_expr_genes_heatmap,
-    most_significant_markers
-  )
-  
-  # Dynamically assign the desired names
-  names(result_list) <- c(
-    paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap", sep = "_"),
-    paste("Patient", patient_num, cluster_var, "diff_expr_genes_heatmap_list", sep = "_")
-  )
-  
-  # Return the named list
-  return(result_list)
-}
+###### MARKERS ######
 
 find_most_significant_markers <- function(
     patient_data,
@@ -181,34 +98,7 @@ find_most_significant_markers <- function(
   return(most_significant_markers)
 }
 
-
-get_clusters_proportions <- function(patient_data) {
-  
-  # Calculate the size of each cluster
-  cluster_sizes <- table(Idents(patient_data))
-  total_cells <- sum(cluster_sizes)
-  cluster_proportions <- cluster_sizes / total_cells
-  
-  return(cluster_proportions)
-}
-
 ####### INSITUTYPE SEMISUPERVISED #######
-
-# The flightpath plot places cells according to their posterior probabilities of belonging to each cell type.
-# It conveys the tendency of different cell types to be confused with each other.
-generate_flightpath <- function(ist_object, patient_num, colors = NULL) {
-  
-  set.seed(6)
-  fp <- flightpath_plot(flightpath_result = NULL,
-                        insitutype_result = ist_object,
-                        col = colors[ist_object$clust],
-                        showclusterconfidence = TRUE) +
-    labs(title = paste("Patient", patient_num),
-         subtitle = "Insitutype Semisupervised Clustering")
-  
-  fp_name <- paste("Patient",  patient_num, "Insitutype_semisup_clusters_flightpath_plot", sep = "_")
-  return(setNames(list(fp), fp_name))
-  }
 
 run_ist_semisup_extract_data <- function(
     patient_data) {
