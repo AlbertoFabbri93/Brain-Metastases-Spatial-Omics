@@ -196,12 +196,12 @@ get_clusters_proportions <- function(patient_data) {
 
 # The flightpath plot places cells according to their posterior probabilities of belonging to each cell type.
 # It conveys the tendency of different cell types to be confused with each other.
-generate_flightpath <- function(IST_object, colors, patient_num) {
+generate_flightpath <- function(ist_object, patient_num, colors = NULL) {
   
   set.seed(6)
   fp <- flightpath_plot(flightpath_result = NULL,
-                        insitutype_result = IST_object,
-                        col = colors[IST_object$clust],
+                        insitutype_result = ist_object,
+                        col = colors[ist_object$clust],
                         showclusterconfidence = TRUE) +
     labs(title = paste("Patient", patient_num),
          subtitle = "Insitutype Semisupervised Clustering")
@@ -210,16 +210,16 @@ generate_flightpath <- function(IST_object, colors, patient_num) {
   return(setNames(list(fp), fp_name))
   }
 
-run_IST_semisup_extract_data <- function(
+run_ist_semisup_extract_data <- function(
     patient_data) {
  
-  # Get the data necessary to run Insitutype
+  # Get the data necessary to run insitutype
   patient_rna_data <- patient_data[["RNA"]]
   patient_cohort <- get_patient_cohort(patient_data)
   patient_rna_counts <- get_seurat_layer_data(patient_data, "RNA", "counts")
   patient_avg_neg_probes <- get_avg_neg_probes(patient_data[["NegativeProbes"]])
   
-  # Call the Insitutype semisupervised function
+  # Call the insitutype semisupervised function
   patient_semisup <- run_Insitutype_semisupervised(
     patient_data = patient_rna_data,
     patient_cohort = patient_cohort,
@@ -507,8 +507,8 @@ create_cluster_summary <- function(patient_data, clustering_column) {
 normalize_cluster_data <- function(
     patient_data,
     assay = "RNA",
-    clust_col_name = "RNA_clusters",
-    umap_name = "umap_RNA",
+    clust_col_name = "rna_louvain_clusters",
+    umap_name = "umap_rna",
     patient_dims = 1:25,
     patient_res = 0.8) {
   
@@ -535,7 +535,7 @@ normalize_cluster_data <- function(
   # Run a PCA dimensionality reduction
   patient_data <- Seurat::RunPCA(
     object = patient_data,
-    reduction.name = "pca_RNA",
+    reduction.name = "pca_rna",
     reduction.key = "PCRNA_",
     seed.use = 1,
     verbose = FALSE)
@@ -543,7 +543,7 @@ normalize_cluster_data <- function(
   patient_data <- Seurat::FindNeighbors(
     object = patient_data,
     dims = patient_dims,
-    reduction = "pca_RNA",
+    reduction = "pca_rna",
     verbose = FALSE)
   # Identify clusters of cells by a shared nearest neighbor (SNN) modularity optimization based clustering algorithm
   # Use the resolution parameter to fine tune the number of expected clusters
@@ -561,7 +561,7 @@ normalize_cluster_data <- function(
     n.neighbors = 30L,
     dims = patient_dims,
     repulsion.strength = 5,
-    reduction = "pca_RNA",
+    reduction = "pca_rna",
     reduction.name = umap_name,
     reduction.key = "UMAPRNA_",
     seed.use = 1,
@@ -579,8 +579,8 @@ compare_clustering_methods <- function(patient_rna_data) {
   
   # Create the contingency table (table used to study the correlation between the two variables)
   contingency_tab_clusters <- table(
-    patient_rna_data$Insitutype_semisup_clusters,
-    patient_rna_data$RNA_clusters,
+    patient_rna_data$ist_semisup_clusters,
+    patient_rna_data$rna_louvain_clusters,
     dnn = c("Insitutype", "Seurat"))
   
   # Convert the table to a data frame for ggplot2
@@ -751,7 +751,7 @@ generate_colors_lookup_table <- function(data, cluster_column_name, known_cluste
 
 ####### PRINT CLUSTERING PLOTS #######
 
-generate_umap <- function(patient_data, cluster_var, cluster_reduction, cluster_name = NULL, color_lookup_table = NULL) {
+generate_umap <- function(patient_data, cluster_var, cluster_reduction, cluster_name = NULL, color_table = NULL) {
   
   if (is.null(cluster_name)) {
     cluster_name <- cluster_var
@@ -768,7 +768,7 @@ generate_umap <- function(patient_data, cluster_var, cluster_reduction, cluster_
     label=TRUE,
     label.box=TRUE,
     repel=TRUE,
-    cols = color_lookup_table) +
+    cols = color_table) +
     labs(
       title = paste("Patient", patient_num),
       subtitle = cluster_name) +
@@ -950,14 +950,14 @@ generate_rna_plots <- function(patient_data, assay, RNA_cluster_var) {
   
   # Show the significance of every principal component of the PCA
   # It can be used to decide the number of dims of the FindNeighbors function
-  elbow_plot_red = "pca_RNA"
+  elbow_plot_red = "pca_rna"
   # By default the RunPCA function uses 50 dimensions, plot all of them
   RNA_elbow_plot <- generate_elbow_plot(patient_data, elbow_plot_red, 50)
   plot_list <- c(plot_list, RNA_elbow_plot)
   
   RNA_features_plots <- generate_feature_plot(
     patient_data = patient_data,
-    reduction = "umap_RNA",
+    reduction = "umap_rna",
     features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
     max_cutoff = "q100")
   plot_list <- c(plot_list, RNA_features_plots)
@@ -967,7 +967,7 @@ generate_rna_plots <- function(patient_data, assay, RNA_cluster_var) {
     patient_data,
     RNA_cluster_var,
     cluster_assay = assay, 
-    cluster_reduction = "umap_RNA",
+    cluster_reduction = "umap_rna",
     create_heatmap = TRUE,
     cluster_name = NULL,
     color_lookup_table = RNA_color_lookup_table)
@@ -976,7 +976,7 @@ generate_rna_plots <- function(patient_data, assay, RNA_cluster_var) {
   return(plot_list)
 }
  
-generate_IST_plots <- function(patient_data, assay, IST_object) {
+generate_ist_plots <- function(patient_data, assay, ist_object) {
   
   print("Generate Insitutype plots")
   
@@ -984,7 +984,7 @@ generate_IST_plots <- function(patient_data, assay, IST_object) {
   Insitutype_clusters <- list()
   patient_num <- get_patient_num(patient_data)
   
-  Insitutype_cluster_var <- "Insitutype_semisup_clusters"
+  Insitutype_cluster_var <- "ist_semisup_clusters"
   Insitutype_color_lookup_table <- generate_colors_lookup_table(
     patient_data,
     Insitutype_cluster_var,
@@ -992,7 +992,7 @@ generate_IST_plots <- function(patient_data, assay, IST_object) {
   
   Insitutype_clusters <- c(
     Insitutype_clusters,
-    generate_flightpath(IST_object, Insitutype_color_lookup_table, patient_num))
+    generate_flightpath(ist_object, Insitutype_color_lookup_table, patient_num))
  
   Insitutype_clusters <- c(Insitutype_clusters, generate_clustering_plots(
     patient_data,
@@ -1020,78 +1020,4 @@ generate_comparison_plots <- function(patient_data) {
   plot_list[[seurat_vs_insitutype_plot_name]] <- seurat_vs_insitutype_plot
   
   return(plot_list)
-}
-
-####### ANALYZE PATIENT #######
-
-analyze_patient <- function(all_patients_data, patient_num) {
-  
-  # List with all the plots to be returned
-  plot_list <- list()
-  
-  # Create directories to save patient data if they do not exist
-  patient_directories <- list(get_patient_dir_img(patient_num), get_patient_dir_rds(patient_num))
-  for (dir in patient_directories) {
-    if (!dir.exists(dir)) {
-      dir.create(dir, recursive = TRUE)
-    }
-  }
-  
-  # Load patient data from RDS files if they exist, otherwise generate them
-  patient_rna_rds <- here(
-    rds_dir, 
-    paste0("Patient_", patient_num, "_data/", "Patient_", patient_num, "_rna_data.rds"))
-  patient_misc_rds <- here(
-    rds_dir,
-    paste0("Patient_", patient_num, "_data/", "Patient_", patient_num, "_misc_data.rds"))
-  if ((!file.exists(patient_rna_rds)) || (!file.exists(patient_misc_rds))) {
-    print("Generating patient data")
-    
-    # Extract patient data
-    all_patient_data <- extract_patient_data(all_patients_data, patient_num)
-    patient_rna_only <- all_patient_data[[1]]
-    patient_cohort <- all_patient_data[[2]]
-    patient_rna_counts <- all_patient_data[[3]]
-    patient_avg_neg_probes <- all_patient_data[[4]]
-    
-    # Normalize, scale, cluster, ...
-    patient_rna_only <- normalize_cluster_data(
-      patient_rna_only,
-      assay = "Nanostring",
-      patient_dims = 1:25,
-      patient_res = 0.8)
-    
-    # Run Insitutype semisupervised clustering
-    patient_semisup <- run_Insitutype_semisupervised(
-      patient_rna_only,
-      patient_cohort,
-      patient_rna_counts,
-      patient_avg_neg_probes)
-    # add phenotypes to the metadata for plotting
-    patient_rna_only$Insitutype_semisup_clusters <- patient_semisup$clust
-    
-    # Analyze protein data
-    patient_rna_only <- analyze_proteins(patient_rna_only)
-
-    # Save the data to RDS files
-    saveRDS(patient_rna_only, file = patient_rna_rds)
-    patient_misc_data <- list(patient_cohort, patient_rna_counts, patient_avg_neg_probes)
-    saveRDS(patient_misc_data, file = patient_misc_rds)
-    
-  } else {
-    print("Reading patient data from RDS files")
-    
-    patient_rna_only <- readRDS(patient_rna_rds)
-    patient_misc_data <- readRDS(patient_misc_rds)
-    patient_cohort <- patient_misc_data[[1]]
-    patient_rna_counts <- patient_misc_data[[2]]
-    patient_avg_neg_probes <- patient_misc_data[[3]]
-  }
-  
-  # Print patient information
-  print_patient_info(patient_rna_only)
-  
-  # Return/print all plots together, otherwise only the last one is shown
-  plot_list <- generate_plots(patient_rna_only)
-  return(list(patient_rna_only, plot_list))
 }
