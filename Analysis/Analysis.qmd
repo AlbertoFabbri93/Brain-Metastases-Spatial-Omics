@@ -75,6 +75,7 @@ conflict_prefer_all("dplyr")
 
 # Import utility functions
 source("Utils.R")
+source("Plotting.R")
 
 # Import environment variables as global variables
 rds_dir <- Sys.getenv("RDS_DIR")
