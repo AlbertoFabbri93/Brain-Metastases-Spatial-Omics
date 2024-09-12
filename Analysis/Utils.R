@@ -594,7 +594,7 @@ generate_clustering_plots <- function(
     color_lookup_table <- generate_colors_lookup_table(patient_data, cluster_var)
   }
 
-  # Get name of the first image
+  # Get a pointer to the spatial representation of the data
   patient_image <- Images(patient_data)[1]
   
   # List to be returned with all the plots
@@ -611,6 +611,7 @@ generate_clustering_plots <- function(
   # Plot the cells using their polygonal boundaries
   DefaultBoundary(patient_data[[patient_image]]) <- "segmentation"
   
+  # Plot the umap of the clusters
   clustering_plots <- c(clustering_plots, generate_umap(
     patient_data,
     cluster_var, 
@@ -620,12 +621,16 @@ generate_clustering_plots <- function(
   
   # Plot cells in their spatial context
   stamps_list <- list()
+  # Loop over every core associated with the patient
   for(curr_core in sort(unique(patient_data@meta.data$core_serial))) {
+    # Loop over every stamp associated with the current core 
+    # A core can be associated with multiple stamps (e.g. different areas of the same metastasis)
     for (curr_stamp in sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == curr_core]))) {
       
       # Subset data from current core and stamp
       core_stamp_subset <- subset(patient_data, subset = core_serial == curr_core & stamp == curr_stamp)
       
+      # Plot the current core/stamp combination with all the cells in their spatial context and colored by cluster
       stamp_plot <- ImageDimPlot(
         core_stamp_subset,
         fov = patient_image,
