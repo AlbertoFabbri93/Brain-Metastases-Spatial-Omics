@@ -130,7 +130,10 @@ generate_umap <- function(
 
 # The flightpath plot places cells according to their posterior probabilities of belonging to each cell type.
 # It conveys the tendency of different cell types to be confused with each other.
-generate_flightpath <- function(ist_object, patient_num, colors = NULL) {
+generate_flightpath <- function(
+    ist_object,
+    patient_num,
+    color_lookup_table = NULL) {
   
   set.seed(6)
   fp <- flightpath_plot(flightpath_result = NULL,
