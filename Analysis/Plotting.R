@@ -95,7 +95,12 @@ generate_elbow_plot <- function(patient_data, reduction, dims = 50) {
   return(setNames(list(elbow_plot), elbow_plot_name))
 }
 
-generate_umap <- function(patient_data, cluster_var, cluster_reduction, cluster_name = NULL, color_table = NULL) {
+generate_umap <- function(
+    patient_data,
+    cluster_var,
+    cluster_reduction,
+    cluster_name = NULL,
+    color_lookup_table = NULL) {
   
   if (is.null(cluster_name)) {
     cluster_name <- cluster_var
