@@ -235,3 +235,74 @@ generate_dyn_text_heatmap <- function(
   # Return the named list
   return(result_list)
 }
+
+# Print all the stamps associated with a patient using the cluster information to color the cells
+generate_spatial_plots <- function(
+    patient_data,
+    cluster_var,
+    cluster_name = NULL,
+    color_lookup_table = NULL
+) {
+  
+  # If a human friendly name is not given, use the name of the column in the Seurat object
+  if (is.null(cluster_name)) {
+    cluster_name <- cluster_var
+  }
+  
+  # If no color lookup table is given create one
+  if (is.null(color_lookup_table)) {
+    color_lookup_table <- generate_colors_lookup_table(patient_data, cluster_var)
+  }
+  
+  # Get a pointer to the spatial representation of the data
+  patient_image <- Images(patient_data)[1]
+  
+  # List to be returned with all the plots
+  clustering_plots <- list()
+  
+  patient_num <- get_patient_num(patient_data)
+  
+  # Print some information about the clusters
+  print(paste(cluster_name, "and number of cells in each of them associated with patient", patient_num))
+  print(table(patient_data[[cluster_var]]))
+  
+  # Select the cluster as the identity
+  Idents(patient_data) <- cluster_var
+  # Plot the cells using their polygonal boundaries
+  DefaultBoundary(patient_data[[patient_image]]) <- "segmentation"
+  
+  # Plot cells in their spatial context
+  stamps_list <- list()
+  # Loop over every core associated with the patient
+  for(curr_core in sort(unique(patient_data@meta.data$core_serial))) {
+    # Loop over every stamp associated with the current core 
+    # A core can be associated with multiple stamps (e.g. different areas of the same metastasis)
+    for (curr_stamp in sort(unique(patient_data@meta.data$stamp[patient_data@meta.data$core_serial == curr_core]))) {
+      
+      # Subset data from current core and stamp
+      core_stamp_subset <- subset(patient_data, subset = core_serial == curr_core & stamp == curr_stamp)
+      
+      # Plot the current core/stamp combination with all the cells in their spatial context and colored by cluster
+      stamp_plot <- ImageDimPlot(
+        core_stamp_subset,
+        fov = patient_image,
+        # Set border color to 'NA' as 'white' masks all cells when zoomed out
+        border.color = NA,
+        flip_xy = FALSE,
+        cols = color_lookup_table) + theme(
+          legend.text = element_text(size = 6),
+          legend.title = element_text(size = 8),
+          legend.key.size = unit(0.5, 'lines'), # Adjust the size of the legend keys
+          legend.spacing = unit(0.5, 'lines') # Adjust the spacing between legend items
+        ) +
+        labs(
+          title = paste("Patient", patient_num, "Core", curr_core, ", Stamp", curr_stamp),
+          subtitle = cluster_name
+        )
+      stamp_plot_name <- paste("Patient",  patient_num, cluster_var, "core", curr_core, "stamp", as.character(curr_stamp), sep = "_")
+      clustering_plots[[stamp_plot_name]] <- stamp_plot
+    }
+  }
+  
+  return(clustering_plots)
+}
