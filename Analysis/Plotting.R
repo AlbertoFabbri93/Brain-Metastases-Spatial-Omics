@@ -236,6 +236,8 @@ generate_dyn_text_heatmap <- function(
   return(result_list)
 }
 
+###### GENERATE STAMP PLOTS ######
+
 # Print all the stamps associated with a patient using the cluster information to color the cells
 generate_spatial_plots <- function(
     patient_data,
