@@ -58,6 +58,7 @@ generate_colors_lookup_table <- function(
 
 ###### GENERATE SINGLE PLOTS ######
 
+# Use this plot to print the level of expression of a protein or rna
 generate_feature_plot <- function(patient_data, reduction, features, max_cutoff = NA) {
   
   print(paste("Generate FeaturePlots from", reduction, "reduction of features", features))
@@ -78,7 +79,10 @@ generate_feature_plot <- function(patient_data, reduction, features, max_cutoff 
   return(setNames(list(features_plots), features_plot_name))
 }
 
-generate_elbow_plot <- function(patient_data, reduction, dims) {
+# Show the significance of every principal component of the PCA
+# It can be used to decide the number of dims of the FindNeighbors function
+# By default the RunPCA function uses 50 dimensions, plot all of them
+generate_elbow_plot <- function(patient_data, reduction, dims = 50) {
   
   print(paste("Generate ElbowPlot from", reduction))
   
