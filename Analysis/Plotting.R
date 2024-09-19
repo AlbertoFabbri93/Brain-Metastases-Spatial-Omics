@@ -117,7 +117,7 @@ generate_umap <- function(
     label=TRUE,
     label.box=TRUE,
     repel=TRUE,
-    cols = color_table) +
+    cols = color_lookup_table) +
     labs(
       title = paste("Patient", patient_num),
       subtitle = cluster_name) +
