@@ -138,7 +138,7 @@ generate_flightpath <- function(
   set.seed(6)
   fp <- flightpath_plot(flightpath_result = NULL,
                         insitutype_result = ist_object,
-                        col = colors[ist_object$clust],
+                        col = color_lookup_table[ist_object$clust],
                         showclusterconfidence = TRUE) +
     labs(title = paste("Patient", patient_num),
          subtitle = "Insitutype Semisupervised Clustering")
