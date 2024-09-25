@@ -95,6 +95,82 @@ generate_elbow_plot <- function(patient_data, reduction, dims = 50) {
   return(setNames(list(elbow_plot), elbow_plot_name))
 }
 
+# Show the significance of every principal component of the PCA
+# It can be used to decide the number of dims of the FindNeighbors function
+# By default the RunPCA function uses 50 dimensions, plot all of them
+generate_variance_elbow_plots <- function(patient_data, reduction, dims = 50) {
+  
+  print(paste("Generate ElbowPlot from", reduction))
+  
+  # Get patient number
+  patient_num <- get_patient_num(patient_data)
+  
+  # Variance explained calculation
+  variance_explained <- patient_data@reductions[[reduction]]@stdev^2
+  cumulative_variance <- cumsum(variance_explained) / sum(variance_explained)
+  
+  # Dynamically find the PCs that explain 70%, 80%, and 90% variance (within the specified dims)
+  pc_70 <- which(cumulative_variance >= 0.7 & seq_along(cumulative_variance) <= dims)[1]
+  pc_80 <- which(cumulative_variance >= 0.8 & seq_along(cumulative_variance) <= dims)[1]
+  pc_90 <- which(cumulative_variance >= 0.9 & seq_along(cumulative_variance) <= dims)[1]
+  
+  # Define dynamic breaks based on number of PCs
+  if (dims <= 20) {
+    x_breaks <- seq(1, dims, 1)  # Show every PC if <= 20 PCs
+  } else if (dims <= 50) {
+    x_breaks <- seq(1, dims, 2)  # Show every 2nd PC if <= 50 PCs
+  } else {
+    x_breaks <- seq(1, dims, 5)  # Show every 5th PC if > 50 PCs
+  }
+  
+  # Common theme for both plots
+  common_theme <- theme_minimal(base_size = 14)
+  
+  # Plot 1: Cumulative variance explained plot (limited to the specified number of PCs)
+  cumulative_plot <- ggplot(data.frame(PC = 1:dims, CumulativeVariance = cumulative_variance[1:dims]), aes(x = PC, y = CumulativeVariance)) +
+    geom_line(color = "black") +
+    geom_point(color = "black") +
+    labs(subtitle = "Cumulative Variance Explained", x = "Principal Components", y = "Variance Explained") +
+    geom_hline(yintercept = 0.7, linetype = "dashed", color = "red") +
+    geom_hline(yintercept = 0.8, linetype = "dashed", color = "blue") +
+    geom_hline(yintercept = 0.9, linetype = "dashed", color = "green") +
+    scale_x_continuous(breaks = x_breaks) +  # Dynamic x-axis breaks
+    common_theme
+  
+  # Add vertical lines and annotations only if the PCs exist within the specified range
+  if (!is.na(pc_70)) {
+    cumulative_plot <- cumulative_plot +
+      geom_vline(xintercept = pc_70, linetype = "dotted", color = "purple") +
+      annotate("text", x = pc_70, y = 0.7, label = paste("PC", pc_70), color = "purple", hjust = -0.2)
+  }
+  if (!is.na(pc_80)) {
+    cumulative_plot <- cumulative_plot +
+      geom_vline(xintercept = pc_80, linetype = "dotted", color = "purple") +
+      annotate("text", x = pc_80, y = 0.8, label = paste("PC", pc_80), color = "purple", hjust = -0.2)
+  }
+  if (!is.na(pc_90)) {
+    cumulative_plot <- cumulative_plot +
+      geom_vline(xintercept = pc_90, linetype = "dotted", color = "purple") +
+      annotate("text", x = pc_90, y = 0.9, label = paste("PC", pc_90), color = "purple", hjust = -0.2)
+  }
+  
+  # Plot 2: Standard elbow plot (limited to the specified number of PCs)
+  elbow_plot <- ElbowPlot(patient_data, reduction = reduction, ndims = dims) +
+    labs(subtitle = "Elbow Plot", x = "Principal Components", y = "Standard Deviation") +
+    scale_x_continuous(breaks = x_breaks) +  # Dynamic x-axis breaks
+    common_theme
+  
+  # Combine the plots vertically using patchwork and add shared title and subtitle
+  combined_plot <- (cumulative_plot / elbow_plot) +
+    plot_annotation(title = paste("Patient", patient_num),
+                    subtitle = paste("Reduction:", reduction))
+  
+  # Set name to be used when generating an image from the plot
+  combined_plot_name <- paste("Patient", patient_num, "combined_elbow_variance_plots", reduction, sep = "_")
+  
+  return(setNames(list(combined_plot), combined_plot_name))
+}
+
 generate_umap <- function(
     patient_data,
     cluster_var,
