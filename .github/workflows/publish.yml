@@ -24,7 +24,7 @@ jobs:
           r-version: '4.4.1'
           
       - name: Install necessary OS packages
-        run: apt-get install libglpk-dev -y
+        run: sudo apt-get install libglpk-dev -y
 
       - name: Install R Dependencies
         uses: r-lib/actions/setup-renv@v2
