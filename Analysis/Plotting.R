@@ -82,22 +82,6 @@ generate_feature_plot <- function(patient_data, reduction, features, max_cutoff 
 # Show the significance of every principal component of the PCA
 # It can be used to decide the number of dims of the FindNeighbors function
 # By default the RunPCA function uses 50 dimensions, plot all of them
-generate_elbow_plot <- function(patient_data, reduction, dims = 50) {
-  
-  print(paste("Generate ElbowPlot from", reduction))
-  
-  patient_num <- get_patient_num(patient_data)
-  
-  elbow_plot <- ElbowPlot(patient_data, reduction = reduction, ndims = dims) +
-    labs(title = paste("Patient", patient_num), subtitle = reduction)
-  
-  elbow_plot_name <- paste("Patient",  patient_num, "elbow_plot", reduction, sep = "_")
-  return(setNames(list(elbow_plot), elbow_plot_name))
-}
-
-# Show the significance of every principal component of the PCA
-# It can be used to decide the number of dims of the FindNeighbors function
-# By default the RunPCA function uses 50 dimensions, plot all of them
 generate_variance_elbow_plots <- function(patient_data, reduction, dims = 50) {
   
   print(paste("Generate ElbowPlot from", reduction))
