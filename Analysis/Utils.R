@@ -529,8 +529,8 @@ analyze_proteins <- function(patient_data) {
   
   # Scale the raw metadata values
   patient_data <- ScaleData(
+    object = patient_data,
     layer = "counts",
-    patient_data,
     assay = "proteins",
     features = metadata_proteins_columns,
     do.center = TRUE,
@@ -540,7 +540,7 @@ analyze_proteins <- function(patient_data) {
   # Only 10 features available, use 10 PCs
   n_pcs <- 9
   patient_data <- RunPCA(
-    patient_data,
+    object = patient_data,
     assay = "proteins",
     features = metadata_proteins_columns,
     npcs = n_pcs,
@@ -549,7 +549,11 @@ analyze_proteins <- function(patient_data) {
     seed.use = 2)
   
   # Use the available number of PCs for FindNeighbors and clustering
-  patient_data <- FindNeighbors(patient_data, dims = 1:n_pcs, assay = "proteins", reduction = "pca_proteins")
+  patient_data <- FindNeighbors(
+    object = patient_data, 
+    dims = 1:n_pcs, 
+    assay = "proteins",
+    reduction = "pca_proteins")
   patient_data <- FindClusters(
     patient_data,
     resolution = 0.5,
