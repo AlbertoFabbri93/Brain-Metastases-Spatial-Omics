@@ -456,6 +456,16 @@ The individual script of every patient generates a list with all the images and 
 ```{r}
 #| label: merged-data
 
+# Clusters column names
+protein_cluster_var <- "protein_clusters"
+louvain_cluster_var <- "rna_louvain_clusters"
+ist_cluster_var <- "ist_semisup_clusters"
+
+# Clusters plotting names
+protein_cluster_name <- "Protein Clusters"
+louvain_cluster_name <- "Louvain Clusters"
+ist_cluster_name <- "Insitutype Clusters"
+
 # Collect all patients' data in a list
 patients_rna_data <- list()
 ```
@@ -465,30 +475,112 @@ patients_rna_data <- list()
 ```{r}
 #| label: analyze-patient-1
 
-# Steps with all the data
-patient_1_data <- extract_patient_data(breast_cancer_patients, "1")
+# Patient data
+this_patient_num = "1"
+
+# Extract patient data
+patient_1_data <- extract_patient_data(breast_cancer_patients, this_patient_num)
+# Create empty vector to store the plots
+patient_1_plots <- c()
+
+# Analyze protein data
 patient_1_data <- analyze_proteins(patient_1_data)
-patient_1_plots <- generate_proteins_plots(patient_1_data, "proteins")
+
+### FILTERING - PROTEINS CLUSTERING ###
+# Elbow plot
+patient_1_plots <- c(patient_1_plots, generate_variance_elbow_plots(patient_1_data, "pca_proteins", 9))
+
+# Feature plot of proteins, dyes and area
+proteins_features_plots <- generate_feature_plot(
+  patient_data = patient_1_data,
+  reduction = "umap_proteins",
+  features = c("Mean.PanCK", "Mean.CD45", "Mean.CD68", "Mean.Membrane", "Mean.DAPI", "Area" ),
+  max_cutoff = "q95")
+patient_1_plots <- c(patient_1_plots, proteins_features_plots)
+
+# Generate the color palette for the protein clusters
+this_patient_protein_color_table <- generate_colors_lookup_table(patient_1_data, protein_cluster_var, known_clusters_colors)
+# Spatial plot with clusters colors
+patient_1_plots <- c(patient_1_plots, generate_spatial_plots(
+  patient_1_data,
+  protein_cluster_var,
+  cluster_name = protein_cluster_name,
+  color_lookup_table = this_patient_protein_color_table))
+# Umap plot with clusters colors
+patient_1_plots <- c(patient_1_plots, generate_umap(
+  patient_1_data,
+  protein_cluster_var, 
+  "umap_proteins",
+  cluster_name = protein_cluster_name,
+  color_lookup_table = this_patient_protein_color_table))
+# Remove the color palette for the protein clusters
+rm(this_patient_protein_color_table)
 
 # Remove red blood cells
 patient_1_data <- remove_clusters(patient_1_data, "protein_clusters", c(5))
 
+### UNANOTATED LOUVAIN CLUSTERING ###
 # Analyze RNA data
 patient_1_data <- normalize_cluster_data(patient_1_data)
-patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "rna_louvain_clusters", "umap_rna"))
-patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "rna_louvain_clusters", "RNA"))
+patient_1_plots <- c(patient_1_plots, generate_variance_elbow_plots(patient_1_data, "pca_rna", 50))
+# Generate the colors for the louvain unannotated clusters
+this_patient_louvain_color_table <- generate_colors_lookup_table(patient_1_data, louvain_cluster_var, known_clusters_colors)
+# Spatial plot with louvain clusters colors
+patient_1_plots <- c(patient_1_plots, generate_spatial_plots(
+  patient_1_data,
+  louvain_cluster_var,
+  cluster_name = louvain_cluster_name,
+  color_lookup_table = this_patient_louvain_color_table))
+# Umap plot with louvain clusters colors
+patient_1_plots <- c(patient_1_plots, generate_umap(
+  patient_1_data,
+  louvain_cluster_var, 
+  "umap_rna",
+  cluster_name = louvain_cluster_name,
+  color_lookup_table = this_patient_louvain_color_table))
+# Heatmap of the louvain clusters
+patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(
+  patient_1_data,
+  louvain_cluster_var,
+  "RNA",
+  cluster_name = louvain_cluster_name,
+  color_lookup_table = this_patient_louvain_color_table))
+# Remove the color palette for the louvain clusters
+rm(this_patient_louvain_color_table)
 
+### UNANNOTATED INSITUTYPE CLUSTERING ###
 # Execute insitutype
 patient_1_ist_semisup <- run_ist_semisup_extract_data(patient_1_data)
-patient_1_data$ist_semisup_clusters <- patient_1_ist_semisup$clust
+patient_1_data[[ist_cluster_var]] <- patient_1_ist_semisup$clust
 # Colors for the ist plots
-ist_color_table <- generate_colors_lookup_table(patient_1_data, "ist_semisup_clusters", known_clusters_colors)
+this_patient_ist_color_table <- generate_colors_lookup_table(patient_1_data, ist_cluster_var, known_clusters_colors)
+# Spatial plot with louvain clusters colors
+patient_1_plots <- c(patient_1_plots, generate_spatial_plots(
+  patient_1_data,
+  ist_cluster_var,
+  cluster_name = ist_cluster_name,
+  color_lookup_table = this_patient_ist_color_table))
 # Generate the umap with the unannotated clusters
-patient_1_plots <- c(patient_1_plots, generate_umap(patient_1_data, "ist_semisup_clusters", "umap_rna", color_table = ist_color_table))
+patient_1_plots <- c(patient_1_plots, generate_umap(
+  patient_1_data,
+  ist_cluster_var,
+  "umap_rna",
+  cluster_name = ist_cluster_name,
+  color_lookup_table = this_patient_ist_color_table))
 # Generate the flightpath plot
-patient_1_plots <- c(patient_1_plots, generate_flightpath(patient_1_ist_semisup, "1", colors = ist_color_table))
+patient_1_plots <- c(patient_1_plots, generate_flightpath(
+  patient_1_ist_semisup,
+  patient_num = "1",
+  color_lookup_table = this_patient_ist_color_table))
 # Generate the heatmap of the non-annotated clusters
-patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(patient_1_data, "ist_semisup_clusters", "RNA"))
+patient_1_plots <- c(patient_1_plots, generate_dyn_text_heatmap(
+  patient_1_data,
+  ist_cluster_var,
+  "RNA",
+  cluster_name = ist_cluster_name,
+  color_lookup_table = this_patient_ist_color_table))
+# Remove the color palette for the ist clusters
+rm(this_patient_ist_color_table)
 
 # Luovain clusters annotations
 patient_1_data$rna_louvain_clusters_ann <- case_match(
@@ -499,8 +591,6 @@ patient_1_data$rna_louvain_clusters_ann <- case_match(
   "6" ~ "T cell",
   "7" ~ "Fibroblast"
 )
-# Generate the louvain clustering plots
-patient_1_plots <- c(patient_1_plots, generate_rna_plots(patient_1_data, "RNA", "rna_louvain_clusters_ann"))
 
 # Annotate the insitutype clusters
 patient_1_data$ist_semisup_clusters_ann <- case_match(
@@ -518,9 +608,12 @@ patient_1_plots <- c(patient_1_plots, generate_clustering_plots(patient_1_data, 
     color_lookup_table = known_clusters_colors))
 patient_1_plots <- c(patient_1_plots, generate_comparison_plots(patient_1_data))
 
-# Cleanup and printing
+# Saving and printing
 patients_rna_data[[1]] <- patient_1_data
 print(patient_1_plots)
+
+# Cleanup
+rm(this_patient_num)
 ```
 
 ::: {.content-hidden}
