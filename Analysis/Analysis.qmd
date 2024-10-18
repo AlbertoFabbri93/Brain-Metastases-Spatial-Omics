@@ -855,6 +855,22 @@ IST_ss_clusters_all_patients <- dittoBarPlot(
   guides(fill = guide_legend(ncol = 2, byrow = TRUE))
 compare_patients_to_save[["InSituType_annotated_clusters_all_patients_barplot"]] <- IST_ss_clusters_all_patients
 
+# Access the metadata from your Seurat object
+metadata <- combined_patients@meta.data
+
+# Calculate the percentages of each cell type per patient
+cell_type_percentage <- metadata %>%
+  group_by(Patient.ID, InSituType_semisup_clusters_annotated) %>%
+  summarise(CellCount = n()) %>%
+  mutate(Percentage = (CellCount / sum(CellCount)) * 100) %>%
+  ungroup()
+
+# Create a new dataframe to write to Excel
+cell_type_percentage_df <- as.data.frame(cell_type_percentage)
+library(openxlsx)
+# Write the result to an Excel file
+write.xlsx(cell_type_percentage_df, file = "Insitutype_cell_type_percentages_per_patient.xlsx")
+
 # Plot a barplot comparing the RNA clusters of all patients
 barplot_RNA_ann_var = "RNA_clusters_annotated"
 barplot_RNA_ann_color_lookup_table <- generate_colors_lookup_table(combined_patients, barplot_RNA_ann_var, known_clusters_colors)
