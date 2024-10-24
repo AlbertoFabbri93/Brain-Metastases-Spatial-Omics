@@ -834,6 +834,30 @@ for (i in 2:length(patients_rna_data)) {
   combined_patients <- merge(combined_patients, y = seurat_obj, merge.data = TRUE)
 }
 
+# Function to extract only the counts and metadata from a Seurat object
+seurat_only_counts_and_metadata <- function(seurat_obj) {
+  seurat_obj_metadata <- seurat_obj@meta.data
+  seurat_obj_project <- seurat_obj@project.name
+  export = CreateSeuratObject(counts = LayerData(seurat_obj, assay = "RNA", layer = "counts"), project = seurat_obj_project, meta.data = seurat_obj_metadata)
+}
+
+# Apply the function to the list of patients Seurat objects
+patients_rna_data_cleaned <- lapply(patients_rna_data, seurat_only_counts_and_metadata)
+
+# Merge the Seurat objects without the red blood cells
+breast_cancer_patients_without_rbc <- merge(
+  x = patients_rna_data_cleaned[[1]],
+  y = patients_rna_data_cleaned[c(2:7)],
+  collapse = FALSE,
+  merge.data = FALSE,
+  merge.dr = FALSE,
+  project = "Breast cancer patients without RBC")
+# Join the layers to have a single count layer
+breast_cancer_patients_without_rbc[["RNA"]] <- JoinLayers(breast_cancer_patients_without_rbc[["RNA"]])
+
+# Create a list of all the cells that are not red blood cells
+rbc_filtered_out <- colnames(breast_cancer_patients_without_rbc)
+
 patient_id_label <- "Patient ID"
 per_cells_label <- "Percent of cells"
 cell_types_label <- "Cell Types"
