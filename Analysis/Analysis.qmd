@@ -38,6 +38,7 @@ library("Seurat")
 library (future, exclude = c("%->%", "%<-%"));
 `%<--%` = future::`%<-%` ;
 `%-->%` = future::`%->%` ;
+options(future.globals.maxSize = 1000 * 1024^2)
 # Parallelize the computation with several worker processes that will run in their own R session
 plan("multisession", workers = 6)
 # Unpack multiple values without temporary variables
