@@ -857,6 +857,8 @@ breast_cancer_patients_without_rbc[["RNA"]] <- JoinLayers(breast_cancer_patients
 
 # Create a list of all the cells that are not red blood cells
 rbc_filtered_out <- colnames(breast_cancer_patients_without_rbc)
+# Save the list of cells that are not red blood cells
+write.csv(rbc_filtered_out, file = here("Analysis", "rbc_filtered_out.csv"), row.names = FALSE)
 
 patient_id_label <- "Patient ID"
 per_cells_label <- "Percent of cells"
